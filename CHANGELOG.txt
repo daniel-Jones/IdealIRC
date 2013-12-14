@@ -1,0 +1,19 @@
+0.0.1 - July 15th 2013
+ * Rewriting from TIRC to IIRC began this date.
+
+
+lavest prioritet MEN SKAL implementeres:
+ - http://ircv3.atheme.org/
+
+
+
+
+Todo
+ * IChanConfig: mode k, l må fullføres. Endring av kanal innstillinger mangler.
+
+Øvrige ting som må gjøres:
+/LIST skal fylles i eget vindu.
+DCC
+MOTD skal åpnes i eget vindu og skrives i status (dette skal være default, men kan skrus av).
+Kanal favoritter, skal åpnes ved tilkopling. Denne baseres på 001 numeric, og kommer før MOTD slik at MOTD boksen vil komme fremst.
+Skripting

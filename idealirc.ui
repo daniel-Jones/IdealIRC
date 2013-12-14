@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>IdealIRC</class>
+ <widget class="QMainWindow" name="IdealIRC">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>809</width>
+    <height>582</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>IdealIRC</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/gfx/icon32x32.png</normaloff>:/gfx/icon32x32.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
+      <widget class="QTreeWidget" name="treeWidget">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="rootIsDecorated">
+        <bool>true</bool>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="animated">
+        <bool>true</bool>
+       </property>
+       <property name="headerHidden">
+        <bool>true</bool>
+       </property>
+       <property name="expandsOnDoubleClick">
+        <bool>true</bool>
+       </property>
+       <column>
+        <property name="text">
+         <string>Window list</string>
+        </property>
+       </column>
+      </widget>
+      <widget class="QMdiArea" name="mdiArea">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+       <property name="viewMode">
+        <enum>QMdiArea::SubWindowView</enum>
+       </property>
+       <property name="documentMode">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>809</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuIIRC">
+    <property name="title">
+     <string>IIRC</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string extracomment="Menubar, tools">Tools</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout_IdealIRC"/>
+   </widget>
+   <addaction name="menuIIRC"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>30</width>
+     <height>30</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionConnect"/>
+   <addaction name="actionOptions"/>
+   <addaction name="actionChannel_favourites"/>
+   <addaction name="actionChannels_list"/>
+   <addaction name="actionScript_Manager"/>
+  </widget>
+  <action name="actionConnect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/toolicons/gfx/connect.png</normaloff>
+     <normalon>:/toolicons/gfx/disconnect.png</normalon>:/toolicons/gfx/connect.png</iconset>
+   </property>
+   <property name="text">
+    <string extracomment="Connect to server (toolbar)">Connect</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/toolicons/gfx/options.png</normaloff>:/toolicons/gfx/options.png</iconset>
+   </property>
+   <property name="text">
+    <string extracomment="Toolbar">Options</string>
+   </property>
+   <property name="toolTip">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionChannels_list">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/toolicons/gfx/chanlist.png</normaloff>:/toolicons/gfx/chanlist.png</iconset>
+   </property>
+   <property name="text">
+    <string extracomment="Toolbar">Channels list</string>
+   </property>
+  </action>
+  <action name="actionChannel_favourites">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/toolicons/gfx/favourites.png</normaloff>:/toolicons/gfx/favourites.png</iconset>
+   </property>
+   <property name="text">
+    <string extracomment="Toolbar">Channel favourites</string>
+   </property>
+  </action>
+  <action name="actionScript_Manager">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string extracomment="Toolbar">Script Manager</string>
+   </property>
+  </action>
+  <action name="actionAbout_IdealIRC">
+   <property name="text">
+    <string>About IdealIRC</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

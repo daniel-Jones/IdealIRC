@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>IWin</class>
+ <widget class="QWidget" name="IWin">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>571</width>
+    <height>395</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout"/>
+   </item>
+  </layout>
+  <action name="actionChannel_settings">
+   <property name="text">
+    <string>Channel settings</string>
+   </property>
+  </action>
+  <action name="actionGive_op">
+   <property name="text">
+    <string>Give op</string>
+   </property>
+  </action>
+  <action name="actionTake_op">
+   <property name="text">
+    <string>Take op</string>
+   </property>
+  </action>
+  <action name="actionGive_voice">
+   <property name="text">
+    <string>Give voice</string>
+   </property>
+  </action>
+  <action name="actionTake_voice">
+   <property name="text">
+    <string>Take voice</string>
+   </property>
+  </action>
+  <action name="actionKick">
+   <property name="text">
+    <string>Kick</string>
+   </property>
+  </action>
+  <action name="actionKick_ban">
+   <property name="text">
+    <string>Kick + ban</string>
+   </property>
+  </action>
+  <action name="nickmenu_Query">
+   <property name="text">
+    <string>Query</string>
+   </property>
+  </action>
+  <action name="nickmenu_Whois">
+   <property name="text">
+    <string>Whois</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

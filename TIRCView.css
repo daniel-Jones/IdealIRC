@@ -1,0 +1,235 @@
+body {
+  background-color: %bgColor;
+
+  /* We should never get use of this but at least it is a readable color */
+  color: %PT_NORMAL;
+
+  /* To be done!
+  background-image: url('%bgImage');
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-position: center center;
+  */
+}
+
+a {
+  color: %linkColor;
+  %linkUnderline
+}
+
+.PT_NORMAL
+{
+  color: %PT_NORMAL;
+}
+
+.PT_LOCALINFO
+{
+  color: %PT_LOCALINFO;
+}
+
+.PT_SERVINFO
+{
+  color: %PT_SERVINFO;
+}
+
+.PT_NOTICE
+{
+  color: %PT_NOTICE;
+}
+
+.PT_ACTION
+{
+  color: %PT_ACTION;
+}
+
+.PT_CTCP
+{
+  color: %PT_CTCP;
+}
+
+.PT_OWNTEXT_BACKGROUND
+{
+  background-color: %PT_OWNTEXT_BACKGROUND;
+}
+
+.PT_OWNTEXT
+{
+  color: %PT_OWNTEXT;
+}
+
+.ctbold
+{
+  font-weight: bold;
+}
+
+.ctunderline
+{
+  text-decoration: underline;
+}
+
+
+
+/* Custom foreground colors */
+
+.cfWhite
+{
+  color: #FFFFFF;
+}
+
+.cfBlack
+{
+  color: #000000;
+}
+
+.cfBlue
+{
+  color: #000084;
+}
+
+.cfGreen
+{
+  color: #008400;
+}
+
+.cfBrightRed
+{
+  color: #FF0000;
+}
+
+.cfRed
+{
+  color: #840000;
+}
+
+.cfMagenta
+{
+  color: #840084;
+}
+
+.cfBrown
+{
+  color: #848400;
+}
+
+.cfYellow
+{
+  color: #FFFF00;
+}
+
+.cfBrightGreen
+{
+  color: #00FF00;
+}
+
+.cfCyan
+{
+  color: #008484;
+}
+
+.cfBrightCyan
+{
+  color: #00FFFF;
+}
+
+.cfBrightBlue
+{
+  color: #0000FF;
+}
+
+.cfBrightMagenta
+{
+  color: #FF00FF;
+}
+
+.cfDarkGray
+{
+  color: #848484;
+}
+
+.cfLightGray
+{
+  color: #C6C6C6;
+}
+
+
+/* Custom background color */
+
+.cbWhite
+{
+  background-color: #FFFFFF;
+}
+
+.cbBlack
+{
+  background-color: #000000;
+}
+
+.cbBlue
+{
+  background-color: #000084;
+}
+
+.cbGreen
+{
+  background-color: #008400;
+}
+
+.cbBrightRed
+{
+  background-color: #FF0000;
+}
+
+.cbRed
+{
+  background-color: #840000;
+}
+
+.cbMagenta
+{
+  background-color: #840084;
+}
+
+.cbBrown
+{
+  background-color: #848400;
+}
+
+.cbYellow
+{
+  background-color: #FFFF00;
+}
+
+.cbBrightGreen
+{
+  background-color: #00FF00;
+}
+
+.cbCyan
+{
+  background-color: #008484;
+}
+
+.cbBrightCyan
+{
+  background-color: #00FFFF;
+}
+
+.cbBrightBlue
+{
+  background-color: #0000FF;
+}
+
+.cbBrightMagenta
+{
+  background-color: #FF00FF;
+}
+
+.cbDarkGray
+{
+  background-color: #848484;
+}
+
+.cbLightGray
+{
+  background-color: #C6C6C6;
+}

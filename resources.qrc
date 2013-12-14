@@ -1,0 +1,31 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>gfx/add.png</file>
+        <file>gfx/edit.png</file>
+        <file>gfx/new.png</file>
+        <file>gfx/open.png</file>
+        <file>gfx/remove.png</file>
+        <file>gfx/save24x.png</file>
+    </qresource>
+    <qresource prefix="/toolicons">
+        <file>gfx/chanlist.png</file>
+        <file>gfx/connect.png</file>
+        <file>gfx/disconnect.png</file>
+        <file>gfx/favourites.png</file>
+        <file>gfx/options.png</file>
+    </qresource>
+    <qresource prefix="/window">
+        <file>gfx/channel.png</file>
+        <file>gfx/custom.png</file>
+        <file>gfx/query.png</file>
+        <file>gfx/status.png</file>
+    </qresource>
+    <qresource prefix="/css">
+        <file>TIRCView.css</file>
+    </qresource>
+    <qresource prefix="/other"/>
+    <qresource prefix="/">
+        <file>gfx/icon16x16.png</file>
+        <file>gfx/icon32x32.png</file>
+    </qresource>
+</RCC>
