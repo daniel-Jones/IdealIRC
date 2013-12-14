@@ -4,8 +4,9 @@ IdealIRC
 Author: Tom-Andre Barstad, 2013
 
 
-Contributors: (Hopefully this list grows)
------------------------------------------
+Contributors:
+-------------
+Hopefully this list grows.
 * Billy Estes (Graphics)
 
 
