@@ -170,32 +170,37 @@ void IdealIRC::subWinClosed(int wid)
     std::cout << "Closing " << sw.widget->objectName().toStdString().c_str() << " (" << wid << ")" << std::endl;
 
     if (sw.type == WT_STATUS) {
-        QList<QMdiSubWindow*> closeList;
-        QHashIterator<int,subwindow_t> i(winlist);
+        // Closing a status window.
+        QList<QMdiSubWindow*> closeList; // List of subwindows for this status to close
+        QHashIterator<int,subwindow_t> i(winlist); // Iterate all windows
         IConnection *con = conlist.value(wid); // Remember window id of status is always equal to connection id. KISS!
         while (i.hasNext()) {
             i.next();
             subwindow_t s = i.value();
+            // This item may not be a subwindow of the status that's closing.
 
             if (s.parent == wid) {
+                // This item is a child of the status
                 closeList.push_back(s.subwin);
                 con->freeWindow( s.widget->objectName() );
             }
-
-            con->freeWindow("STATUS");
-            if (con->isSocketOpen())
-                con->closeConnection();
-            else
-                delete con;
         }
 
+        if (con->isSocketOpen())
+            con->closeConnection(); // Begin closing the socket.
+
+        // Close all its subwindows
         int count = closeList.count()-1;
         std::cout << "  count : " << count << std::endl;
         for (int i = 0; i <= count; i++) {
             QMdiSubWindow *w = closeList.at(i);
-
             w->close();
         }
+
+        con->freeWindow("STATUS"); // Free status window lastly
+        if (! con->isSocketOpen())
+            delete con; // Socket wasn't open, delete connection object
+
     }
 
     else {
