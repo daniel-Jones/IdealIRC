@@ -22,8 +22,11 @@
 #define CONSTANTS_H
 
 /* Version constants */
-#define VERSION_STRING "0.0.1"
-#define VERSION_INTEGER 1
+#define VERSION_STRING "0.0.2"
+#define VERSION_INTEGER 2
+
+/* ONLY enable the below one while developing, to avoid spamming the version server. */
+#define DISABLE_VERSION_CHECKER
 
 //#define IIRC_DEBUG_SCRIPT 1
 //#define IIRC_DEBUG_TWIN 1

@@ -45,7 +45,8 @@ SOURCES += main.cpp\
     unsupportedmodel.cpp \
     iabout.cpp \
     iconfig/iconfigcustomize.cpp \
-    iconfig/colorpickerscene.cpp
+    iconfig/colorpickerscene.cpp \
+    versionchecker.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -67,7 +68,8 @@ HEADERS  += idealirc.h \
     unsupportedmodel.h \
     iabout.h \
     iconfig/iconfigcustomize.h \
-    iconfig/colorpickerscene.h
+    iconfig/colorpickerscene.h \
+    versionchecker.h
 
 FORMS    += idealirc.ui \
     iwin.ui \

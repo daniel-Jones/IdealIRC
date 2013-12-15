@@ -24,6 +24,7 @@
 #include <QMapIterator>
 #include <QDebug>
 #include <QPalette>
+#include <QMessageBox>
 
 #include "idealirc.h"
 #include "ui_idealirc.h"
@@ -58,6 +59,11 @@ IdealIRC::IdealIRC(QWidget *parent) :
     setGeometry(conf.mainWinGeo);
     if (conf.maximized)
       setWindowState(Qt::WindowMaximized);
+
+    connect(&vc, SIGNAL(gotVersion()),
+            this, SLOT(versionReceived()));
+
+    vc.runChecker();
 }
 
 IdealIRC::~IdealIRC()
@@ -567,4 +573,14 @@ void IdealIRC::on_actionAbout_IdealIRC_triggered()
 {
     IAbout *a = new IAbout(this);
     a->show();
+}
+
+void IdealIRC::versionReceived()
+{
+    if (vc.getInternVersion() != VERSION_INTEGER) {
+        QString msg = QString("A new version is released (%1). It is recommended you upgrade!\r\nDownload via the website http://www.idealirc.org/")
+                        .arg(vc.getVersion());
+
+        QMessageBox::information(this, "New version!", msg);
+    }
 }

@@ -34,6 +34,7 @@
 #include "iwin.h"
 #include "iconnection.h"
 #include "iconfig.h"
+#include "versionchecker.h"
 
 namespace Ui {
     class IdealIRC;
@@ -64,6 +65,7 @@ class IdealIRC : public QMainWindow
       int connectionsRemaining; // When closing IIRC we must wait for all connections to close before exiting IIRC. This one counts backwards for each disconneciton.
       bool preventSocketAction; // Used when updating connection toolbutton, when using setChecked it also performs its signal.
       IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
+      VersionChecker vc;
 
   protected:
       void showEvent(QShowEvent *);
@@ -74,6 +76,7 @@ class IdealIRC : public QMainWindow
   public slots:
       int CreateSubWindow(QString name, int type, int parent, bool activate);
       void updateConnectionButton();
+      void versionReceived(); // Released version from website received
 
   private slots:
       void subWinClosed(int wid);
