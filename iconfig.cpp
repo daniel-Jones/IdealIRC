@@ -27,7 +27,8 @@ IConfig::IConfig(config *cfg, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IConfig),
     conf(cfg),
-    wGeneral(NULL)
+    wGeneral(NULL),
+    wCustomize(NULL)
 {
     ui->setupUi(this);
 
@@ -59,6 +60,11 @@ void IConfig::showEvent(QShowEvent *)
         wGeneral = new IConfigGeneral(conf, ui->frame);
         wGeneral->resize(ui->frame->size());
         wGeneral->show();
+    }
+
+    if (wCustomize == NULL) {
+        wCustomize = new IConfigCustomize(conf, ui->frame);
+        wCustomize->resize(ui->frame->size());
     }
 
 }
@@ -93,10 +99,14 @@ void IConfig::buttonMapped(QWidget *btn)
         ui->btPerform->setChecked(true);
 
 
-    if (toolbutton->objectName() != "btCustomize")
+    if (toolbutton->objectName() != "btCustomize") {
         ui->btCustomize->setChecked(false);
-    else
+        wCustomize->hide();
+    }
+    else {
         ui->btCustomize->setChecked(true);
+        wCustomize->show();
+    }
 
 
     if (toolbutton->objectName() != "btLog")
@@ -122,9 +132,17 @@ void IConfig::saveAll()
 
 void IConfig::closeSubWidgets()
 {
-    wGeneral->close();
-    delete wGeneral;
-    wGeneral = NULL;
+    if (wGeneral != NULL) {
+        wGeneral->close();
+        delete wGeneral;
+        wGeneral = NULL;
+    }
+
+    if (wCustomize != NULL) {
+        wCustomize->close();
+        delete wCustomize;
+        wCustomize = NULL;
+    }
 }
 
 void IConfig::on_btnSaveConnect_clicked()

@@ -43,7 +43,9 @@ SOURCES += main.cpp\
     ichanconfig.cpp \
     bantablemodel.cpp \
     unsupportedmodel.cpp \
-    iabout.cpp
+    iabout.cpp \
+    iconfig/iconfigcustomize.cpp \
+    iconfig/colorpickerscene.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -63,14 +65,17 @@ HEADERS  += idealirc.h \
     ichanconfig.h \
     bantablemodel.h \
     unsupportedmodel.h \
-    iabout.h
+    iabout.h \
+    iconfig/iconfigcustomize.h \
+    iconfig/colorpickerscene.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
     iconfig.ui \
     iconfig/iconfiggeneral.ui \
     ichanconfig.ui \
-    iabout.ui
+    iabout.ui \
+    iconfig/iconfigcustomize.ui
 
 RESOURCES += \
     resources.qrc

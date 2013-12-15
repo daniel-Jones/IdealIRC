@@ -31,7 +31,7 @@ class ICommand : public QObject
 {
     Q_OBJECT
 public:
-    explicit ICommand(QObject *parent = 0);
+    explicit ICommand(IConnection *con, QObject *parent = 0);
     void setWinList(QHash<QString,subwindow_t> *wl) { winlist = wl; }
     void setActiveInfo(QString *wn, int *ac) { activeWname = wn; activeConn = ac; }
     void setCid(int *c) { cid = c; }
@@ -54,6 +54,7 @@ private:
     QString *activeWname;
     int *activeConn;
     int *cid;
+    IConnection *connection;
     QString activewin();
     void fault(QString message);
     void echo(QString message, int ptype = PT_NORMAL);

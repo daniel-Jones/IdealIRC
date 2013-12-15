@@ -354,14 +354,19 @@ void IWin::inputEnterPushed()
     std::cout << "ENTER PUSHED " << WindowType << "=\"" << text.toStdString().c_str() << "\"" << std::endl;
 
     if (text.at(0) == '/') {
-        if ((! cmdhndl->parse(text) ) && (connection->isOnline() == true)) {
+        bool commandOk = cmdhndl->parse(text);
+        if ((! commandOk) && (connection->isOnline() == true)) {
             // Run this if we didn't have the command, assume it's on the server.
             sockwrite( text.mid(1) );
         }
 
-        if (! connection->isOnline())
-            print("Not connected to server", PT_LOCALINFO);
+        if ((! commandOk) && (connection->isOnline() == false)) {
+            // We're disconnected and command wasn't found in ICommand.
+            print("Not connected to server.", PT_LOCALINFO);
+        }
 
+        // Do nothing if command wasn't found neither in ICommand or the server.
+        // ICommand returns "Not connected to server" for relevant commands.
         return;
     }
 

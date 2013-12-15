@@ -23,7 +23,9 @@
     <qresource prefix="/css">
         <file>TIRCView.css</file>
     </qresource>
-    <qresource prefix="/other"/>
+    <qresource prefix="/other">
+        <file>gfx/colorpicker.png</file>
+    </qresource>
     <qresource prefix="/">
         <file>gfx/icon16x16.png</file>
         <file>gfx/icon32x32.png</file>

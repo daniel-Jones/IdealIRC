@@ -25,13 +25,20 @@
 #include "iwin.h"
 #include "iconnection.h"
 
-ICommand::ICommand(QObject *parent) :
-    QObject(parent)
+ICommand::ICommand(IConnection *con, QObject *parent) :
+    QObject(parent),
+    connection(con)
 {
 }
 
 bool ICommand::parse(QString command)
 {
+    /*
+        This function must return true if the command was found, even if
+        the command resulted in an error!
+        ONLY return false if the command was not found.
+    */
+
     if (command.at(0) == '/')
         command = command.mid(1);
 
@@ -39,6 +46,10 @@ bool ICommand::parse(QString command)
     QString t1 = token.at(0).toUpper();
 
     if (t1 == "JOIN") {
+        if (! connection->isOnline()) {
+            fault("/Join: Not connected to server.");
+            return true;
+        }
         if (token.count() == 1) {
             fault("/Join: Insufficent parameters.");
             return true;
@@ -53,6 +64,10 @@ bool ICommand::parse(QString command)
     }
 
     if (t1 == "PART") {
+        if (! connection->isOnline()) {
+            fault("/Part: Not connected to server.");
+            return true;
+        }
         if (token.count() == 1) {
             fault("/Part: Insufficent parameters.");
             return true;
@@ -67,6 +82,10 @@ bool ICommand::parse(QString command)
     }
 
     if (t1 == "ME") {
+        if (! connection->isOnline()) {
+            fault("/Me: Not connected to server.");
+            return true;
+        }
         subwindow_t wt = winlist->value(activewin());
         if ((wt.type != WT_CHANNEL) && (wt.type != WT_PRIVMSG)) {
             qDebug() << "/ME FAULTED";
@@ -78,7 +97,57 @@ bool ICommand::parse(QString command)
         return true;
     }
 
-    return false;
+    if (t1 == "MSG") {
+        if (! connection->isOnline()) {
+            fault("/Msg: Not connected to server.");
+            return true;
+        }
+        if (token.count() < 3) {
+            fault("/Msg: Insufficient parameters.");
+            return true;
+        }
+        QString text = command.mid(token[1].length()+5);
+        msg(token[1], text);
+        return true;
+    }
+
+    if (t1 == "NOTICE") {
+        if (! connection->isOnline()) {
+            fault("/Notice: Not connected to server.");
+            return true;
+        }
+        if (token.count() < 3) {
+            fault("/Notice: Insufficient parameters.");
+            return true;
+        }
+        QString text = command.mid(token[1].length()+8);
+        notice(token[1], text);
+        return true;
+    }
+
+    if ((t1 == "RAW") || (t1 == "QUOTE")) {
+        if (! connection->isOnline()) {
+            fault(  QString("/%1: Not connected to server.")
+                    .arg(t1)
+                  );
+            return true;
+        }
+        if (token.count() < 2) {
+            fault(  QString("/%1: Insufficient parameters.")
+                    .arg(t1)
+                  );
+            return true;
+        }
+        QString c = command.mid(t1.length()+1);
+        sockwrite(c); // Send raw data.
+        echo(  QString("RAW: %1")
+               .arg(c)
+             );
+        return true;
+    }
+
+
+    return false; // Command wasn't found.
 }
 
 void ICommand::join(QString channel, QString password)
@@ -86,7 +155,10 @@ void ICommand::join(QString channel, QString password)
     if (password.length() > 0)
         password.prepend(" :");
 
-    sockwrite("JOIN "+channel+password);
+    sockwrite(  QString("JOIN %1%2")
+                .arg(channel)
+                .arg(password)
+              );
 }
 
 void ICommand::part(QString channel, QString reason)
@@ -94,53 +166,69 @@ void ICommand::part(QString channel, QString reason)
     if (reason.length() > 0)
         reason.prepend(" :");
 
-    sockwrite("PART "+channel+reason);
+    sockwrite(  QString("PART %1%2")
+                .arg(channel)
+                .arg(reason)
+              );
 }
 
 void ICommand::quit(QString reason)
 {
-    sockwrite("QUIT :"+reason);
+    sockwrite(  QString("QUIT :%1")
+                .arg(reason)
+              );
 }
 
 void ICommand::notice(QString target, QString message)
 {
-    sockwrite("NOTICE "+target+" :"+message);
+    sockwrite(  QString("NOTICE %1 :%2")
+                .arg(target)
+                .arg(message)
+              );
 
-    QString text = QString(">%1< %2")
-                   .arg(target).arg(message);
-
-    echo(text, PT_NOTICE);
+    echo(  QString(">%1< %2")
+           .arg(target)
+           .arg(message),
+         PT_NOTICE);
 }
 
 void ICommand::msg(QString target, QString message)
 {
-    sockwrite("MSG "+target+" :"+message);
-    QString text = QString(">%1< %2")
-                   .arg(target).arg(message);
-    echo(text);
+    sockwrite(  QString("PRIVMSG %1 :%2")
+                .arg(target)
+                .arg(message)
+              );
+
+    echo(  QString(">%1< %2")
+           .arg(target)
+           .arg(message)
+         );
 }
 
 void ICommand::ctcp(QString target, QString message)
 {
     message.prepend(0x01);
     message.append(0x01);
-    QString data = QString("PRIVMSG %1 :%2")
-                    .arg(target)
-                    .arg(message);
-    sockwrite(data);
+
+    sockwrite(  QString("PRIVMSG %1 :%2")
+                .arg(target)
+                .arg(message)
+              );
 }
 
 void ICommand::me(QString target, QString message)
 {
-    QString send = QChar(0x01);
-    send.append("ACTION ");
-    send.append(message);
-    send.append(0x01);
+    QString send = QString("%1ACTION %2%3")
+                   .arg( QChar(0x01) )
+                   .arg(message)
+                   .arg( QChar(0x01) );
 
     sockwrite("PRIVMSG " + target + " :" + send);
-    QString text = QString("%1 %2")
-                   .arg(getCurrentNickname()).arg(message);
-    echo(text, PT_ACTION);
+
+    echo(  QString("%1 %2")
+           .arg(getCurrentNickname())
+           .arg(message),
+         PT_ACTION);
 }
 
 

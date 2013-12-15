@@ -18,54 +18,37 @@
  *
  */
 
-#ifndef ICONFIG_H
-#define ICONFIG_H
+#ifndef ICONFIGGENERAL_H
+#define ICONFIGGENERAL_H
 
-#include <QDialog>
-#include <QSignalMapper>
-#include <QShowEvent>
-#include <QCloseEvent>
-#include <QResizeEvent>
+#include <QWidget>
 
 #include "config.h"
-#include "iconfig/iconfiggeneral.h"
-#include "iconfig/iconfigcustomize.h"
+#include "servermgr.h"
 
 namespace Ui {
-class IConfig;
+class IConfigGeneral;
 }
 
-class IConfig : public QDialog
+class IConfigGeneral : public QWidget
 {
     Q_OBJECT
     
-  public:
-    explicit IConfig(config *cfg, QWidget *parent = 0);
-    ~IConfig();
+public:
+    explicit IConfigGeneral(config *cfg, QWidget *parent = 0);
+    ~IConfigGeneral();
+    void saveConfig();
     
-  private:
-    Ui::IConfig *ui;
-    QSignalMapper buttonSignals;
+private slots:
+    void on_btnEditServers_clicked();
+
+    void on_servers_currentIndexChanged(int index);
+
+private:
+    Ui::IConfigGeneral *ui;
     config *conf;
-    IConfigGeneral *wGeneral;
-    IConfigCustomize *wCustomize;
-    void saveAll();
-    void closeSubWidgets();
-
-  private slots:
-    void buttonMapped(QWidget *btn);
-    void on_btnSaveConnect_clicked();
-    void on_btnSaveClose_clicked();
-    void on_btnCancel_clicked();
-
-  protected:
-    void showEvent(QShowEvent *);
-    void closeEvent(QCloseEvent *);
-    void resizeEvent(QResizeEvent *);
-
-  signals:
-    void connectToServer(bool newWindow = false);
-
+    ServerMgr sm;
+    void reloadServerList();
 };
 
-#endif // ICONFIG_H
+#endif // ICONFIGGENERAL_H

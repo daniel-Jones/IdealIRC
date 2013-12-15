@@ -36,6 +36,7 @@ IConnection::IConnection(QObject *parent, int connId, config *cfg) :
     haveExceptionList(false),
     haveInviteList(false),
     FillSettings(false),
+    cmdhndl(this),
     conf(cfg),
     cid(connId),
     active(false),
@@ -185,7 +186,7 @@ void IConnection::onSocketDisconnected()
 void IConnection::closeConnection(bool cc)
 {
     CloseChildren = cc;
-    sockwrite("QUIT :jalla");
+    sockwrite("QUIT :");
 }
 
 
