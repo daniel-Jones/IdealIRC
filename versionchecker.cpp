@@ -17,9 +17,7 @@ VersionChecker::VersionChecker(QObject *parent) :
 
 void VersionChecker::runChecker()
 {
-#ifndef DISABLE_VERSION_CHECKER
     connectToHost("www.idealirc.org", 80);
-#endif
 }
 
 void VersionChecker::socketOpened()

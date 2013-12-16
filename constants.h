@@ -22,11 +22,8 @@
 #define CONSTANTS_H
 
 /* Version constants */
-#define VERSION_STRING "0.0.2"
-#define VERSION_INTEGER 2
-
-/* ONLY enable the below one while developing, to avoid spamming the version server. */
-#define DISABLE_VERSION_CHECKER
+#define VERSION_STRING "0.0.3"
+#define VERSION_INTEGER 3
 
 //#define IIRC_DEBUG_SCRIPT 1
 //#define IIRC_DEBUG_TWIN 1
@@ -35,7 +32,7 @@
 // Define if this compile is a Standalone or Packaged version
 // STANDALONE: .zip'ed IIRC to be used on memory sticks, etc.
 // PACKAGED: Installed IIRC to system and read configs from ~/.idealirc
-#define PACKAGED
+#define STANDALONE
 
 
 // Define system names and OS specifics TIRC supports here.

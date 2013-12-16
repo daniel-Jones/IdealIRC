@@ -72,6 +72,7 @@ class config : public QObject
     bool bgZoomScaled;
     bool linkUnderline;
     bool showWhois;
+    bool checkVersion;
 
     // Colors
     int colDefault;

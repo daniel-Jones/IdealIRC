@@ -63,7 +63,8 @@ IdealIRC::IdealIRC(QWidget *parent) :
     connect(&vc, SIGNAL(gotVersion()),
             this, SLOT(versionReceived()));
 
-    vc.runChecker();
+    if (conf.checkVersion)
+        vc.runChecker();
 }
 
 IdealIRC::~IdealIRC()

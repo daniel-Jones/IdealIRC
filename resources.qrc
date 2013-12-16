@@ -5,7 +5,7 @@
         <file>gfx/new.png</file>
         <file>gfx/open.png</file>
         <file>gfx/remove.png</file>
-        <file>gfx/save24x.png</file>
+        <file>gfx/save.png</file>
     </qresource>
     <qresource prefix="/toolicons">
         <file>gfx/chanlist.png</file>
@@ -29,5 +29,11 @@
     <qresource prefix="/">
         <file>gfx/icon16x16.png</file>
         <file>gfx/icon32x32.png</file>
+    </qresource>
+    <qresource prefix="/options">
+        <file>gfx/customize.png</file>
+        <file>gfx/perform.png</file>
+        <file>gfx/logging.png</file>
+        <file>gfx/settings.png</file>
     </qresource>
 </RCC>

@@ -39,6 +39,8 @@ IConfigGeneral::IConfigGeneral(config *cfg, QWidget *parent) :
     ui->edNickname->setText( conf->nickname );
     ui->edAltNickname->setText( conf->altnick );
 
+    ui->chkCheckVersion->setChecked( conf->checkVersion );
+
     /// Reload the drop down box with servers.ini content
     reloadServerList();
 
@@ -77,6 +79,7 @@ void IConfigGeneral::saveConfig()
     conf->username = ui->edEmail->text();
     conf->nickname = ui->edNickname->text();
     conf->altnick = ui->edAltNickname->text();
+    conf->checkVersion = ui->chkCheckVersion->isChecked();
 
     // We get our server:port|password from the current selected item
     // in our drop down.
