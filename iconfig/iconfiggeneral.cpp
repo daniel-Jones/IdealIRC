@@ -175,7 +175,7 @@ void IConfigGeneral::reloadServerList()
 
 void IConfigGeneral::on_btnEditServers_clicked()
 {
-    QMessageBox::information(this, "Edit servers ...", "Editing of servers is still on the To-do list.", QMessageBox::Ok);
+    se.show();
 }
 
 void IConfigGeneral::on_servers_currentIndexChanged(int index)

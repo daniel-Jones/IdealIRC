@@ -46,7 +46,8 @@ SOURCES += main.cpp\
     iabout.cpp \
     iconfig/iconfigcustomize.cpp \
     iconfig/colorpickerscene.cpp \
-    versionchecker.cpp
+    versionchecker.cpp \
+    iconfig/iservereditor.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -69,7 +70,8 @@ HEADERS  += idealirc.h \
     iabout.h \
     iconfig/iconfigcustomize.h \
     iconfig/colorpickerscene.h \
-    versionchecker.h
+    versionchecker.h \
+    iconfig/iservereditor.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
@@ -77,7 +79,8 @@ FORMS    += idealirc.ui \
     iconfig/iconfiggeneral.ui \
     ichanconfig.ui \
     iabout.ui \
-    iconfig/iconfigcustomize.ui
+    iconfig/iconfigcustomize.ui \
+    iconfig/iservereditor.ui
 
 RESOURCES += \
     resources.qrc

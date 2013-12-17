@@ -1,6 +1,7 @@
 #include "versionchecker.h"
 #include "constants.h"
 #include <QDebug>
+#include <QStringList>
 
 VersionChecker::VersionChecker(QObject *parent) :
     QTcpSocket(parent),

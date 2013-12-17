@@ -18,39 +18,32 @@
  *
  */
 
-#ifndef ICONFIGGENERAL_H
-#define ICONFIGGENERAL_H
+#ifndef ISERVEREDITOR_H
+#define ISERVEREDITOR_H
 
-#include <QWidget>
-
-#include "config.h"
-#include "servermgr.h"
-#include "iconfig/iservereditor.h"
+#include <QDialog>
+#include <QMenu>
 
 namespace Ui {
-class IConfigGeneral;
+class IServerEditor;
 }
 
-class IConfigGeneral : public QWidget
+class IServerEditor : public QDialog
 {
     Q_OBJECT
-    
-public:
-    explicit IConfigGeneral(config *cfg, QWidget *parent = 0);
-    ~IConfigGeneral();
-    void saveConfig();
-    
-private slots:
-    void on_btnEditServers_clicked();
 
-    void on_servers_currentIndexChanged(int index);
+public:
+    explicit IServerEditor(QWidget *parent = 0);
+    ~IServerEditor();
+
+private slots:
+    void on_btnNew_clicked();
 
 private:
-    Ui::IConfigGeneral *ui;
-    config *conf;
-    ServerMgr sm;
-    IServerEditor se;
-    void reloadServerList();
+    Ui::IServerEditor *ui;
+    QMenu MenuNew;
+    QMenu MenuNewServer;
+
 };
 
-#endif // ICONFIGGENERAL_H
+#endif // ISERVEREDITOR_H

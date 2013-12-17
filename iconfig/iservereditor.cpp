@@ -18,39 +18,35 @@
  *
  */
 
-#ifndef ICONFIGGENERAL_H
-#define ICONFIGGENERAL_H
+#include <QPoint>
 
-#include <QWidget>
+#include "iservereditor.h"
+#include "ui_iservereditor.h"
 
-#include "config.h"
-#include "servermgr.h"
-#include "iconfig/iservereditor.h"
+IServerEditor::IServerEditor(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::IServerEditor)
+{
+    ui->setupUi(this);
 
-namespace Ui {
-class IConfigGeneral;
+    MenuNewServer.setTitle("New server");
+    MenuNewServer.addAction(ui->actionNewServerNetwork);
+    MenuNewServer.addAction(ui->actionNewServerNoNetwork);
+
+    MenuNew.addAction(ui->actionNewNetwork);
+    MenuNew.addSeparator();
+    MenuNew.addMenu(&MenuNewServer);
 }
 
-class IConfigGeneral : public QWidget
+IServerEditor::~IServerEditor()
 {
-    Q_OBJECT
-    
-public:
-    explicit IConfigGeneral(config *cfg, QWidget *parent = 0);
-    ~IConfigGeneral();
-    void saveConfig();
-    
-private slots:
-    void on_btnEditServers_clicked();
+    delete ui;
+}
 
-    void on_servers_currentIndexChanged(int index);
+void IServerEditor::on_btnNew_clicked()
+{
+    QPoint p(0, ui->btnNew->height());
+    QPoint pos = ui->btnNew->mapToGlobal(p);
 
-private:
-    Ui::IConfigGeneral *ui;
-    config *conf;
-    ServerMgr sm;
-    IServerEditor se;
-    void reloadServerList();
-};
-
-#endif // ICONFIGGENERAL_H
+    MenuNew.popup(pos);
+}
