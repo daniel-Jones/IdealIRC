@@ -23,6 +23,7 @@
 
 #include <QDialog>
 #include <QMenu>
+#include "servereditor/servertreemodel.h"
 
 namespace Ui {
 class IServerEditor;
@@ -43,6 +44,7 @@ private:
     Ui::IServerEditor *ui;
     QMenu MenuNew;
     QMenu MenuNewServer;
+    ServerTreeModel model;
 
 };
 

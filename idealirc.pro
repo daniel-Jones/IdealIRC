@@ -47,7 +47,9 @@ SOURCES += main.cpp\
     iconfig/iconfigcustomize.cpp \
     iconfig/colorpickerscene.cpp \
     versionchecker.cpp \
-    iconfig/iservereditor.cpp
+    iconfig/iservereditor.cpp \
+    iconfig/servereditor/servertreeitem.cpp \
+    iconfig/servereditor/servertreemodel.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -71,7 +73,9 @@ HEADERS  += idealirc.h \
     iconfig/iconfigcustomize.h \
     iconfig/colorpickerscene.h \
     versionchecker.h \
-    iconfig/iservereditor.h
+    iconfig/iservereditor.h \
+    iconfig/servereditor/servertreeitem.h \
+    iconfig/servereditor/servertreemodel.h
 
 FORMS    += idealirc.ui \
     iwin.ui \

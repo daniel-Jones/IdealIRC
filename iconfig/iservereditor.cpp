@@ -36,6 +36,8 @@ IServerEditor::IServerEditor(QWidget *parent) :
     MenuNew.addAction(ui->actionNewNetwork);
     MenuNew.addSeparator();
     MenuNew.addMenu(&MenuNewServer);
+
+    ui->serverView->setModel(&model);
 }
 
 IServerEditor::~IServerEditor()
