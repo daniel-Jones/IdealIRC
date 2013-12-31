@@ -830,7 +830,7 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
   skip += token.at(1).length() + 1;
   skip += token.at(2).length() + 1;
 
-  QString text = text.mid(skip);
+  QString text = data.mid(skip);
 
   if (text.at(0) == ':')
     text = text.mid(1);

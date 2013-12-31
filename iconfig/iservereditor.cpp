@@ -19,6 +19,7 @@
  */
 
 #include <QPoint>
+#include <QMessageBox>
 
 #include "iservereditor.h"
 #include "ui_iservereditor.h"
@@ -51,4 +52,40 @@ void IServerEditor::on_btnNew_clicked()
     QPoint pos = ui->btnNew->mapToGlobal(p);
 
     MenuNew.popup(pos);
+}
+
+void IServerEditor::on_btnDelete_clicked()
+{
+
+}
+
+void IServerEditor::on_actionNewNetwork_triggered()
+{
+    QStringList netlist = smgr.networkList();
+
+    // Generate a simple new name, like Network_2
+    QString newname;
+
+    for (int i = 0;i <= 1000; i++) {
+        // it's unlikely any user would have 1000 different networks
+        // named Network_0 Network_1 ...
+        newname = QString("Network_%1")
+                  .arg(QString::number(i));
+
+        if (! netlist.contains(newname, Qt::CaseInsensitive))
+            break;
+    }
+
+    // ---
+
+    if (! smgr.newNetwork(newname))
+        QMessageBox::warning(this, tr("Cannot add network"), tr("Network already exsist"));
+
+}
+
+void IServerEditor::on_actionNewServerNetwork_triggered()
+{
+    const QItemSelectionModel *sel = ui->serverView->selectionModel();
+
+
 }

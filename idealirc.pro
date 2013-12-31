@@ -31,7 +31,7 @@ SOURCES += main.cpp\
     iwin.cpp \
     tircview.cpp \
     config.cpp \
-    qinifile.cpp \
+    inifile.cpp \
     tpicturewindow.cpp \
     qmylineedit.cpp \
     qmylistwidget.cpp \
@@ -56,7 +56,7 @@ HEADERS  += idealirc.h \
     constants.h \
     tircview.h \
     config.h \
-    qinifile.h \
+    inifile.h \
     tpicturewindow.h \
     qmylistwidget.h \
     qmylineedit.h \

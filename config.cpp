@@ -37,7 +37,7 @@ config::config(QObject *parent) :
         QDir().mkdir(CONF_PATH);
 #endif
 
-    ini = new QIniFile(CONF_FILE);
+    ini = new IniFile(CONF_FILE);
 }
 
 config::~config()

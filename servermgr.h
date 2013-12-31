@@ -25,19 +25,32 @@
 #include <QStringList>
 #include <QHash>
 
-#include "qinifile.h"
+#include "inifile.h"
 
 class ServerMgr : public QObject
 {
     Q_OBJECT
 public:
     explicit ServerMgr(QObject *parent = 0);
+    // All networks in a string list (Also counts in the NONE network)
     QStringList networkList();
+    // All servers from a network in a hash map <"name","server:port|passwd">
     QHash<QString,QString> serverList(QString network);
+    // Return default server of given network (The "NONE" network have no default!) - returns empty if no default server is set.
     QString defaultServer(QString network);
+    // Add new network to servers.ini - returns false if network exist
+    bool newNetwork(QString name);
+    // Rename a network - returns false if new network name already exist
+    bool renameNetwork(QString o_name, QString n_name);
+    // Delete network - false if network didn't exsist (useless result?)
+    bool delNetwork(QString name, bool servers = false);
+    // Add a server to network - returns false if name already exsist
+    bool addServer(QString name, QString host /*host:port*/, QString pw, QString network = "NONE");
+    // Delete a server from network - false if network or server didn't exist
+    bool delServer(QString name, QString network = "NONE");
 
 private:
-    QIniFile ini;
+    IniFile ini;
     
 };
 

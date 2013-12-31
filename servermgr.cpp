@@ -29,7 +29,6 @@ ServerMgr::ServerMgr(QObject *parent) :
 {
 }
 
-// Returns a QStringList of sections found in servers.ini (Also counts the None section)
 QStringList ServerMgr::networkList()
 {
     int count = ini.CountSections();
@@ -41,7 +40,6 @@ QStringList ServerMgr::networkList()
     return r;
 }
 
-// Returns a QHash mapped server name with the details, server:port|passwd
 QHash<QString,QString> ServerMgr::serverList(QString network)
 {
     int count = ini.CountItems(network);
@@ -51,7 +49,7 @@ QHash<QString,QString> ServerMgr::serverList(QString network)
         QString servername = ini.ReadIniItem(network, i);
         QString serverdetails = ini.ReadIni(network, i);
 
-        // Insert multi in case someone adds a server with same name in the list.
+        // Insert multi in case someone adds a server with same name in the list (f.ex. via editing servers.ini)
         r.insertMulti(servername, serverdetails);
 
     }
@@ -59,8 +57,32 @@ QHash<QString,QString> ServerMgr::serverList(QString network)
     return r;
 }
 
-// Returns a string of the "default server" of the IRC network. May return empty.
 QString ServerMgr::defaultServer(QString network)
 {
     return ini.ReadIni(network, "DEFAULT");
+}
+
+bool ServerMgr::newNetwork(QString name)
+{
+
+}
+
+bool ServerMgr::renameNetwork(QString o_name, QString n_name)
+{
+
+}
+
+bool ServerMgr::delNetwork(QString name, bool servers)
+{
+
+}
+
+bool ServerMgr::addServer(QString name, QString host, QString pw, QString network)
+{
+
+}
+
+bool ServerMgr::delServer(QString name, QString networ)
+{
+
 }

@@ -20,9 +20,9 @@
 
 #include <QStringList>
 #include <iostream>
-#include "qinifile.h"
+#include "inifile.h"
 
-QIniFile::QIniFile(QString filename, QObject *parent) :
+IniFile::IniFile(QString filename, QObject *parent) :
     QObject(parent)
 {
   file = new QFile(filename);
@@ -47,7 +47,7 @@ int CountSections() - Returns number of all sections
 QString SectionName(int SectionPos) - Return name of section at position
 */
 
-void QIniFile::clearNewline(char *data)
+void IniFile::clearNewline(char *data)
 {
   int i  = 0;
   while (true) {
@@ -66,7 +66,7 @@ void QIniFile::clearNewline(char *data)
   }
 }
 
-QString QIniFile::ReadIni(QString Section, QString Item)
+QString IniFile::ReadIni(QString Section, QString Item)
 {
   if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
     return QString();
@@ -101,7 +101,7 @@ QString QIniFile::ReadIni(QString Section, QString Item)
   return "";
 }
 
-QString QIniFile::ReadIni(QString Section, int ItemPos)
+QString IniFile::ReadIni(QString Section, int ItemPos)
 {
   if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
     return QString();
@@ -144,7 +144,7 @@ QString QIniFile::ReadIni(QString Section, int ItemPos)
   return "";
 }
 
-QString QIniFile::ReadIni(int SectionPos)
+QString IniFile::ReadIni(int SectionPos)
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
         return QString();
@@ -177,7 +177,7 @@ QString QIniFile::ReadIni(int SectionPos)
     return QString();
 }
 
-QString QIniFile::ReadIniItem(QString Section, int ItemPos)
+QString IniFile::ReadIniItem(QString Section, int ItemPos)
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
         return QString();
@@ -220,7 +220,7 @@ QString QIniFile::ReadIniItem(QString Section, int ItemPos)
     return "";
 }
 
-bool QIniFile::WriteIni(QString Section, QString Item, QString Value)
+bool IniFile::WriteIni(QString Section, QString Item, QString Value)
 {
   Section.prepend('[');
   Section.append(']');
@@ -301,7 +301,7 @@ bool QIniFile::WriteIni(QString Section, QString Item, QString Value)
   return true;
 }
 
-int QIniFile::CountItems(QString Section)
+int IniFile::CountItems(QString Section)
 {
   if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
     return 0;
@@ -340,7 +340,7 @@ int QIniFile::CountItems(QString Section)
   return count;
 }
 
-int QIniFile::CountSections()
+int IniFile::CountSections()
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
       return false;
@@ -363,7 +363,7 @@ int QIniFile::CountSections()
     return count;
 }
 
-bool QIniFile::DelSection(QString Section)
+bool IniFile::DelSection(QString Section)
 {
   Section.prepend('[');
   Section.append(']');
@@ -417,7 +417,7 @@ bool QIniFile::DelSection(QString Section)
   return true;
 }
 
-bool QIniFile::DelIni(QString Section, QString Item)
+bool IniFile::DelIni(QString Section, QString Item)
 {
   Section.prepend('[');
   Section.append(']');
@@ -485,13 +485,40 @@ bool QIniFile::DelIni(QString Section, QString Item)
   for (int i = 0; i <= sl.count()-1; i++) {
     QByteArray out;
     out.append(sl.at(i));
-    #ifdef Q_WS_X11
-      out.append("\n");
-    #else
-      out.append("\r\n");
-    #endif
+    out.append("\n");
     file->write(out);
   }
   file->close();
   return true;
+}
+
+bool IniFile::SectionExists(QString section)
+{
+    QString s = QString("[%1]")
+                .arg(section);
+
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+      return false;
+
+    char d[64];
+    while (file->readLine(d, 64) > -1)
+        if (s.toUpper() == QString(d).toUpper())
+            return true;
+
+    file->close();
+    return false;
+}
+
+bool IniFile::AppendSection(QString Section)
+{
+    if (! file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+      return false;
+
+    if (SectionExists(Section))
+        return false;
+
+    QString out = QString("[%1]\n")
+                   .arg(Section);
+    file->write(out.toLocal8Bit());
+    return true;
 }

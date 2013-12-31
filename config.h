@@ -31,7 +31,7 @@
 #include <QImage>
 #include <QRect>
 #include <QColor>
-#include "qinifile.h"
+#include "inifile.h"
 
 class config : public QObject
 {
@@ -42,7 +42,7 @@ class config : public QObject
     ~config();
     void rehash();
     void save();
-    QIniFile *ini;
+    IniFile *ini;
     QRect mainWinGeo;
     bool maximized;
     QString nickname;

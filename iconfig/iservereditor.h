@@ -24,6 +24,7 @@
 #include <QDialog>
 #include <QMenu>
 #include "servereditor/servertreemodel.h"
+#include "servermgr.h"
 
 namespace Ui {
 class IServerEditor;
@@ -40,11 +41,16 @@ public:
 private slots:
     void on_btnNew_clicked();
 
+    void on_btnDelete_clicked();
+
+    void on_actionNewNetwork_triggered();
+
 private:
     Ui::IServerEditor *ui;
     QMenu MenuNew;
     QMenu MenuNewServer;
     ServerTreeModel model;
+    ServerMgr smgr;
 
 };
 

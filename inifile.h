@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef QINIFILE_H
-#define QINIFILE_H
+#ifndef INIFILE_H
+#define INIFILE_H
 
 #include <QObject>
 #include <QFile>
@@ -44,21 +44,22 @@ QString ReadIni(int SectionPos) - Returns section name
 QString ReadIniItem(QString Section, int ItemPos)
 bool DelIni(QString Section, QString Item) - Delete item from section
 bool WriteIni(QString Section, QString Item, QString Value) - Returns true when its ok, false otherwise
-bool SectionExists(QString section) - Returns true when it exists, false otherwise
+bool SectionExists(QString Section) - Returns true when it exists, false otherwise
 int CountItems(QString section) - Returns number of items in a section
 int CountSections() - Returns number of all sections
+bool AppendSection(QString Section) - Create new section, return false if it exsist
 QString SectionName(int SectionPos) - Return name of section at position
 
 Upon destroy, clear pointer data.
 **/
 
-class QIniFile : public QObject
+class IniFile : public QObject
 {
   Q_OBJECT
 
   public:
-    explicit QIniFile(QString filename, QObject *parent = 0);
-    ~QIniFile() { delete file; }
+    explicit IniFile(QString filename, QObject *parent = 0);
+    ~IniFile() { delete file; }
     QString ReadIni(QString Section, QString Item);
     QString ReadIni(QString Section, int ItemPos);
     QString ReadIni(int SectionPos);
@@ -68,6 +69,8 @@ class QIniFile : public QObject
     int CountSections();
     bool DelSection(QString Section);
     bool DelIni(QString Section, QString Item);
+    bool SectionExists(QString section);
+    bool AppendSection(QString Section);
 
   private:
     void clearNewline(char *data);
@@ -75,4 +78,4 @@ class QIniFile : public QObject
 
 };
 
-#endif // QINIFILE_H
+#endif // INIFILE_H
