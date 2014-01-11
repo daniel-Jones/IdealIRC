@@ -48,7 +48,12 @@ public:
     bool addServer(QString name, QString host /*host:port*/, QString pw, QString network = "NONE");
     // Delete a server from network - false if network or server didn't exist
     bool delServer(QString name, QString network = "NONE");
-
+    // Check of we have the given network name
+    bool hasNetwork(QString name);
+    // Check if we have the given server name inside the network
+    bool hasServer(QString name, QString network = "NONE");
+    // Get server details
+    QString getServerDetails(QString name, QString network = "NONE");
 private:
     IniFile ini;
     

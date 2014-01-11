@@ -71,6 +71,7 @@ class IniFile : public QObject
     bool DelIni(QString Section, QString Item);
     bool SectionExists(QString section);
     bool AppendSection(QString Section);
+    bool RenameSection(QString OldName, QString NewName);
 
   private:
     void clearNewline(char *data);

@@ -20,17 +20,19 @@
 
 #include <QPoint>
 #include <QMessageBox>
+#include <QDebug>
 
 #include "iservereditor.h"
 #include "ui_iservereditor.h"
 
 IServerEditor::IServerEditor(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::IServerEditor)
+    ui(new Ui::IServerEditor),
+    selNetwork("NONE")
 {
     ui->setupUi(this);
 
-    MenuNewServer.setTitle("New server");
+    MenuNewServer.setTitle(tr("New server"));
     MenuNewServer.addAction(ui->actionNewServerNetwork);
     MenuNewServer.addAction(ui->actionNewServerNoNetwork);
 
@@ -39,6 +41,10 @@ IServerEditor::IServerEditor(QWidget *parent) :
     MenuNew.addMenu(&MenuNewServer);
 
     ui->serverView->setModel(&model);
+    selection = ui->serverView->selectionModel();
+
+    connect(selection, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
+            this, SLOT(selectionRowChanged(QModelIndex,QModelIndex)));
 }
 
 IServerEditor::~IServerEditor()
@@ -78,14 +84,63 @@ void IServerEditor::on_actionNewNetwork_triggered()
 
     // ---
 
-    if (! smgr.newNetwork(newname))
+    if (! smgr.newNetwork(newname)) {
         QMessageBox::warning(this, tr("Cannot add network"), tr("Network already exsist"));
-
+        return;
+    }
+    smgr.newNetwork(newname);
 }
 
 void IServerEditor::on_actionNewServerNetwork_triggered()
 {
-    const QItemSelectionModel *sel = ui->serverView->selectionModel();
+    /*
+    qDebug() << "---";
+    qDebug() << "Current network=" << selNetwork;
+    qDebug() << "Current server=" << selServer;
+    qDebug() << "---";
+*/
 
 
 }
+
+void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModelIndex& previous)
+{
+    int row = current.row();
+
+    QModelIndex index = model.index(row, 0, current.parent());
+    QString name = index.data().toString();
+    QString pname = current.parent().data().toString();
+
+    ui->edName->setText(name);
+
+    if (pname.length() == 0) {
+        // This indicates we either click on a network name or a server within NONE section. Check this...
+        if (smgr.hasNetwork(name)) {
+            // Clicked on a network, get the value of DEFAULT
+            QString data = smgr.defaultServer(name);
+            ui->edServer->setText(data);
+            selNetwork = name;
+            selServer = "DEFAULT";
+        }
+        else if (smgr.hasServer(name)) {
+            // Clicked on a server in the NONE section, get the value of "name"
+            QString data = smgr.getServerDetails(name);
+            ui->edServer->setText(data);
+            selNetwork = "NONE";
+            selServer = name;
+        }
+        else {
+            QMessageBox::warning(this, tr("Error"), tr("Malfunctioned servers.ini"));
+            return;
+        }
+    }
+    else {
+        // This indicates we clicked inside a network parent
+        QString data = smgr.getServerDetails(name, pname);
+        ui->edServer->setText(data);
+        selNetwork = pname;
+        selServer = name;
+
+    }
+}
+

@@ -64,25 +64,81 @@ QString ServerMgr::defaultServer(QString network)
 
 bool ServerMgr::newNetwork(QString name)
 {
+    if (name == "NONE")
+        return false;
 
+    return ini.AppendSection(name);
 }
 
 bool ServerMgr::renameNetwork(QString o_name, QString n_name)
 {
-
+    if ((o_name == "NONE") || (n_name == "NONE"))
+        return false;
+    return ini.RenameSection(o_name, n_name);
 }
 
 bool ServerMgr::delNetwork(QString name, bool servers)
 {
+    // If servers=true, we will keep the servers by moving them to the NONE section.
+    // Any servers which got a name exsisting in the NONE, will be renamed to oldnetname_servername.
 
+    if (! ini.SectionExists(name))
+        return false;
+
+    if (servers == true) {
+        int max = ini.CountItems(name);
+        for (int i = 1; i <= max; i++) {
+            QString item = ini.ReadIniItem(name, i);
+            QString value = ini.ReadIni(name, i);
+
+            QString e_item = ini.ReadIni("NONE", item);
+            if (e_item.length() > 0) // item exsists in NONE
+                item.prepend(name+"_");
+
+            ini.WriteIni("NONE", item, value);
+        }
+    }
+
+    ini.DelSection(name);
+
+    return true;
 }
 
 bool ServerMgr::addServer(QString name, QString host, QString pw, QString network)
 {
+    if (pw.length() > 0)
+        pw.prepend('|');
+    QString detail = QString("%1%2")
+                     .arg(host)
+                     .arg(pw);
 
+    if ((! ini.SectionExists(network)) && (network != "NONE"))
+        return false;
+
+    ini.WriteIni(network, name, detail);
+    return true;
 }
 
-bool ServerMgr::delServer(QString name, QString networ)
+bool ServerMgr::delServer(QString name, QString network)
 {
+    return ini.DelIni(network, name);
+}
 
+bool ServerMgr::hasNetwork(QString name)
+{
+    return ini.SectionExists(name);
+}
+
+bool ServerMgr::hasServer(QString name, QString network)
+{
+    QString data = ini.ReadIni(network, name);
+    if (data.length() > 0)
+        return true;
+    else
+        return false;
+}
+
+QString ServerMgr::getServerDetails(QString name, QString network)
+{
+    return ini.ReadIni(network, name);
 }

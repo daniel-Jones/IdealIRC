@@ -127,8 +127,8 @@ void ServerTreeModel::setupModelData(ServerTreeItem *parent)
     ServerMgr smgr;
     QStringList netlist = smgr.networkList();
 
-    if (netlist.contains("None")) { // "None" network is a section with servers not assigned to a network.
-        QHash<QString,QString> sl = smgr.serverList("None");
+    if (netlist.contains("NONE")) { // "None" network is a section with servers not assigned to a network.
+        QHash<QString,QString> sl = smgr.serverList("NONE");
         QHashIterator<QString,QString> i(sl);
         while (i.hasNext()) {
             i.next();
@@ -151,7 +151,7 @@ void ServerTreeModel::setupModelData(ServerTreeItem *parent)
 
     for (int i = 0; i <= netlist.count()-1; ++i) {
 
-        if (netlist[i] == "None")
+        if (netlist[i] == "NONE")
             continue; // The "None" network already taken care of - ignore.
 
         QList<QVariant> netparentData;

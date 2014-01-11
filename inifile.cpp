@@ -71,8 +71,9 @@ QString IniFile::ReadIni(QString Section, QString Item)
   if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
     return QString();
 
-  Section.prepend('[');
-  Section.append(']');
+  Section = QString("[%1]")
+            .arg(Section);
+
   Item.append('=');
 
   char buf[1024];
@@ -103,11 +104,13 @@ QString IniFile::ReadIni(QString Section, QString Item)
 
 QString IniFile::ReadIni(QString Section, int ItemPos)
 {
+  // POSITION BEGINS AT 1.
+
   if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
     return QString();
 
-  Section.prepend('[');
-  Section.append(']');
+  Section = QString("[%1]")
+            .arg(Section);
 
   char buf[1024];
   memset(buf, 0, sizeof(buf));
@@ -182,8 +185,8 @@ QString IniFile::ReadIniItem(QString Section, int ItemPos)
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
         return QString();
 
-    Section.prepend('[');
-    Section.append(']');
+    Section = QString("[%1]")
+              .arg(Section);
 
     char buf[1024];
     memset(buf, 0, sizeof(buf));
@@ -222,8 +225,9 @@ QString IniFile::ReadIniItem(QString Section, int ItemPos)
 
 bool IniFile::WriteIni(QString Section, QString Item, QString Value)
 {
-  Section.prepend('[');
-  Section.append(']');
+  Section = QString("[%1]")
+            .arg(Section);
+
   Item.append('=');
 
   QStringList sl;
@@ -307,8 +311,8 @@ int IniFile::CountItems(QString Section)
     return 0;
 
 
-  Section.prepend('[');
-  Section.append(']');
+  Section = QString("[%1]")
+            .arg(Section);
 
   char buf[1024];
   memset(buf, 0, sizeof(buf));
@@ -365,8 +369,8 @@ int IniFile::CountSections()
 
 bool IniFile::DelSection(QString Section)
 {
-  Section.prepend('[');
-  Section.append(']');
+  Section = QString("[%1]")
+            .arg(Section);
 
   QStringList sl;
   char buf[1024];
@@ -406,11 +410,7 @@ bool IniFile::DelSection(QString Section)
   for (int i = 0; i <= sl.count()-1; i++) {
     QByteArray out;
     out.append(sl.at(i));
-    #ifdef Q_WS_X11
-      out.append("\n");
-    #else
-      out.append("\r\n");
-    #endif
+    out.append("\n");
     file->write(out);
   }
   file->close();
@@ -419,8 +419,9 @@ bool IniFile::DelSection(QString Section)
 
 bool IniFile::DelIni(QString Section, QString Item)
 {
-  Section.prepend('[');
-  Section.append(']');
+  Section = QString("[%1]")
+          .arg(Section);
+
   Item.append('=');
 
   QStringList sl;
@@ -501,9 +502,15 @@ bool IniFile::SectionExists(QString section)
       return false;
 
     char d[64];
-    while (file->readLine(d, 64) > -1)
-        if (s.toUpper() == QString(d).toUpper())
+    memset(d, 0, 64);
+    while (file->readLine(d, 64) > -1) {
+        clearNewline(d);
+        QString ln(d);
+        if (s.toUpper() == ln.toUpper()) {
+            file->close();
             return true;
+        }
+    }
 
     file->close();
     return false;
@@ -520,5 +527,63 @@ bool IniFile::AppendSection(QString Section)
     QString out = QString("[%1]\n")
                    .arg(Section);
     file->write(out.toLocal8Bit());
+    return true;
+}
+
+bool IniFile::RenameSection(QString OldName, QString NewName)
+{
+    OldName = QString("[%1]")
+            .arg(OldName);
+
+    NewName = QString("[%1]")
+            .arg(NewName);
+
+    QStringList sl;
+
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    bool finished = false;
+
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+      return false;
+
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+      clearNewline(buf);
+      QString line(buf);
+
+      if (line == "")
+        continue;
+
+      sl.append(line);
+
+      if (finished)
+        continue;
+
+      if (line == OldName) {
+          sl.append(NewName);
+          finished = true;
+      }
+
+    }
+
+    if (finished == false) {
+      // Section weren't found, just stop.
+      file->close();
+      return false;
+    }
+
+
+
+    file->close();
+    if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+      return false;
+
+    for (int i = 0; i <= sl.count()-1; i++) {
+      QByteArray out;
+      out.append(sl.at(i));
+      out.append("\n");
+      file->write(out);
+    }
+    file->close();
     return true;
 }

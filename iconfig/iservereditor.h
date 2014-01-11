@@ -23,6 +23,7 @@
 
 #include <QDialog>
 #include <QMenu>
+#include <QItemSelectionModel>
 #include "servereditor/servertreemodel.h"
 #include "servermgr.h"
 
@@ -40,10 +41,10 @@ public:
 
 private slots:
     void on_btnNew_clicked();
-
     void on_btnDelete_clicked();
-
     void on_actionNewNetwork_triggered();
+    void on_actionNewServerNetwork_triggered();
+    void selectionRowChanged(const QModelIndex& current, const QModelIndex& previous);
 
 private:
     Ui::IServerEditor *ui;
@@ -51,6 +52,9 @@ private:
     QMenu MenuNewServer;
     ServerTreeModel model;
     ServerMgr smgr;
+    QItemSelectionModel *selection; // Selection model for the QTreeView in UI.
+    QString selNetwork; // Current network we're in
+    QString selServer; // Current server name we're on
 
 };
 

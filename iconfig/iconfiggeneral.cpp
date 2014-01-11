@@ -51,10 +51,10 @@ IConfigGeneral::IConfigGeneral(config *cfg, QWidget *parent) :
     // If nothing is defined in the iirc.ini, use the selected item in drop down.
     if (conf->server == ":") { // Empty server set
 
-        // If drop down is empty, use "None" as server value. User cannot continue
+        // If drop down is empty, use "NONE" as server value. User cannot continue
         // before adding any servers.
         if (ui->servers->count() == 0)
-            lbServer = "None";
+            lbServer = "NONE";
         else {
             lbServer = ui->servers->itemData( ui->servers->currentIndex() ).toString();
             lbServer = lbServer.split('|').at(0);
@@ -110,7 +110,7 @@ void IConfigGeneral::reloadServerList()
     bold.setBold(true);
 
     // The "None" network
-    QHash<QString,QString> servers = sm.serverList("None");
+    QHash<QString,QString> servers = sm.serverList("NONE");
     QHashIterator<QString,QString> si(servers);
     while (si.hasNext()) {
         si.next();
@@ -131,7 +131,7 @@ void IConfigGeneral::reloadServerList()
         // Name of our network:
         QString netname = list.at(i);
         // If it is the "None" network (servers that have no Network assigned to), ignore it, already taken care of.
-        if (netname == "None")
+        if (netname == "NONE")
             continue;
 
         // Check if this network got a "default server".
