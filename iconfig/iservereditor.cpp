@@ -28,7 +28,8 @@
 IServerEditor::IServerEditor(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IServerEditor),
-    selNetwork("NONE")
+    selNetwork("NONE"),
+    model(NULL)
 {
     ui->setupUi(this);
 
@@ -40,8 +41,7 @@ IServerEditor::IServerEditor(QWidget *parent) :
     MenuNew.addSeparator();
     MenuNew.addMenu(&MenuNewServer);
 
-    ui->serverView->setModel(&model);
-    selection = ui->serverView->selectionModel();
+    setupModelView();
 
     connect(selection, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
             this, SLOT(selectionRowChanged(QModelIndex,QModelIndex)));
@@ -88,18 +88,46 @@ void IServerEditor::on_actionNewNetwork_triggered()
         QMessageBox::warning(this, tr("Cannot add network"), tr("Network already exsist"));
         return;
     }
-    smgr.newNetwork(newname);
+    model->addNetwork(newname);
+
 }
 
 void IServerEditor::on_actionNewServerNetwork_triggered()
 {
-    /*
+/*
     qDebug() << "---";
     qDebug() << "Current network=" << selNetwork;
     qDebug() << "Current server=" << selServer;
     qDebug() << "---";
 */
 
+    if ((selNetwork == "NONE") || (selNetwork == "")) {
+        QMessageBox::information(this, tr("No network selected"), tr("You need to select a network."));
+        return;
+    }
+
+    QHash<QString,QString> serverlist = smgr.serverList(selNetwork);
+
+    // Generate a simple new name, like Server_0
+    QString newname;
+
+    for (int i = 0;i <= 1000; i++) {
+        // it's unlikely any user would have 1000 different servers
+        // named Server_0 Server_1 ...
+        newname = QString("Server_%1")
+                  .arg(QString::number(i));
+
+        if (! serverlist.contains(newname))
+            break;
+    }
+
+    // ---
+
+    if (! smgr.newNetwork(newname)) {
+        QMessageBox::warning(this, tr("Cannot add server"), tr("Name already exsist"));
+        return;
+    }
+    smgr.addServer(newname, "host.name:6667", "", selNetwork);
 
 }
 
@@ -107,7 +135,7 @@ void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModel
 {
     int row = current.row();
 
-    QModelIndex index = model.index(row, 0, current.parent());
+    QModelIndex index = model->index(row, 0, current.parent());
     QString name = index.data().toString();
     QString pname = current.parent().data().toString();
 
@@ -130,7 +158,7 @@ void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModel
             selServer = name;
         }
         else {
-            QMessageBox::warning(this, tr("Error"), tr("Malfunctioned servers.ini"));
+            QMessageBox::critical(this, tr("Error"), tr("Malfunctioned servers.ini"));
             return;
         }
     }
@@ -144,3 +172,12 @@ void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModel
     }
 }
 
+void IServerEditor::setupModelView()
+{
+    if (model == NULL)
+        delete model;
+
+    model = new ServerTreeModel;
+    ui->serverView->setModel(model);
+    selection = ui->serverView->selectionModel();
+}

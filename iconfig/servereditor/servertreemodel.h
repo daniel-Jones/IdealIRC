@@ -43,6 +43,9 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
+    void addNetwork(QString name);
+    void addServer(QString name, QString network = "NONE");
+
 private:
     void setupModelData(ServerTreeItem *parent);
     ServerTreeItem *rootItem;

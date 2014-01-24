@@ -67,7 +67,10 @@ bool ServerMgr::newNetwork(QString name)
     if (name == "NONE")
         return false;
 
-    return ini.AppendSection(name);
+    if (! ini.AppendSection(name))
+        return false;
+
+    return ini.WriteIni(name, "DEFAULT", "server.name");
 }
 
 bool ServerMgr::renameNetwork(QString o_name, QString n_name)

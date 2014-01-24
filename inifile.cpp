@@ -518,15 +518,17 @@ bool IniFile::SectionExists(QString section)
 
 bool IniFile::AppendSection(QString Section)
 {
-    if (! file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
-      return false;
-
     if (SectionExists(Section))
         return false;
+
+    if (! file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+      return false;
 
     QString out = QString("[%1]\n")
                    .arg(Section);
     file->write(out.toLocal8Bit());
+
+    file->close();
     return true;
 }
 

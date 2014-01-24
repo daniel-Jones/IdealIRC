@@ -18,6 +18,7 @@
  *
  */
 
+#include <QDebug>
 #include <QHashIterator>
 #include "servertreeitem.h"
 #include "servertreemodel.h"
@@ -186,4 +187,20 @@ void ServerTreeModel::setupModelData(ServerTreeItem *parent)
             netparent->appendChild(new ServerTreeItem(cdata, pass, netparent));
         }
     }
+}
+
+void ServerTreeModel::addNetwork(QString name)
+{
+    QList<QVariant> data;
+    data << name << "server.name";
+    ServerTreeItem *item = new ServerTreeItem(data, "", rootItem);
+    rootItem->appendChild(item);
+
+
+    emit dataChanged(tl, br);
+}
+
+void ServerTreeModel::addServer(QString name, QString network)
+{
+
 }

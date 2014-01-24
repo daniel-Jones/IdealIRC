@@ -50,11 +50,12 @@ private:
     Ui::IServerEditor *ui;
     QMenu MenuNew;
     QMenu MenuNewServer;
-    ServerTreeModel model;
+    ServerTreeModel *model;
     ServerMgr smgr;
     QItemSelectionModel *selection; // Selection model for the QTreeView in UI.
     QString selNetwork; // Current network we're in
     QString selServer; // Current server name we're on
+    void setupModelView();
 
 };
 
