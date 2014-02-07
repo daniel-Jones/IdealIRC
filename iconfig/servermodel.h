@@ -17,32 +17,24 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+#ifndef SERVERMODEL_H
+#define SERVERMODEL_H
 
-#ifndef SERVERTREEITEM_H
-#define SERVERTREEITEM_H
+#include <QStandardItemModel>
+#include "servermgr.h"
+#include <QHash>
 
-#include <QList>
-#include <QVariant>
-
-class ServerTreeItem
+class ServerModel : public QStandardItemModel
 {
+    Q_OBJECT
 public:
-    ServerTreeItem(const QList<QVariant> &data, QString pass = "", ServerTreeItem *parent = 0);
-    ~ServerTreeItem();
-    void appendChild(ServerTreeItem *child);
-
-    ServerTreeItem *child(int row);
-    int childCount() const;
-    int columnCount() const;
-    QVariant data(int column) const;
-    int row() const;
-    ServerTreeItem *parent();
-    QString password;
+    explicit ServerModel(QObject *parent = 0);
+    QModelIndex indexFromHost(QString hostname); // Hostname:Port
 
 private:
-    QList<ServerTreeItem*> childItems;
-    QList<QVariant> itemData;
-    ServerTreeItem *parentItem;
+    ServerMgr smgr;
+    QHash<QString,QModelIndex> hostmap; // host:port mapped with index
+
 };
 
-#endif // SERVERTREEITEM_H
+#endif // SERVERMODEL_H

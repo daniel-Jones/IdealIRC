@@ -24,60 +24,17 @@
    <item row="0" column="1">
     <widget class="QLineEdit" name="edRealname"/>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>E-mail / username</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="edEmail"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Nickname</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="edNickname"/>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="minimumSize">
-      <size>
-       <width>130</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Alternative nickname</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="edAltNickname"/>
-   </item>
-   <item row="4" column="0" colspan="2">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="0">
-    <widget class="QPushButton" name="btnEditServers">
-     <property name="text">
-      <string>Edit servers ...</string>
-     </property>
-    </widget>
-   </item>
    <item row="8" column="0" colspan="2">
     <widget class="Line" name="line_2">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QCheckBox" name="chkCheckVersion">
+     <property name="text">
+      <string>Check for new versions</string>
      </property>
     </widget>
    </item>
@@ -93,20 +50,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="9" column="0">
-    <widget class="QCheckBox" name="chkCheckVersion">
-     <property name="text">
-      <string>Check for new versions</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0" colspan="2">
-    <widget class="QComboBox" name="servers">
-     <property name="maxVisibleItems">
-      <number>20</number>
-     </property>
-    </widget>
    </item>
    <item row="5" column="0" colspan="2">
     <widget class="QLabel" name="lbserver">
@@ -127,6 +70,59 @@
      </property>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>E-mail / username</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="edEmail"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Nickname</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="edAltNickname"/>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="minimumSize">
+      <size>
+       <width>130</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Alternative nickname</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="edNickname"/>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="2">
+    <widget class="QTreeView" name="serverView"/>
+   </item>
+   <item row="7" column="0">
+    <widget class="QPushButton" name="btnEditServers">
+     <property name="text">
+      <string>Edit servers ...</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
@@ -134,7 +130,6 @@
   <tabstop>edEmail</tabstop>
   <tabstop>edNickname</tabstop>
   <tabstop>edAltNickname</tabstop>
-  <tabstop>servers</tabstop>
  </tabstops>
  <resources/>
  <connections/>

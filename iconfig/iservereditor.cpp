@@ -28,8 +28,7 @@
 IServerEditor::IServerEditor(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IServerEditor),
-    selNetwork("NONE"),
-    model(NULL)
+    selNetwork("NONE")
 {
     ui->setupUi(this);
 
@@ -88,7 +87,8 @@ void IServerEditor::on_actionNewNetwork_triggered()
         QMessageBox::warning(this, tr("Cannot add network"), tr("Network already exsist"));
         return;
     }
-    model->addNetwork(newname);
+
+    //model->addNetwork(newname);
 
 }
 
@@ -133,9 +133,11 @@ void IServerEditor::on_actionNewServerNetwork_triggered()
 
 void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModelIndex& previous)
 {
+    // Todo: This code can be shortened down.
+
     int row = current.row();
 
-    QModelIndex index = model->index(row, 0, current.parent());
+    QModelIndex index = model.index(row, 0, current.parent());
     QString name = index.data().toString();
     QString pname = current.parent().data().toString();
 
@@ -146,14 +148,36 @@ void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModel
         if (smgr.hasNetwork(name)) {
             // Clicked on a network, get the value of DEFAULT
             QString data = smgr.defaultServer(name);
-            ui->edServer->setText(data);
+            QString host = data.split('|')[0];
+            QString pass;
+            if (data.split('|').count() > 1)
+                pass = data.split('|')[1];
+            int port = 6667;
+            if (host.split(':').count() > 1)
+                port = host.split(':')[1].toInt();
+            host = host.split(':')[0];
+
+            ui->edServer->setText(host);
+            ui->edPassword->setText(pass);
+            ui->edPort->setValue(port);
             selNetwork = name;
             selServer = "DEFAULT";
         }
         else if (smgr.hasServer(name)) {
             // Clicked on a server in the NONE section, get the value of "name"
             QString data = smgr.getServerDetails(name);
-            ui->edServer->setText(data);
+            QString host = data.split('|')[0];
+            QString pass;
+            if (data.split('|').count() > 1)
+                pass = data.split('|')[1];
+            int port = 6667;
+            if (host.split(':').count() > 1)
+                port = host.split(':')[1].toInt();
+            host = host.split(':')[0];
+
+            ui->edServer->setText(host);
+            ui->edPassword->setText(pass);
+            ui->edPort->setValue(port);
             selNetwork = "NONE";
             selServer = name;
         }
@@ -165,19 +189,27 @@ void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModel
     else {
         // This indicates we clicked inside a network parent
         QString data = smgr.getServerDetails(name, pname);
-        ui->edServer->setText(data);
+        QString host = data.split('|')[0];
+        QString pass;
+        if (data.split('|').count() > 1)
+            pass = data.split('|')[1];
+        int port = 6667;
+        if (host.split(':').count() > 1)
+            port = host.split(':')[1].toInt();
+        host = host.split(':')[0];
+
+        ui->edServer->setText(host);
+        ui->edPassword->setText(pass);
+        ui->edPort->setValue(port);
         selNetwork = pname;
         selServer = name;
 
     }
+
 }
 
 void IServerEditor::setupModelView()
 {
-    if (model == NULL)
-        delete model;
-
-    model = new ServerTreeModel;
-    ui->serverView->setModel(model);
+    ui->serverView->setModel(&model);
     selection = ui->serverView->selectionModel();
 }

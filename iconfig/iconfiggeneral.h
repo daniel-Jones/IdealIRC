@@ -22,9 +22,11 @@
 #define ICONFIGGENERAL_H
 
 #include <QWidget>
+#include <QItemSelectionModel>
 
 #include "config.h"
 #include "servermgr.h"
+#include "servermodel.h"
 #include "iconfig/iservereditor.h"
 
 namespace Ui {
@@ -41,8 +43,8 @@ public:
     void saveConfig();
     
 private slots:
+    void selectionRowChanged(const QModelIndex& current, const QModelIndex& previous);
     void on_btnEditServers_clicked();
-
     void on_servers_currentIndexChanged(int index);
 
 private:
@@ -50,7 +52,8 @@ private:
     config *conf;
     ServerMgr sm;
     IServerEditor se;
-    void reloadServerList();
+    ServerModel serverModel;
+    QItemSelectionModel *selection;
 };
 
 #endif // ICONFIGGENERAL_H

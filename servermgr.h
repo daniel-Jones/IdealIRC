@@ -45,7 +45,7 @@ public:
     // Delete network - false if network didn't exsist (useless result?)
     bool delNetwork(QString name, bool servers = false);
     // Add a server to network - returns false if name already exsist
-    bool addServer(QString name, QString host /*host:port*/, QString pw, QString network = "NONE");
+    bool addServer(QString name, QString host /*host:port*/, QString pw = "", QString network = "NONE");
     // Delete a server from network - false if network or server didn't exist
     bool delServer(QString name, QString network = "NONE");
     // Check of we have the given network name

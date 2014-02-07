@@ -87,6 +87,9 @@
    </item>
    <item row="0" column="0" rowspan="3" colspan="3">
     <widget class="QTreeView" name="serverView">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::SingleSelection</enum>
      </property>
