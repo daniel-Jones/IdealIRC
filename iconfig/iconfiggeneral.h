@@ -45,7 +45,7 @@ public:
 private slots:
     void selectionRowChanged(const QModelIndex& current, const QModelIndex& previous);
     void on_btnEditServers_clicked();
-    void on_servers_currentIndexChanged(int index);
+    void reloadServerList(); // Used when editor closes
 
 private:
     Ui::IConfigGeneral *ui;

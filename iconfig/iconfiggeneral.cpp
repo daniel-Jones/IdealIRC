@@ -55,23 +55,11 @@ IConfigGeneral::IConfigGeneral(config *cfg, QWidget *parent) :
     connect(selection, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
             this, SLOT(selectionRowChanged(QModelIndex,QModelIndex)));
 
-    // If nothing is defined in the iirc.ini, use the selected item in drop down.
-    if (conf->server == ":") { // No server set
-
-        // If drop down is empty, use "NONE" as server value. User cannot continue
-        // before adding any servers.
-        /*
-        if (ui->servers->count() == 0)
-            lbServer = "NONE";
-        else {
-            lbServer = ui->servers->itemData( ui->servers->currentIndex() ).toString();
-            lbServer = lbServer.split('|').at(0);
-        }
-        */
-
-    }
-
     ui->lbserver->setText(tr("Current server: %1").arg(lbServer));
+
+
+    connect(&se, SIGNAL(closed()),
+             this, SLOT(reloadServerList()));
 
 }
 
@@ -82,38 +70,52 @@ IConfigGeneral::~IConfigGeneral()
 
 void IConfigGeneral::saveConfig()
 {
-    QModelIndex idx = selection->currentIndex();
-    qDebug() << idx.data();
-
-    /*
-    // Generic function to save our new config to current config.
-
+    // Save generic info
     conf->realname = ui->edRealname->text();
     conf->username = ui->edEmail->text();
     conf->nickname = ui->edNickname->text();
     conf->altnick = ui->edAltNickname->text();
     conf->checkVersion = ui->chkCheckVersion->isChecked();
 
-    // We get our server:port|password from the current selected item
-    // in our drop down.
-
-    // If we don't have anything in the drop down, clear the config.
-    if (ui->servers->count() == 0) {
+    // Save connection info
+    QModelIndex current = selection->currentIndex();
+    if (! current.isValid()) {
         conf->server = ":"; // Empty server set
         conf->password.clear();
+        return; // Nothing was selected
+    }
+
+    QModelIndex idx = serverModel.index(current.row(), 0, current.parent());
+    QModelIndex idx2 = serverModel.index(current.row(), 1, current.parent());
+
+    QString servername = idx.data().toString();
+    QString serverhost = idx2.data().toString();
+    QString serverpass;
+
+    // Retreive password...
+    if (! idx.parent().isValid()) {
+        // Either in NONE or it's a Network parent
+        if (sm.hasNetwork(servername)) {
+            // Network is named this, we selected a Network parent.
+            serverpass = sm.defaultServer(servername);
+        }
+        else {
+            // Selection is in NONE section
+            serverpass = sm.getServerDetails(servername);
+        }
     }
     else {
-        QString details = ui->servers->itemData( ui->servers->currentIndex() ).toString();
-        QStringList splitDetail = details.split('|');
-        QString server = splitDetail.at(0);
-        QString password;
-        if (splitDetail.length() > 1)
-            password = splitDetail.at(1);
-
-        conf->server = server;
-        conf->password = password;
+        // Childed item under a network
+        serverpass = sm.getServerDetails(idx.parent().data().toString(), servername);
     }
-    */
+
+    if (serverpass.split('|').count() > 1)
+        serverpass = serverpass.split('|')[1];
+    else
+        serverpass.clear();
+
+    conf->server = serverhost;
+    conf->password = serverpass;
 }
 
 void IConfigGeneral::selectionRowChanged(const QModelIndex &current, const QModelIndex &previous)
@@ -192,14 +194,17 @@ void IConfigGeneral::on_btnEditServers_clicked()
     se.show();
 }
 
-void IConfigGeneral::on_servers_currentIndexChanged(int index)
+void IConfigGeneral::reloadServerList()
 {
-    /*QVariant data = ui->servers->itemData(index);
-    QString details = data.toString();
+    serverModel.resetModel();
 
-    // Omit any server password.
-    QString detailsVisible = details.split("|").at(0);
+    /// Load what our current server is (the label).
+    QString lbServer = conf->server;
 
-    ui->lbserver->setText(tr("Current server: %1").arg(detailsVisible));
-    */
+    ui->serverView->setModel(&serverModel);
+    selection = ui->serverView->selectionModel();
+
+    QModelIndex idx = serverModel.indexFromHost(lbServer);
+    selection->setCurrentIndex(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+
 }

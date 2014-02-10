@@ -130,6 +130,9 @@
    </item>
    <item row="7" column="3">
     <widget class="QToolButton" name="btnSave">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>...</string>
      </property>

@@ -25,6 +25,7 @@
 #include <QMenu>
 #include <QStandardItemModel>
 #include <QItemSelectionModel>
+#include <QCloseEvent>
 #include "servermodel.h"
 #include "servermgr.h"
 
@@ -47,6 +48,10 @@ private slots:
     void on_actionNewServerNetwork_triggered();
     void selectionRowChanged(const QModelIndex& current, const QModelIndex& previous);
 
+    void on_btnSave_clicked();
+
+    void on_actionNewServerNoNetwork_triggered();
+
 private:
     Ui::IServerEditor *ui;
     QMenu MenuNew;
@@ -59,6 +64,12 @@ private:
     void setupModelView();
 
     ServerModel model;
+
+protected:
+    void closeEvent(QCloseEvent*) { emit closed(); }
+
+signals:
+    void closed();
 
 };
 

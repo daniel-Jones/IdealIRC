@@ -562,6 +562,7 @@ bool IniFile::RenameSection(QString OldName, QString NewName)
         continue;
 
       if (line == OldName) {
+          sl.pop_back(); // The very last item inserted is actually OldName. Remove.
           sl.append(NewName);
           finished = true;
       }

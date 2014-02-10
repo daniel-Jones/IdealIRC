@@ -35,7 +35,7 @@ public:
     // All networks in a string list (Also counts in the NONE network)
     QStringList networkList();
     // All servers from a network in a hash map <"name","server:port|passwd">
-    QHash<QString,QString> serverList(QString network);
+    QHash<QString,QString> serverList(QString network = "NONE");
     // Return default server of given network (The "NONE" network have no default!) - returns empty if no default server is set.
     QString defaultServer(QString network);
     // Add new network to servers.ini - returns false if network exist
@@ -43,8 +43,8 @@ public:
     // Rename a network - returns false if new network name already exist
     bool renameNetwork(QString o_name, QString n_name);
     // Delete network - false if network didn't exsist (useless result?)
-    bool delNetwork(QString name, bool servers = false);
-    // Add a server to network - returns false if name already exsist
+    bool delNetwork(QString name, bool keep_servers = false);
+    // Add (or update) a server to network - returns false if network doesn't exsist
     bool addServer(QString name, QString host /*host:port*/, QString pw = "", QString network = "NONE");
     // Delete a server from network - false if network or server didn't exist
     bool delServer(QString name, QString network = "NONE");
@@ -54,6 +54,7 @@ public:
     bool hasServer(QString name, QString network = "NONE");
     // Get server details
     QString getServerDetails(QString name, QString network = "NONE");
+
 private:
     IniFile ini;
     

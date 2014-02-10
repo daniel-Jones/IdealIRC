@@ -35,5 +35,7 @@
         <file>gfx/perform.png</file>
         <file>gfx/logging.png</file>
         <file>gfx/settings.png</file>
+        <file>gfx/server.png</file>
+        <file>gfx/network.png</file>
     </qresource>
 </RCC>

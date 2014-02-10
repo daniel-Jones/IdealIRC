@@ -80,7 +80,7 @@ bool ServerMgr::renameNetwork(QString o_name, QString n_name)
     return ini.RenameSection(o_name, n_name);
 }
 
-bool ServerMgr::delNetwork(QString name, bool servers)
+bool ServerMgr::delNetwork(QString name, bool keep_servers)
 {
     // If servers=true, we will keep the servers by moving them to the NONE section.
     // Any servers which got a name exsisting in the NONE, will be renamed to oldnetname_servername.
@@ -88,7 +88,7 @@ bool ServerMgr::delNetwork(QString name, bool servers)
     if (! ini.SectionExists(name))
         return false;
 
-    if (servers == true) {
+    if (keep_servers == true) {
         int max = ini.CountItems(name);
         for (int i = 1; i <= max; i++) {
             QString item = ini.ReadIniItem(name, i);
@@ -124,6 +124,8 @@ bool ServerMgr::addServer(QString name, QString host, QString pw, QString networ
 
 bool ServerMgr::delServer(QString name, QString network)
 {
+    std::cout << "deleting " << name.toStdString().c_str() << " from " << network.toStdString().c_str() << std::endl;
+
     return ini.DelIni(network, name);
 }
 
