@@ -21,12 +21,14 @@
 #ifndef BANTABLEMODEL_H
 #define BANTABLEMODEL_H
 
-#include <QAbstractTableModel>
+#include <QStandardItemModel>
+#include <QStandardItem>
 #include <QStringList>
+#include <QHash>
 
 // This class is used within IChanConfig for both banView and exceptionsView.
 
-class BanTableModel : public QAbstractTableModel
+class BanTableModel : public QStandardItemModel
 {
     Q_OBJECT
 public:
@@ -35,20 +37,11 @@ public:
     void addBan(QString m, QString d, QString a); // Used to add ban to list if someone sets it while this is open
     void delBan(QString m); // Used to delete ban to list if someone removes it while this is open
 
-protected:
-    int rowCount(const QModelIndex &parent = QModelIndex()) const ;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
 private:
     QStringList mask;
     QStringList date;
     QStringList author;
-
-signals:
-    void updatedItems();
-
+    QHash<QString,QModelIndex> maskmap;
 };
 
 #endif // BANTABLEMODEL_H

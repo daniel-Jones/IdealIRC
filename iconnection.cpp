@@ -364,9 +364,19 @@ user_t IConnection::parseUserinfo(QString uinfo)
     return u;
 
   //   nick,   user,    host
-  u = {a.at(0), b.at(0), b.at(1)};
+  //u = {a.at(0), b.at(0), b.at(1)}; not compatible with my current 'clang' version. GCC takes this code.
+  u.nick = a.at(0);
+  u.user = b.at(0);
+  u.host = b.at(1);
+
 
   return u;
+}
+
+IChanConfig* IConnection::getChanConfigPtr(QString channel)
+{
+    subwindow_t sw = winlist.value(channel.toUpper());
+    return sw.widget->settings;
 }
 
 QString IConnection::getMsg(QString &data)
@@ -721,28 +731,49 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
     QString target = token.at(2);
 
     if (isValidChannel(target)) {
-      // Channel mode!
-      // :tomatix!~tomatix@test.rigsofrods.org MODE #Test +v maan
+        // Channel mode!
+        // :tomatix!~tomatix@test.rigsofrods.org MODE #Test +v maan
 
-      QString mode;
-      for (int i = 3; i <= token.size()-1; i++) { mode += token.at(i) + " "; } // Modes to parse (e.g. +ov user user)
+        QString mode;
+        for (int i = 3; i <= token.size()-1; i++) { mode += token.at(i) + " "; } // Modes to parse (e.g. +ov user user)
 
-      IWin *tg = getWinObj(target);
-      if (tg->settings)
+        IWin *tg = getWinObj(target);
+        if (tg->settings)
         tg->settings->setDefaultMode(mode); // it is safe; this will ignore user-based channel modes like op, voice, ban etc
 
 
-      print(target.toUpper(), u.nick + " sets mode " + mode, PT_SERVINFO);
+        print(target.toUpper(), u.nick + " sets mode " + mode, PT_SERVINFO);
 
-      mode = token.at(3);
-      int parapos = 4;
-      char p = '+'; // parsing a + or - mode
+        mode = token.at(3);
+        int parapos = 4;
+        char p = '+'; // parsing a + or - mode
 
-      for (int c = 0; c <= mode.count()-1; c++) {
+        for (int c = 0; c <= mode.count()-1; c++) {
         char m = mode.at(c).toLatin1();
         if ((m == '+') || (m == '-')) {
-          p = m;
-          continue;
+            p = m;
+            continue;
+        }
+
+        // Handle stuff if IChanConfig is running
+        IChanConfig *cc = getChanConfigPtr(target);
+        if (cc != NULL) {
+          MaskType mt;
+
+          if (m == 'b')
+            mt = MT_BAN;
+          if (m == 'e')
+            mt = MT_EXCEPT;
+          if (m == 'I')
+            mt = MT_INVITE;
+
+          if (p == '-')
+            cc->delMask( token.at(parapos), mt );
+
+          if (p == '+') {
+            QString date = QDateTime::currentDateTime().toString("ddd d MMM yyyy, hh:mm");
+            cc->addMask( token.at(parapos), u.nick, date , mt);
+          }
         }
 
         // Check if we must increment parapos...
@@ -750,18 +781,17 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
             parapos++;
 
         if (isValidCuMode(m)) {
-          QString param = token.at(parapos);
-          parapos++; // user modes to channel isn't in the cm* lists. increment.
-          IWin *w = getWinObj(target);
-          if (p == '+') {
-            w->MemberSetMode(param, getCuLetter(m));
-          }
-          if (p == '-') {
-            w->MemberUnsetMode(param, getCuLetter(m));
-          }
+            // Mode is a valid "channel usermode", store it
+            QString param = token.at(parapos);
+            parapos++; // user modes to channel isn't in the cm* lists. increment.
+            IWin *w = getWinObj(target);
+            if (p == '+')
+                w->MemberSetMode(param, getCuLetter(m));
+
+            if (p == '-')
+                w->MemberUnsetMode(param, getCuLetter(m));
         }
       }
-
     }
     if (target.toUpper() == u.nick.toUpper()) {
       // Mode on self!

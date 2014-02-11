@@ -21,90 +21,47 @@
 #include "bantablemodel.h"
 
 BanTableModel::BanTableModel(QObject *parent) :
-    QAbstractTableModel(parent)
+    QStandardItemModel(parent)
 {
-
+    QStandardItem *i = new QStandardItem();
+    QStringList l;
+    l << tr("Mask") << tr("Date set") << tr("Set by");
+    setColumnCount(3);
+    setHorizontalHeaderItem(0, i);
+    setHorizontalHeaderLabels(l);
 }
 void BanTableModel::setBanList(QStringList m, QStringList d, QStringList a)
 {
-    mask = m;
-    date = d;
-    author = a;
-    emit updatedItems();
+    int c = m.count();
+    for (int i = 0; i <= c-1; i++) {
+        QStandardItem *maskItem = new QStandardItem(m[i]);
+        QStandardItem *dateItem = new QStandardItem(d[i]);
+        QStandardItem *authorItem = new QStandardItem(a[i]);
+
+        QList<QStandardItem*> items;
+        items << maskItem << dateItem << authorItem;
+
+        appendRow(items);
+        maskmap.insert(m[i], indexFromItem(maskItem));
+    }
+
 }
 
 void BanTableModel::addBan(QString m, QString d, QString a)
 {
-    mask << m;
-    date << d;
-    author << a;
+    QStandardItem *maskItem = new QStandardItem(m);
+    QStandardItem *dateItem = new QStandardItem(d);
+    QStandardItem *authorItem = new QStandardItem(a);
 
-    emit updatedItems();
+    QList<QStandardItem*> items;
+    items << maskItem << dateItem << authorItem;
+
+    appendRow(items);
+    maskmap.insert(m, indexFromItem(maskItem));
 }
 
 void BanTableModel::delBan(QString m)
 {
-    int idx = mask.indexOf(m);
-
-
-    mask.removeAt(idx);
-    date.removeAt(idx);
-    author.removeAt(idx);
-
-    emit updatedItems();
+    QModelIndex index = maskmap.value(m);
+    removeRow(index.row());
 }
-
-int BanTableModel::rowCount(const QModelIndex & /*parent*/) const
-{
-   return mask.count();
-}
-
-int BanTableModel::columnCount(const QModelIndex & /*parent*/) const
-{
-    return 3;
-}
-
-QVariant BanTableModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (role == Qt::DisplayRole)
-    {
-        if (orientation == Qt::Horizontal) {
-            switch (section)
-            {
-            case 0:
-                return QString("Mask");
-            case 1:
-                return QString("Date set");
-            case 2:
-                return QString("Set by");
-            }
-        }
-
-        if (orientation == Qt::Vertical) {
-            return section+1;
-        }
-
-    }
-    return QVariant();
-}
-
-QVariant BanTableModel::data(const QModelIndex &index, int role) const
-{
-    if (role == Qt::DisplayRole)
-    {
-        int col = index.column();
-        int row = index.row();
-
-        switch (col) {
-            case 0:
-                return mask[row];
-            case 1:
-                return date[row];
-            case 2:
-                return author[row];
-        }
-
-    }
-    return QVariant();
-}
-

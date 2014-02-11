@@ -54,8 +54,10 @@ public:
     ~IChanConfig();
     void setDefaultMode(QString mode);
     void setDefaultTopic(QString topic);
+    void addMask(QString mask, QString author, QString created, MaskType mt);
     void addMask(QString mask, QString author, QString created);
     void finishModel(MaskType type);
+    void delMask(QString mask, MaskType type);
 
 private:
     Ui::IChanConfig *ui;
@@ -81,6 +83,8 @@ private:
     QString cmD;
 
     void deleteMasks(MaskType type); // Unset the selected masks
+    void btnAddMask(MaskType type);
+    void btnEditMask(MaskType type);
     void setMode(char mode, bool enabled, QString data = ""); // Does NOT send the mode to server, used for internal storage.
 
 
@@ -94,6 +98,12 @@ private slots:
     void on_exceptionDel_clicked();
     void on_inviteDel_clicked();
     void on_btnSave_clicked();
+    void on_banAdd_clicked();
+    void on_exceptionAdd_clicked();
+    void on_inviteAdd_clicked();
+    void on_inviteEdit_clicked();
+    void on_exceptionEdit_clicked();
+    void on_banEdit_clicked();
 };
 
 #endif // ICHANCONFIG_H

@@ -25,6 +25,7 @@
 #include <QDebug>
 #include <QHashIterator>
 #include <QMessageBox>
+#include <QInputDialog>
 
 IChanConfig::IChanConfig(IConnection *c, QString chan, QWidget *parent) :
     QDialog(parent),
@@ -86,7 +87,6 @@ IChanConfig::IChanConfig(IConnection *c, QString chan, QWidget *parent) :
         ui->inviteView->setModel(m);
         ui->tab_invite->setEnabled(false);
     }
-
 
     ui->inviteView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->exceptionView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -173,6 +173,16 @@ void IChanConfig::setDefaultTopic(QString topic)
     ui->edTopic->setText(topic);
 }
 
+void IChanConfig::addMask(QString mask, QString author, QString created, MaskType mt)
+{
+    if (mt == MT_BAN)
+        banTable.addBan(mask, created, author);
+    if (mt == MT_EXCEPT)
+        exceptionTable.addBan(mask, created, author);
+    if (mt == MT_INVITE)
+        inviteTable.addBan(mask, created, author);
+}
+
 void IChanConfig::addMask(QString mask, QString author, QString created)
 {
     maskL << mask;
@@ -201,6 +211,16 @@ void IChanConfig::finishModel(MaskType type)
     dateL.clear();
 }
 
+void IChanConfig::delMask(QString mask, MaskType mt)
+{
+    if (mt == MT_BAN)
+        banTable.delBan(mask);
+    if (mt == MT_EXCEPT)
+        exceptionTable.delBan(mask);
+    if (mt == MT_INVITE)
+        inviteTable.delBan(mask);
+}
+
 void IChanConfig::deleteMasks(MaskType type)
 {
     QItemSelectionModel *sel = NULL;
@@ -212,11 +232,11 @@ void IChanConfig::deleteMasks(MaskType type)
         modeset = 'b';
     }
     else if (type == MT_EXCEPT) {
-        sel = ui->banView->selectionModel();
+        sel = ui->exceptionView->selectionModel();
         modeset = 'e';
     }
     else if (type == MT_INVITE) {
-        sel = ui->banView->selectionModel();
+        sel = ui->inviteView->selectionModel();
         modeset = 'I';
     }
     else
@@ -432,3 +452,118 @@ void IChanConfig::on_btnSave_clicked()
                               );
 
 }
+
+void IChanConfig::btnAddMask(MaskType type)
+{
+    char modeset; // This one WILL be set properly right below
+    QString title;
+
+    if (type == MT_BAN) {
+        title = tr("Enter a ban mask");
+        modeset = 'b';
+    }
+    else if (type == MT_EXCEPT) {
+        title = tr("Enter an exception mask");
+        modeset = 'e';
+    }
+    else if (type == MT_INVITE) {
+        title = tr("Enter an invite mask");
+        modeset = 'I';
+    }
+    else
+        return; // Invalid type, stop.
+
+    QString text = QInputDialog::getText(this, title, tr("Write the mask with following syntax: nick!ident@host.name\r\n*!*@host.name nickname!*@*"));
+
+    if (text.length() == 0)
+        return;
+
+    QString data = QString("MODE %1 +%2 %3")
+                   .arg(channel)
+                   .arg(modeset)
+                   .arg(text);
+
+    connection->sockwrite(data);
+}
+
+void IChanConfig::on_banAdd_clicked()
+{
+    btnAddMask(MT_BAN);
+}
+
+void IChanConfig::on_exceptionAdd_clicked()
+{
+    btnAddMask(MT_EXCEPT);
+}
+
+void IChanConfig::on_inviteAdd_clicked()
+{
+    btnAddMask(MT_INVITE);
+}
+
+void IChanConfig::btnEditMask(MaskType type)
+{
+    QItemSelectionModel *sel = NULL;
+    QString title;
+    QString mode;
+
+    if (type == MT_BAN) {
+        sel = ui->banView->selectionModel();
+        title = tr("Enter a ban mask");
+        mode = "-b+b";
+    }
+    else if (type == MT_EXCEPT) {
+        sel = ui->exceptionView->selectionModel();
+        title = tr("Enter an exception mask");
+        mode = "-e+e";
+    }
+    else if (type == MT_INVITE) {
+        sel = ui->inviteView->selectionModel();
+        title = tr("Enter an invite mask");
+        mode = "-I+I";
+    }
+    else
+        return; // Invalid type, stop.
+
+    if (! sel->hasSelection())
+        return;
+
+    QModelIndex item = sel->selectedRows(0).at(0);
+    QString mask = item.data().toString();
+    QString text = QInputDialog::getText(this,
+                                         title,
+                                         tr("Write the mask with following syntax: nick!ident@host.name\r\n*!*@host.name nickname!*@*"),
+                                         QLineEdit::Normal,
+                                         mask);
+    if (text.length() == 0)
+        return;
+
+    if (mask == text)
+        return;
+
+    QString data = QString("MODE %1 %2 %3 %4")
+                   .arg(channel)
+                   .arg(mode)
+                   .arg(mask)
+                   .arg(text);
+
+    connection->sockwrite(data);
+}
+
+void IChanConfig::on_inviteEdit_clicked()
+{
+    btnEditMask(MT_INVITE);
+}
+
+void IChanConfig::on_exceptionEdit_clicked()
+{
+    btnEditMask(MT_EXCEPT);
+}
+
+void IChanConfig::on_banEdit_clicked()
+{
+    btnEditMask(MT_BAN);
+}
+
+
+

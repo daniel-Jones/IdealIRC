@@ -107,6 +107,8 @@ class IConnection : public QObject
       QString cmC; // Default l
       QString cmD; // default imnpstr
 
+      IChanConfig* getChanConfigPtr(QString channel);
+
       QString getMsg(QString &data);
       IWin* getWinObj(QString name); // Returns NULL if no matches.
       bool windowExist(QString name);

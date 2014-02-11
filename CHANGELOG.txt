@@ -1,12 +1,20 @@
+0.0.4 - February 11th 2014
+ * Added a server editor
+ * Selecting servers is now over a tree-view
+ * Added Perform on Connect (List of IRC commands only)
+ * Minor code cleaning
+
+0.0.2 & 0.0.3 - December 16th 2013
+ * Added a version checker. (0.0.2)
+ * Version checker is now optionable (0.0.3)
+
 0.0.1 - July 15th 2013
  * Rewriting from TIRC to IIRC began this date.
 
+ 
 
 lavest prioritet MEN SKAL implementeres:
  - http://ircv3.atheme.org/
-
-
-
 
 Todo
  * IChanConfig: mode k, l må fullføres. Endring av kanal innstillinger mangler.

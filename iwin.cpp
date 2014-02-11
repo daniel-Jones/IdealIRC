@@ -651,24 +651,48 @@ void IWin::setModeViaList(char set, char mode)
     int count = 1;
     QString modes = QString(set);
     QString nicks = "";
+    QString data;
     for (int i = 0; i <= sel.length()-1; ++i) {
         QString nick = sel[i]->text();
         if (connection->isValidCuLetter(nick[0].toLatin1()))
             nick = nick.mid(1);
 
+        if (nicks.length() > 0)
+            nicks.append(' ');
+
         modes.append(mode);
         nicks.append(nick);
         ++count;
         if (count > connection->maxModes) {
-            qDebug() << "MODE " << modes << nicks;
+            QString w = QString("MODE %1 %2 %3")
+                                    .arg(target)
+                                    .arg(modes)
+                                    .arg(nicks);
+            if (data.length() > 0)
+                data.append("\r\n");
+
+            data += w;
+
             modes = QString(set);
             nicks.clear();
             count = 1;
         }
     }
 
-    if (count > 1)
-        qDebug() << "MODE " << modes << nicks;
+    if (count > 1) {
+        QString w = QString("MODE %1 %2 %3")
+                                .arg(target)
+                                .arg(modes)
+                                .arg(nicks);
+        if (data.length() > 0)
+            data.append("\r\n");
+
+        data += w;
+    }
+
+    listbox->clearSelection();
+
+    connection->sockwrite(data);
 }
 
 QString IWin::stripModeChar(QString nickname)
