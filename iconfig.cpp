@@ -23,12 +23,14 @@
 #include "iconfig.h"
 #include "ui_iconfig.h"
 
-IConfig::IConfig(config *cfg, QWidget *parent) :
+IConfig::IConfig(config *cfg, IConnection *con, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IConfig),
     conf(cfg),
     wGeneral(NULL),
-    wCustomize(NULL)
+    wPerform(NULL),
+    wCustomize(NULL),
+    current(con)
 {
     ui->setupUi(this);
 
@@ -52,14 +54,23 @@ IConfig::IConfig(config *cfg, QWidget *parent) :
 
     connect(ui->btLog, SIGNAL(clicked()),
             &buttonSignals, SLOT(map()));
+
+    if (con != NULL)
+        if (! con->isOnline())
+            ui->btnDisconnect->hide();
 }
 
 void IConfig::showEvent(QShowEvent *)
 {
     if (wGeneral == NULL) {
-        wGeneral = new IConfigGeneral(conf, ui->frame);
+        wGeneral = new IConfigGeneral(conf, current, ui->frame);
         wGeneral->resize(ui->frame->size());
         wGeneral->show();
+    }
+
+    if (wPerform == NULL) {
+        wPerform = new IConfigPerform(conf, ui->frame);
+        wPerform->resize(ui->frame->size());
     }
 
     if (wCustomize == NULL) {
@@ -93,11 +104,14 @@ void IConfig::buttonMapped(QWidget *btn)
         wGeneral->show();
     }
 
-    if (toolbutton->objectName() != "btPerform")
+    if (toolbutton->objectName() != "btPerform") {
         ui->btPerform->setChecked(false);
-    else
+        wPerform->hide();
+    }
+    else {
         ui->btPerform->setChecked(true);
-
+        wPerform->show();
+    }
 
     if (toolbutton->objectName() != "btCustomize") {
         ui->btCustomize->setChecked(false);
@@ -127,6 +141,8 @@ IConfig::~IConfig()
 void IConfig::saveAll()
 {
     wGeneral->saveConfig();
+    wPerform->saveConfig();
+
     conf->save();
 }
 

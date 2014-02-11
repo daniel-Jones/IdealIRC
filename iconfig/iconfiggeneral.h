@@ -28,6 +28,7 @@
 #include "servermgr.h"
 #include "servermodel.h"
 #include "iconfig/iservereditor.h"
+#include "iconnection.h"
 
 namespace Ui {
 class IConfigGeneral;
@@ -38,7 +39,7 @@ class IConfigGeneral : public QWidget
     Q_OBJECT
     
 public:
-    explicit IConfigGeneral(config *cfg, QWidget *parent = 0);
+    explicit IConfigGeneral(config *cfg, IConnection *con, QWidget *parent = 0);
     ~IConfigGeneral();
     void saveConfig();
     
@@ -50,6 +51,7 @@ private slots:
 private:
     Ui::IConfigGeneral *ui;
     config *conf;
+    IConnection *current;
     ServerMgr sm;
     IServerEditor se;
     ServerModel serverModel;

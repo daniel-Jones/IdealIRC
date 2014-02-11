@@ -35,7 +35,7 @@ IdealIRC::IdealIRC(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::IdealIRC),
     firstShow(true),
-    confDlg(&conf, this),
+    confDlg(NULL),
     connectionsRemaining(-1),
     preventSocketAction(false),
     reconnect(NULL)
@@ -49,12 +49,8 @@ IdealIRC::IdealIRC(QWidget *parent) :
     ui->menuTools->addAction(ui->actionScript_Manager);
 
     setWindowTitle("IdealIRC " + QString(VERSION_STRING));
-    //QApplication
 
     conf.rehash();
-
-    connect(&confDlg, SIGNAL(connectToServer(bool)),
-            this, SLOT(extConnectServer(bool)));
 
     setGeometry(conf.mainWinGeo);
     if (conf.maximized)
@@ -70,6 +66,22 @@ IdealIRC::IdealIRC(QWidget *parent) :
 IdealIRC::~IdealIRC()
 {
     delete ui;
+}
+
+void IdealIRC::recreateConfDlg()
+{
+    if (confDlg != NULL) {
+        disconnect(confDlg, SIGNAL(connectToServer(bool)));
+        delete confDlg;
+    }
+
+    IConnection *c = conlist.value(activeConn);
+    if (activeConn == -1)
+        c = NULL;
+
+    confDlg = new IConfig(&conf, c, this);
+    connect(confDlg, SIGNAL(connectToServer(bool)),
+            this, SLOT(extConnectServer(bool)));
 }
 
 void IdealIRC::showEvent(QShowEvent *)
@@ -426,8 +438,10 @@ void IdealIRC::on_treeWidget_itemSelectionChanged()
 
 void IdealIRC::on_actionOptions_triggered()
 {
-    confDlg.show();
-    confDlg.activateWindow();
+    recreateConfDlg();
+
+    confDlg->show();
+    confDlg->activateWindow();
 }
 
 void IdealIRC::extConnectServer(bool newWindow)

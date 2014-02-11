@@ -74,22 +74,23 @@
 
 #ifdef PACKAGED
   #include <QStandardPaths>
-  #define CONF_PATH QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.idealirc"
+  #define CONF_PATH QString("%1/.idealirc").arg(QStandardPaths::writableLocation(QStandardPaths::HomeLocation))
   #ifdef Q_OS_WI32
     #include <QApplication>
+    #define CONF_PATH QString("%1/idealirc").arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
     #define COMMON_PATH QApplication::applicationDirPath()
   #else
     #define COMMON_PATH "/usr/share/idealirc"
   #endif
-  #define SKEL_PATH QString(COMMON_PATH)+QString("/skel")
+  #define SKEL_PATH QString("%1/skel").arg(COMMON_PATH)
 #endif
 
 #ifndef CONF_PATH
   #error This build is set as neither STANDALONE nor PACKAGED. Cannot compile!
 #endif
 
-#define CONF_FILE QString(CONF_PATH)+QString("/iirc.ini")
-#define SERV_FILE QString(CONF_PATH)+QString("/servers.ini")
+#define CONF_FILE QString("%1/iirc.ini").arg(CONF_PATH)
+#define SERV_FILE QString("%1/servers.ini").arg(CONF_PATH)
 
 
 /* Colors */

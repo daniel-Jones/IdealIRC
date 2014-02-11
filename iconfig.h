@@ -27,9 +27,11 @@
 #include <QCloseEvent>
 #include <QResizeEvent>
 
+#include "iconnection.h"
 #include "config.h"
 #include "iconfig/iconfiggeneral.h"
 #include "iconfig/iconfigcustomize.h"
+#include "iconfig/iconfigperform.h"
 
 namespace Ui {
 class IConfig;
@@ -40,7 +42,7 @@ class IConfig : public QDialog
     Q_OBJECT
     
   public:
-    explicit IConfig(config *cfg, QWidget *parent = 0);
+    explicit IConfig(config *cfg, IConnection *con, QWidget *parent = 0);
     ~IConfig();
     
   private:
@@ -48,9 +50,12 @@ class IConfig : public QDialog
     QSignalMapper buttonSignals;
     config *conf;
     IConfigGeneral *wGeneral;
+    IConfigPerform *wPerform;
     IConfigCustomize *wCustomize;
+
     void saveAll();
     void closeSubWidgets();
+    IConnection *current;
 
   private slots:
     void buttonMapped(QWidget *btn);

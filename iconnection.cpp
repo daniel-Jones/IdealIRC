@@ -43,6 +43,7 @@ IConnection::IConnection(QObject *parent, int connId, config *cfg) :
     registered(false),
     isupport(false),
     CloseChildren(false),
+    tryingConnect(false),
     waitLF(false),
     cmA("b"),
     cmB("k"),
@@ -84,6 +85,7 @@ void IConnection::tryConnect()
     IWin *s = winlist.value("STATUS").widget;
 
     s->print(tr("Connecting to %1:%2...").arg(host).arg(port), PT_LOCALINFO);
+    tryingConnect = true;
     socket.connectToHost(host, port);
 
 }
@@ -136,7 +138,7 @@ void IConnection::onSocketConnected()
 
 void IConnection::onSocketDisconnected()
 {
-    if (CloseChildren) {
+    if (CloseChildren) { // Close all windows related to this connection
         QHashIterator<QString, subwindow_t> i(winlist);
         while (i.hasNext()) {
             i.next();
@@ -146,7 +148,7 @@ void IConnection::onSocketDisconnected()
         }
         socket.close();
         emit connectionClosed();
-        return;
+        return; // All windows are closed, status window will close itself when ready to close.
     }
 
     active = false;
@@ -185,8 +187,17 @@ void IConnection::onSocketDisconnected()
 
 void IConnection::closeConnection(bool cc)
 {
-    CloseChildren = cc;
-    sockwrite("QUIT :");
+    if (tryingConnect == true) {
+        print("STATUS", "Disconnected.", PT_LOCALINFO);
+        socket.close();
+        tryingConnect = false;
+        return;
+    }
+
+    if (socket.isOpen()) {
+        CloseChildren = cc;
+        sockwrite("QUIT :");
+    }
 }
 
 
@@ -207,6 +218,7 @@ void IConnection::onSocketReadyRead()
     */
 
     QByteArray in = socket.readAll();
+    tryingConnect = false;
 
     for (int i = 0; i <= in.length()-1; i++) {
 
@@ -1115,6 +1127,32 @@ void IConnection::parseNumeric(int numeric, QString data)
     // Not doing this will cause the client to act retarded.
     activeNick = token.at(2);
     active = true; // Connection is registered.
+
+    QString fname = QString("%1/perform").arg(CONF_PATH);
+    QFile f(fname);
+    if (f.open(QIODevice::ReadOnly)) {
+        QByteArray data = f.readAll();
+        QString line;
+        int len = data.length();
+        data.append('\n');
+        for (int i = 0; i <= len-1; i++) {
+            QChar c = data.at(i);
+
+            if (c == '\n') {
+                if (line.length() == 0)
+                    continue;
+
+                cmdhndl.parse(line);
+                line.clear();
+                continue;
+            }
+
+            line += c;
+        }
+
+        f.close();
+    }
+
   }
 
   else if (numeric == RPL_MYINFO) {

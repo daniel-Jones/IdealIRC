@@ -61,11 +61,13 @@ class IdealIRC : public QMainWindow
       QString activeWname;
       int activeConn; // -1 if it's a custom window active!
       config conf;
-      IConfig confDlg;
+      IConfig *confDlg;
       int connectionsRemaining; // When closing IIRC we must wait for all connections to close before exiting IIRC. This one counts backwards for each disconneciton.
       bool preventSocketAction; // Used when updating connection toolbutton, when using setChecked it also performs its signal.
       IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
       VersionChecker vc;
+
+      void recreateConfDlg();
 
   protected:
       void showEvent(QShowEvent *);

@@ -26,10 +26,11 @@
 #include "iconfiggeneral.h"
 #include "ui_iconfiggeneral.h"
 
-IConfigGeneral::IConfigGeneral(config *cfg, QWidget *parent) :
+IConfigGeneral::IConfigGeneral(config *cfg, IConnection *con, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::IConfigGeneral),
     conf(cfg),
+    current(con),
     sm(this)
 {
     ui->setupUi(this);
@@ -52,11 +53,25 @@ IConfigGeneral::IConfigGeneral(config *cfg, QWidget *parent) :
     QModelIndex idx = serverModel.indexFromHost(lbServer);
     selection->setCurrentIndex(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
 
+
+    // If we're connected, show active nickname and server
+    if (con != NULL) {
+        if (con->isOnline()) {
+            ui->edNickname->setText( con->getActiveNickname() );
+
+            selection->clear();
+            QModelIndex idx = serverModel.indexFromHost( con->getConnectionInfo() );
+            selection->setCurrentIndex(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+
+            lbServer = con->getConnectionInfo();
+        }
+    }
+
+
     connect(selection, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),
             this, SLOT(selectionRowChanged(QModelIndex,QModelIndex)));
 
     ui->lbserver->setText(tr("Current server: %1").arg(lbServer));
-
 
     connect(&se, SIGNAL(closed()),
              this, SLOT(reloadServerList()));

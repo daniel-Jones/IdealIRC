@@ -48,7 +48,8 @@ SOURCES += main.cpp\
     iconfig/colorpickerscene.cpp \
     versionchecker.cpp \
     iconfig/iservereditor.cpp \
-    iconfig/servermodel.cpp
+    iconfig/servermodel.cpp \
+    iconfig/iconfigperform.cpp
 #    iconfig/servereditor/servertreeitem.cpp \
 #    iconfig/servereditor/servertreemodel.cpp
 
@@ -75,7 +76,8 @@ HEADERS  += idealirc.h \
     iconfig/colorpickerscene.h \
     versionchecker.h \
     iconfig/iservereditor.h \
-    iconfig/servermodel.h
+    iconfig/servermodel.h \
+    iconfig/iconfigperform.h
 #    iconfig/servereditor/servertreeitem.h \
 #    iconfig/servereditor/servertreemodel.h
 
@@ -86,7 +88,8 @@ FORMS    += idealirc.ui \
     ichanconfig.ui \
     iabout.ui \
     iconfig/iconfigcustomize.ui \
-    iconfig/iservereditor.ui
+    iconfig/iservereditor.ui \
+    iconfig/iconfigperform.ui
 
 RESOURCES += \
     resources.qrc

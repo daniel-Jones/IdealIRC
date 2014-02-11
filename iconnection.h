@@ -59,6 +59,7 @@ class IConnection : public QObject
       bool isValidCuMode(char mode);
       bool isValidCuLetter(char l);
       subwindow_t getSubWindowStruct(QString wname) { return winlist.value(wname); }
+      QString getConnectionInfo() { return host + ":" + QString::number(port); } // Returns the connections server:port
       int maxBanList; // From isupport. Default is 3
       int maxExceptList; // Same as above ^
       int maxInviteList; // Same as above ^
@@ -89,6 +90,7 @@ class IConnection : public QObject
       QString *activeWname;
       int *activeConn;
       bool CloseChildren;
+      bool tryingConnect;
 
       /* For retreiving data, onSocketReadyRead() */
       bool waitLF;
