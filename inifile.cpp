@@ -347,7 +347,7 @@ int IniFile::CountItems(QString Section)
 int IniFile::CountSections()
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-      return false;
+      return 0;
 
     char buf[1024];
     memset(buf, 0, sizeof(buf));
@@ -561,7 +561,7 @@ bool IniFile::RenameSection(QString OldName, QString NewName)
       if (finished)
         continue;
 
-      if (line == OldName) {
+      if (line.toUpper() == OldName.toUpper()) {
           sl.pop_back(); // The very last item inserted is actually OldName. Remove.
           sl.append(NewName);
           finished = true;

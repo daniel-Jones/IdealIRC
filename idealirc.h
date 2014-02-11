@@ -35,6 +35,7 @@
 #include "iconnection.h"
 #include "iconfig.h"
 #include "versionchecker.h"
+#include "ifavourites.h"
 
 namespace Ui {
     class IdealIRC;
@@ -62,12 +63,15 @@ class IdealIRC : public QMainWindow
       int activeConn; // -1 if it's a custom window active!
       config conf;
       IConfig *confDlg;
+      IFavourites *favourites;
       int connectionsRemaining; // When closing IIRC we must wait for all connections to close before exiting IIRC. This one counts backwards for each disconneciton.
       bool preventSocketAction; // Used when updating connection toolbutton, when using setChecked it also performs its signal.
       IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
       VersionChecker vc;
 
       void recreateConfDlg();
+      void recreateFavouritesDlg();
+      void favouritesJoinEnabler();
 
   protected:
       void showEvent(QShowEvent *);
@@ -92,6 +96,8 @@ class IdealIRC : public QMainWindow
       void Highlight(int wid, int type);
       void on_actionAbout_IdealIRC_triggered();
       void configSaved();
+      void on_actionChannel_favourites_triggered();
+      void connectionEstablished();
 };
 
 #endif // IDEALIRC_H

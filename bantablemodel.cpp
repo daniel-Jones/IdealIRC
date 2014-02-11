@@ -42,7 +42,7 @@ void BanTableModel::setBanList(QStringList m, QStringList d, QStringList a)
         items << maskItem << dateItem << authorItem;
 
         appendRow(items);
-        maskmap.insert(m[i], indexFromItem(maskItem));
+        maskmap.insert(m[i], maskItem);
     }
 
 }
@@ -57,11 +57,12 @@ void BanTableModel::addBan(QString m, QString d, QString a)
     items << maskItem << dateItem << authorItem;
 
     appendRow(items);
-    maskmap.insert(m, indexFromItem(maskItem));
+    maskmap.insert(m, maskItem);
 }
 
 void BanTableModel::delBan(QString m)
 {
-    QModelIndex index = maskmap.value(m);
+    QStandardItem *item = maskmap.value(m);
+    QModelIndex index = indexFromItem(item);
     removeRow(index.row());
 }

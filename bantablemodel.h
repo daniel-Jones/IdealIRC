@@ -41,7 +41,7 @@ private:
     QStringList mask;
     QStringList date;
     QStringList author;
-    QHash<QString,QModelIndex> maskmap;
+    QHash<QString,QStandardItem*> maskmap;
 };
 
 #endif // BANTABLEMODEL_H

@@ -36,6 +36,7 @@ IdealIRC::IdealIRC(QWidget *parent) :
     ui(new Ui::IdealIRC),
     firstShow(true),
     confDlg(NULL),
+    favourites(NULL),
     connectionsRemaining(-1),
     preventSocketAction(false),
     reconnect(NULL)
@@ -89,6 +90,15 @@ void IdealIRC::recreateConfDlg()
             this, SLOT(extConnectServer(bool)));
     connect(confDlg, SIGNAL(configSaved()),
             this, SLOT(configSaved()));
+}
+
+void IdealIRC::recreateFavouritesDlg()
+{
+    if (favourites != NULL) {
+        favourites->deleteLater();
+    }
+
+    favourites = new IFavourites(&conf, this);
 }
 
 void IdealIRC::showEvent(QShowEvent *)
@@ -272,6 +282,8 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
         connection->setActiveInfo(&activeWname, &activeConn);
         connect(connection, SIGNAL(connectionClosed()),
                 this, SLOT(connectionClosed()));
+        connect(connection, SIGNAL(connectedToIRC()),
+                this, SLOT(connectionEstablished()));
     }
 
     qDebug() << "Connection added, setting pointers";
@@ -441,6 +453,9 @@ void IdealIRC::on_treeWidget_itemSelectionChanged()
             activeConn = sw.connection->getCid();
             sw.widget->setFocus();
             std::cout << "activeWid=" << activeWid << std::endl;
+
+            if (favourites != NULL)
+                favourites->setConnection(sw.connection);
         }
     }
 }
@@ -488,6 +503,8 @@ void IdealIRC::extConnectServer(bool newWindow)
 void IdealIRC::updateConnectionButton()
 {
     preventSocketAction = true;
+
+    favouritesJoinEnabler();
 
     subwindow_t sw = winlist.value(activeWid);
 
@@ -624,4 +641,35 @@ void IdealIRC::configSaved()
     }
 
     ui->treeWidget->setFont(f);
+}
+
+void IdealIRC::favouritesJoinEnabler()
+{
+    IConnection *current = conlist.value(activeConn, NULL);
+
+    if ((current == NULL) && (favourites != NULL))
+        favourites->enableJoin(false);
+
+    if ((current == NULL) || (favourites == NULL))
+        return;
+
+    if (current->isSocketOpen())
+        favourites->enableJoin(true);
+    else
+        favourites->enableJoin(false);
+
+    favourites->setConnection(current);
+}
+
+void IdealIRC::on_actionChannel_favourites_triggered()
+{
+    recreateFavouritesDlg();
+    favourites->show();
+
+    favouritesJoinEnabler();
+}
+
+void IdealIRC::connectionEstablished()
+{
+    favouritesJoinEnabler();
 }
