@@ -27,6 +27,10 @@ QMyListWidget::QMyListWidget(QWidget *parent, config *cfg) :
     conf(cfg)
 {
   updateCSS();
+
+  QFont f(conf->fontName);
+  f.setPixelSize(conf->fontSize);
+  setFont(f);
 }
 
 void QMyListWidget::contextMenuEvent(QContextMenuEvent *e)

@@ -54,6 +54,7 @@ class config : public QObject
     QString quit;
     QString logPath;
     QString bgImagePath;
+    QString timestamp;
     QString fontName;
     int fontSize;
     int treeWidth;

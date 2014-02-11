@@ -85,6 +85,8 @@ class IWin : public QWidget
       void sockwrite(QString data) { emit sendToSocket(data); }
       IConnection* getConnection() { return connection; }
       void setSortRuleMap(QList<char> *sl) { sortrule = sl; }
+      void setFont(const QFont &font);
+      void reloadCSS(); // Runs only if TIRCVIEW is present.
 
   private:
       Ui::IWin *ui;

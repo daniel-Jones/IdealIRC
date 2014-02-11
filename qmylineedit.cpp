@@ -32,6 +32,10 @@ QMyLineEdit::QMyLineEdit(QWidget *parent, config *cfg) :
           this, SLOT(lnReturn()));
 
   updateCSS();
+
+  QFont f(conf->fontName);
+  f.setPixelSize(conf->fontSize);
+  setFont(f);
 }
 
 void QMyLineEdit::focusOutEvent(QFocusEvent *e)

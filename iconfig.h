@@ -72,6 +72,7 @@ protected:
 
   signals:
     void connectToServer(bool newWindow = false);
+    void configSaved();
 
 };
 

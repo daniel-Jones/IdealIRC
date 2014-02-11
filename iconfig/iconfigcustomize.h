@@ -37,6 +37,7 @@ class IConfigCustomize : public QWidget
 public:
     explicit IConfigCustomize(config *cfg, QWidget *parent = 0);
     ~IConfigCustomize();
+    void saveConfig();
 
 private:
     Ui::IConfigCustomize *ui;
@@ -48,6 +49,7 @@ public slots:
     void colorPicked(QColor color);
 private slots:
     void on_colorCode_textChanged(const QString &arg1);
+    void on_spinBox_valueChanged(int arg1);
 };
 
 #endif // ICONFIGCUSTOMIZE_H

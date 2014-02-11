@@ -61,6 +61,10 @@ IdealIRC::IdealIRC(QWidget *parent) :
 
     if (conf.checkVersion)
         vc.runChecker();
+
+    QFont f(conf.fontName);
+    f.setPixelSize(conf.fontSize);
+    ui->treeWidget->setFont(f);
 }
 
 IdealIRC::~IdealIRC()
@@ -72,6 +76,7 @@ void IdealIRC::recreateConfDlg()
 {
     if (confDlg != NULL) {
         disconnect(confDlg, SIGNAL(connectToServer(bool)));
+        disconnect(confDlg, SIGNAL(configSaved()));
         delete confDlg;
     }
 
@@ -82,6 +87,8 @@ void IdealIRC::recreateConfDlg()
     confDlg = new IConfig(&conf, c, this);
     connect(confDlg, SIGNAL(connectToServer(bool)),
             this, SLOT(extConnectServer(bool)));
+    connect(confDlg, SIGNAL(configSaved()),
+            this, SLOT(configSaved()));
 }
 
 void IdealIRC::showEvent(QShowEvent *)
@@ -101,7 +108,8 @@ void IdealIRC::showEvent(QShowEvent *)
 
     CreateSubWindow("Status", WT_STATUS, 0, true);
 
-    // ui->splitter
+    if (conf.showOptionsStartup)
+        on_actionOptions_triggered();
 }
 
 void IdealIRC::closeEvent(QCloseEvent *e)
@@ -302,6 +310,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
 
     treeitem->setIcon(0, QIcon(ico));
     treeitem->setText(0, name);
+    treeitem->setToolTip(0, name);
 
     qDebug() << "subwindow_t instance...";
 
@@ -598,4 +607,21 @@ void IdealIRC::versionReceived()
 
         QMessageBox::information(this, "New version!", msg);
     }
+}
+
+void IdealIRC::configSaved()
+{
+    QFont f(conf.fontName);
+    f.setPixelSize(conf.fontSize);
+
+    QHashIterator<int,subwindow_t> i(winlist);
+    while (i.hasNext()) {
+        i.next();
+
+        subwindow_t sw = i.value();
+        sw.widget->setFont(f);
+        sw.widget->reloadCSS();
+    }
+
+    ui->treeWidget->setFont(f);
 }

@@ -196,7 +196,9 @@ void IConnection::closeConnection(bool cc)
 
     if (socket.isOpen()) {
         CloseChildren = cc;
-        sockwrite("QUIT :");
+        QString data = QString("QUIT :%1")
+                       .arg( conf->quit );
+        sockwrite(data);
     }
 }
 

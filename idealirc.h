@@ -91,6 +91,7 @@ class IdealIRC : public QMainWindow
       void on_treeWidget_clicked(const QModelIndex &);
       void Highlight(int wid, int type);
       void on_actionAbout_IdealIRC_triggered();
+      void configSaved();
 };
 
 #endif // IDEALIRC_H

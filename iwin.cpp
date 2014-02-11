@@ -215,23 +215,9 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
                        this, SLOT(inputEnterPushed()));
 
       input->acIndex = &acIndex; // Pass a pointer so the input box can reset it when neccessary
-
-      #ifdef Q_WS_X11
-        input->setFont(QFont("Arial", 12));
-      #else
-        input->setFont(QFont("Arial", 12));
-      #endif
     }
 
     if (textdata != 0) {
-
-        /*
-      #ifdef Q_WS_X11
-        textdata->setFont(QFont("Courier New", 10));
-      #else
-        textdata->setFont(QFont("Courier New", 10));
-      #endif
-  */
       connect(textdata, SIGNAL(joinChannel(QString)),
               this, SLOT(joinChannel(QString)));
 
@@ -242,15 +228,6 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
               this, SLOT(GiveFocus()));
 
       textdata->reloadCSS();
-    }
-
-    if (listbox != 0) {
-
-      #ifdef Q_WS_X11
-        listbox->setFont(QFont("Arial", 12));
-      #else
-        listbox->setFont(QFont("Arial", 12));
-      #endif
     }
 
     if (split != NULL) {
@@ -466,6 +443,12 @@ void IWin::print(const QString &text, const int ptype)
     else
         emit Highlight(winid, HL_ACTIVITY);
 
+    if (conf->showTimestmap) {
+        QString stamp = QDateTime::currentDateTime().toString( conf->timestamp );
+        stamp.append(' ');
+        msg.prepend(stamp);
+    }
+
     textdata->addLine(msg, ptype);
     /// @todo Write to log
 }
@@ -614,6 +597,24 @@ void IWin::setInputText(QString text)
 {
     if (input != NULL)
         input->setText(text);
+}
+
+void IWin::setFont(const QFont &font)
+{
+    if (textdata != NULL)
+        textdata->setFont(font);
+    if (input != NULL)
+        input->setFont(font);
+    if (listbox != NULL)
+        listbox->setFont(font);
+}
+
+void IWin::reloadCSS()
+{
+    if (textdata == NULL)
+        return;
+
+    textdata->reloadCSS();
 }
 
 void IWin::settingsClosed()

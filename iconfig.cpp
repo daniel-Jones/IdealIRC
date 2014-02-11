@@ -144,8 +144,10 @@ void IConfig::saveAll()
 {
     wGeneral->saveConfig();
     wPerform->saveConfig();
+    wCustomize->saveConfig();
 
     conf->save();
+    emit configSaved();
 }
 
 void IConfig::closeSubWidgets()
@@ -154,6 +156,12 @@ void IConfig::closeSubWidgets()
         wGeneral->close();
         delete wGeneral;
         wGeneral = NULL;
+    }
+
+    if (wPerform != NULL) {
+        wPerform->close();
+        delete wPerform;
+        wPerform = NULL;
     }
 
     if (wCustomize != NULL) {

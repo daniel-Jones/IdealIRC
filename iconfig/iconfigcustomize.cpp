@@ -20,6 +20,8 @@
 
 #include "iconfigcustomize.h"
 #include "ui_iconfigcustomize.h"
+#include <QDebug>
+
 
 IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     QWidget(parent),
@@ -36,6 +38,20 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     colorPicked(Qt::black);
 
     ui->colorPick->setScene(&scene);
+
+    QFont f(conf->fontName);
+    f.setPixelSize(conf->fontSize);
+    ui->spinBox->setValue(conf->fontSize);
+    ui->fontComboBox->setCurrentFont(f);
+
+    ui->chkShowOptions->setChecked( conf->showOptionsStartup );
+    ui->chkShowWhois->setChecked( conf->showWhois );
+    ui->edQuit->setText( conf->quit );
+
+    ui->chkUnderlineLinks->setChecked( conf->linkUnderline );
+    ui->chkModes->setChecked( conf->showUsermodeMsg );
+    ui->chkTimestamp->setChecked( conf->showTimestmap );
+    ui->edTimeFormat->setText( conf->timestamp );
 }
 
 IConfigCustomize::~IConfigCustomize()
@@ -58,4 +74,28 @@ void IConfigCustomize::on_colorCode_textChanged(const QString &arg1)
     pp.setColor(QPalette::Background, color);
     ui->colPreview->setAutoFillBackground(true);
     ui->colPreview->setPalette(pp);
+}
+
+void IConfigCustomize::on_spinBox_valueChanged(int arg1)
+{
+    QFont f = ui->fontComboBox->currentFont();
+    f.setPixelSize(arg1);
+
+    ui->fontComboBox->setCurrentFont(f);
+}
+
+void IConfigCustomize::saveConfig()
+{
+    QFont f = ui->fontComboBox->currentFont();
+    conf->fontName = f.family();
+    conf->fontSize = f.pixelSize();
+
+    conf->showOptionsStartup = ui->chkShowOptions->isChecked();
+    conf->showWhois = ui->chkShowWhois->isChecked();
+    conf->quit = ui->edQuit->text();
+
+    conf->linkUnderline = ui->chkUnderlineLinks->isChecked();
+    conf->showUsermodeMsg = ui->chkModes->isChecked();
+    conf->showTimestmap = ui->chkTimestamp->isChecked();
+    conf->timestamp = ui->edTimeFormat->text();
 }

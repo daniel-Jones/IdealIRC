@@ -82,6 +82,10 @@ void config::rehash()
   trayNotifyDelay = ini->ReadIni("Options", "TrayNotifyDelay").toInt();
   bgZoomLevel = ini->ReadIni("Options", "BgZoomLevel").toInt();
 
+  timestamp = ini->ReadIni("Options", "TimeStamp");
+  if (timestamp.length() == 0)
+      timestamp = "[hh:mm]";
+
   showTimestmap = stb(ini->ReadIni("Options", "ShowTimeStamp"));
   showOptionsStartup = stb(ini->ReadIni("Options", "ShowOptions"));
   connectInvisible = stb(ini->ReadIni("Options", "connectInvisible"));
@@ -247,6 +251,7 @@ void config::save()
   ini->WriteIni("Options", "LinksUnderline", QString::number(linkUnderline));
   ini->WriteIni("Options", "TreeWidth", QString::number(treeWidth));
   ini->WriteIni("Options", "ListBoxWidth", QString::number(listboxWidth));
+  ini->WriteIni("Options", "TimeStamp", timestamp);
   ini->WriteIni("Options", "ShowTimeStamp", QString::number(showTimestmap));
   ini->WriteIni("Options", "ShowOptions", QString::number(showOptionsStartup));
   ini->WriteIni("Options", "Invisible", QString::number(connectInvisible));
