@@ -63,7 +63,9 @@ class IConfig : public QDialog
     void on_btnSaveClose_clicked();
     void on_btnCancel_clicked();
 
-  protected:
+    void on_btnDisconnect_clicked();
+
+protected:
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *);
     void resizeEvent(QResizeEvent *);

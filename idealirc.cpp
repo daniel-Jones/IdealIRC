@@ -429,7 +429,7 @@ void IdealIRC::on_treeWidget_itemSelectionChanged()
             ui->mdiArea->setActiveSubWindow( sw.subwin );
             activeWid = i.key();
             activeWname = sw.widget->objectName();
-            activeConn = sw.parent;
+            activeConn = sw.connection->getCid();
             sw.widget->setFocus();
             std::cout << "activeWid=" << activeWid << std::endl;
         }

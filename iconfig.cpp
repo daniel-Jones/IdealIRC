@@ -55,9 +55,11 @@ IConfig::IConfig(config *cfg, IConnection *con, QWidget *parent) :
     connect(ui->btLog, SIGNAL(clicked()),
             &buttonSignals, SLOT(map()));
 
+    ui->btnDisconnect->hide();
+
     if (con != NULL)
-        if (! con->isOnline())
-            ui->btnDisconnect->hide();
+        if (con->isOnline())
+            ui->btnDisconnect->show();
 }
 
 void IConfig::showEvent(QShowEvent *)
@@ -177,4 +179,11 @@ void IConfig::on_btnSaveClose_clicked()
 void IConfig::on_btnCancel_clicked()
 {
     close();
+}
+
+void IConfig::on_btnDisconnect_clicked()
+{
+    ui->btnDisconnect->hide();
+
+    current->closeConnection();
 }

@@ -355,12 +355,12 @@ void IWin::inputEnterPushed()
 
     if (text.at(0) == '/') {
         bool commandOk = cmdhndl->parse(text);
-        if ((! commandOk) && (connection->isOnline() == true)) {
+        if ((! commandOk) && (connection->isSocketOpen() == true)) {
             // Run this if we didn't have the command, assume it's on the server.
             sockwrite( text.mid(1) );
         }
 
-        if ((! commandOk) && (connection->isOnline() == false)) {
+        if ((! commandOk) && (connection->isSocketOpen() == false)) {
             // We're disconnected and command wasn't found in ICommand.
             print("Not connected to server.", PT_LOCALINFO);
         }
