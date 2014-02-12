@@ -17,13 +17,11 @@ IFavourites::IFavourites(config *cfg, QWidget *parent) :
     ui->setupUi(this);
 
     QString fn = QString("%1/favourites.ini").arg(CONF_PATH);
-    IniFile ini(fn);
+    ini = new IniFile(fn);
 
-    int count = ini.CountSections();
+    int count = ini->CountSections();
     for (int i = 1; i <= count; i++) {
-        QString name = ini.ReadIni(i);
-        bool autojoin = (bool)ini.ReadIni(name, "AutoJoin").toInt();
-        QString pw = ini.ReadIni(name, "Key");
+        QString name = ini->ReadIni(i);
 
         QStandardItem *item = new QStandardItem(name);
         model.appendRow(item);
@@ -53,7 +51,8 @@ IFavourites::~IFavourites()
 
     disconnect(selection);
 
-    delete selection;
+    ini->deleteLater();
+    selection->deleteLater();
     delete ui;
 }
 
@@ -81,9 +80,7 @@ void IFavourites::itemChanged(QStandardItem *item)
     chanmap.remove(mapname);
     chanmap.insert(newname.toUpper(), item);
 
-    QString fn = QString("%1/favourites.ini").arg(CONF_PATH);
-    IniFile ini(fn);
-    ini.RenameSection(mapname, newname);
+    ini->RenameSection(mapname, newname);
 }
 
 void IFavourites::on_edChannel_textChanged(const QString &arg1)
@@ -106,11 +103,9 @@ void IFavourites::on_edChannel_textChanged(const QString &arg1)
 
 void IFavourites::loadChannel(const QString &channel)
 {
-    QString fn = QString("%1/favourites.ini").arg(CONF_PATH);
-    IniFile ini(fn);
 
-    bool aj = (bool)ini.ReadIni(channel, "AutoJoin").toInt();
-    QString key = ini.ReadIni(channel, "Key");
+    bool aj = (bool)ini->ReadIni(channel, "AutoJoin").toInt();
+    QString key = ini->ReadIni(channel, "Key");
 
     ui->chkJoin->setChecked(aj);
     ui->edKey->setText(key);
@@ -123,16 +118,14 @@ void IFavourites::on_btnSave_clicked()
     QString channel = ui->edChannel->text();
     QStandardItem *item = chanmap.value(channel.toUpper(), NULL);
 
-    if (item == NULL) {
-        item = new QStandardItem(channel);
-        chanmap.insert(channel.toUpper(), item);
-    }
-    else {
-        QString oldname = item->text();
-        item->setText(channel);
-        chanmap.remove(oldname.toUpper());
-        chanmap.insert(channel.toUpper(), item);
-    }
+    if (item == NULL)
+        return;
+
+    QString aj = QString::number( ui->chkJoin->isChecked() );
+    QString key = ui->edKey->text();
+
+    ini->WriteIni(channel, "AutoJoin", aj);
+    ini->WriteIni(channel, "Key", key);
 }
 
 void IFavourites::on_toolButton_clicked()
@@ -148,10 +141,9 @@ void IFavourites::on_toolButton_clicked()
         return;
     }
 
-    QString fn = QString("%1/favourites.ini").arg(CONF_PATH);
-    IniFile ini(fn);
 
-    ini.WriteIni(channel, "AutoJoin", "0");
+
+    ini->WriteIni(channel, "AutoJoin", "0");
 
     item = new QStandardItem(channel);
     chanmap.insert(channel.toUpper(), item);
@@ -184,10 +176,7 @@ void IFavourites::on_btnDelete_clicked()
     model.removeRow(index.row());
     chanmap.remove(channel.toUpper());
 
-    QString fn = QString("%1/favourites.ini").arg(CONF_PATH);
-    IniFile ini(fn);
-
-    ini.DelSection(channel);
+    ini->DelSection(channel);
 
     if (chanmap.count() == 0) {
         ui->btnSave->setEnabled(false);
@@ -205,9 +194,7 @@ void IFavourites::on_btnJoin_clicked()
     if (channel.length() == 0)
         return;
 
-    QString fn = QString("%1/favourites.ini").arg(CONF_PATH);
-    IniFile ini(fn);
-    QString pw = ini.ReadIni(channel,"Key");
+    QString pw = ini->ReadIni(channel,"Key");
     if (pw.length() > 0)
         pw.prepend(' ');
 

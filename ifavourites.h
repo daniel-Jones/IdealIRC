@@ -36,6 +36,7 @@ private slots:
 private:
     Ui::IFavourites *ui;
     config *conf;
+    IniFile *ini;
     QStandardItemModel model;
     QItemSelectionModel *selection;
     QHash<QString,QStandardItem*> chanmap;

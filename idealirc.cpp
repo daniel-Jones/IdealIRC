@@ -37,6 +37,7 @@ IdealIRC::IdealIRC(QWidget *parent) :
     firstShow(true),
     confDlg(NULL),
     favourites(NULL),
+    chanlist(NULL),
     connectionsRemaining(-1),
     preventSocketAction(false),
     reconnect(NULL)
@@ -99,6 +100,15 @@ void IdealIRC::recreateFavouritesDlg()
     }
 
     favourites = new IFavourites(&conf, this);
+}
+
+void IdealIRC::recreateChanlistDlg()
+{
+    if (chanlist != NULL) {
+        chanlist->deleteLater();
+    }
+
+    chanlist = new IChannelList(this);
 }
 
 void IdealIRC::showEvent(QShowEvent *)
@@ -278,7 +288,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     IConnection *connection = conlist.value(parent, NULL);
     if (type == WT_STATUS) {
         qDebug() << "Window is status, new connection added with id " << s->getId();
-        connection = new IConnection(this, s->getId(), &conf);
+        connection = new IConnection(this, &chanlist, s->getId(), &conf);
         connection->setActiveInfo(&activeWname, &activeConn);
         connect(connection, SIGNAL(connectionClosed()),
                 this, SLOT(connectionClosed()));
@@ -456,6 +466,10 @@ void IdealIRC::on_treeWidget_itemSelectionChanged()
 
             if (favourites != NULL)
                 favourites->setConnection(sw.connection);
+
+            if (chanlist != NULL)
+                chanlist->setConnection(sw.connection);
+
         }
     }
 }
@@ -505,6 +519,7 @@ void IdealIRC::updateConnectionButton()
     preventSocketAction = true;
 
     favouritesJoinEnabler();
+    chanlistEnabler();
 
     subwindow_t sw = winlist.value(activeWid);
 
@@ -661,6 +676,24 @@ void IdealIRC::favouritesJoinEnabler()
     favourites->setConnection(current);
 }
 
+void IdealIRC::chanlistEnabler()
+{
+    IConnection *current = conlist.value(activeConn, NULL);
+
+    if ((current == NULL) && (chanlist != NULL))
+        favourites->enableJoin(false);
+
+    if ((current == NULL) || (chanlist == NULL))
+        return;
+
+    if (current->isSocketOpen())
+        chanlist->enable();
+    else
+        chanlist->disable();
+
+    chanlist->setConnection(current);
+}
+
 void IdealIRC::on_actionChannel_favourites_triggered()
 {
     recreateFavouritesDlg();
@@ -672,4 +705,13 @@ void IdealIRC::on_actionChannel_favourites_triggered()
 void IdealIRC::connectionEstablished()
 {
     favouritesJoinEnabler();
+    chanlistEnabler();
+}
+
+void IdealIRC::on_actionChannels_list_triggered()
+{
+    recreateChanlistDlg();
+    chanlist->show();
+
+    chanlistEnabler();
 }

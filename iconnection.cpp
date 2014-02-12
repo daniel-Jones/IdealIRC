@@ -27,7 +27,7 @@
 #include "iconnection.h"
 #include "numerics.h"
 
-IConnection::IConnection(QObject *parent, int connId, config *cfg) :
+IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg) :
     QObject(parent),
     maxBanList(-1), /** -1 means undefined. **/
     maxExceptList(-1),
@@ -44,6 +44,8 @@ IConnection::IConnection(QObject *parent, int connId, config *cfg) :
     isupport(false),
     CloseChildren(false),
     tryingConnect(false),
+    chanlistPtr(clptr),
+    listInDialog(false),
     waitLF(false),
     cmA("b"),
     cmB("k"),
@@ -297,6 +299,43 @@ bool IConnection::isValidCuMode(char mode)
 bool IConnection::isValidCuLetter(char l)
 {
     return culetter.contains(l);
+}
+
+QString IConnection::trimCtrlCodes(QString &text)
+{
+    /*
+        0x02 - bold
+        0x03 - color
+        0x1F - underline
+    */
+
+    QString result;
+    for (int i = 0; i <= text.length()-1; i++) {
+        QChar c = text.at(i);
+        if (c == 0x02)
+            continue;
+        if (c == 0x1F)
+            continue;
+        if (c == 0x03) {
+
+            for (i++; i <= text.length()-1; i++) {
+                c = text.at(i);
+                bool numok = false;
+                QString(c).toInt(&numok);
+                if ((numok == false) && (c == ','))
+                    continue;
+                if (numok == false)
+                    break;
+            }
+            i--;
+
+            continue;
+        }
+
+        result += c;
+    }
+
+    return result;
 }
 
 void IConnection::print(const QString window, const QString &line, const int ptype)
@@ -1160,6 +1199,7 @@ void IConnection::parseNumeric(int numeric, QString data)
     activeNick = token.at(2);
     active = true; // Connection is registered.
 
+    // Perform on connect
     QString fname = QString("%1/perform").arg(CONF_PATH);
     QFile f(fname);
     if (f.open(QIODevice::ReadOnly)) {
@@ -1181,8 +1221,39 @@ void IConnection::parseNumeric(int numeric, QString data)
 
             line += c;
         }
-
         f.close();
+
+        // Auotjoin favourites
+        fname = QString("%1/favourites.ini").arg(CONF_PATH);
+        IniFile ini(fname);
+        QString channel;
+        QString password;
+        int count = ini.CountSections();
+        for (int i = 1; i <= count; i++) {
+            QString channelItem = ini.ReadIni(i);
+            QString passwordItem = ini.ReadIni(channelItem, "Key");
+            bool autojoin = (bool)ini.ReadIni(channelItem, "AutoJoin").toInt();
+
+            if (autojoin == true) {
+                if (channel.length() > 0)
+                    channel.append(',');
+                channel.append(channelItem);
+
+                if (passwordItem.length() > 0) {
+                    if (password.length() > 0)
+                        password.append(',');
+                    else
+                        password.prepend(' ');
+                    password.append(passwordItem);
+                }
+            }
+        }
+        if (channel.length() > 0) {
+            QString data = QString("JOIN %1%2")
+                           .arg(channel)
+                           .arg(password);
+            sockwrite(data);
+        }
     }
 
   }
@@ -1481,18 +1552,71 @@ void IConnection::parseNumeric(int numeric, QString data)
     return;
   }
 
+  /*
+
+ENTER PUSHED 1="/list"
+[UT] list
+[IN] :irc.3phasegaming.net 321 Tomatix Channel :Users  Name
+[IN] :irc.3phasegaming.net 322 Tomatix #OpenTTD 1 : Welcome to #OpenTTD | IP: 3phasegaming.net | Server Status: UP | Round Started: 28/11/2013
+[IN] :irc.3phasegaming.net 322 Tomatix #Help 2 :[+ntr] 4This is a chat-help only channel. Anything irrelevant to help with chat will be ignored!
+[IN] :irc.3phasegaming.net 322 Tomatix #Dicks 1 :[+nt]
+[IN] :irc.3phasegaming.net 322 Tomatix #beamng 25 :[+ntrf] State-of-the-art, soft-body physics - http://www.beamng.com/store | Billing questions? support@beamng.com | FAQ: http://wiki.beamng.com/BeamNG_FAQ | Official Forum: http://www.beamng.com/forum/ | http://wiki.beamng.com/Requirements
+[IN] :irc.3phasegaming.net 322 Tomatix #opers 4 :[+rO] Register at https://internal.3phasegaming.net/forum/ - I have to manually confirm your account, etc.
+[IN] :irc.3phasegaming.net 322 Tomatix #tests 1 :[+ntr] 4Tests: 9For testing BeamBot commands
+[IN] :irc.3phasegaming.net 322 Tomatix #RigsofRodsInternal 4 :[+r] How to utilize IRC better for admins and invited members?
+[IN] :irc.3phasegaming.net 322 Tomatix #RigsOfRodsOfftopic 1 :
+[IN] :irc.3phasegaming.net 322 Tomatix #secret 2 :[+sn] this channel is secret
+[IN] :irc.3phasegaming.net 322 Tomatix #speedsims 4 :[+ntr] .:Welcome To #Speedsims:. Motorsport, Motorsport related gaming and Stuff
+[IN] :irc.3phasegaming.net 322 Tomatix #RigsOfRods 10 :[+ntr] http://www.rigsofrods.com/wiki/pages/Forum_Chat#Rules and http://www.rigsofrods.com/threads/70874-IRC | #offtopic for your offtopic needs , and #BeamNG for BeamNG. | Don't ask for permission to ask. Just ask your question! | Don't use slap in here, this is your official warning
+[IN] :irc.3phasegaming.net 322 Tomatix #hackers 3 :[+smntr] 4Buffer 7Overflow
+[IN] :irc.3phasegaming.net 322 Tomatix #minecraft 6 :[+nt] Vanilla server, 3phasegaming.net:25566 (Whitelisting)
+[IN] :irc.3phasegaming.net 322 Tomatix #Sushiville 2 :[+r]
+[IN] :irc.3phasegaming.net 322 Tomatix #asyedbabbles 9 :[+sntr] RIP Asyed, you died as an hero
+[IN] :irc.3phasegaming.net 322 Tomatix #Offtopic 16 :[+sntr] www.kristianf.com/stats | www.kristianf.com/qdbs | OH GOD IT'S OFFICIAL, WE GOT A SHITTY FORUM, www.3phasegaming.net - REGISTER NAO. SPREAD THE WORD, ETC.
+[IN] :irc.3phasegaming.net 323 Tomatix :End of /LIST
+
+*/
+
   /** @todo /LIST is to be put in an own dialog box or widget. Need to be determined. **/
   /** RFC1459: RPL_LISTSTART, RPL_LIST, RPL_LISTEND **/
 
   else if (numeric == RPL_LISTSTART) {
-    emit requestChanListDlg();
+    IChannelList *cl = *chanlistPtr;
+    if (cl == NULL) {
+        listInDialog = false;
+    }
+    else {
+        if (cl->isVisible())
+            listInDialog = true;
+        else
+            listInDialog = false;
+    }
+    print("STATUS", tr("Downloading /LIST..."), PT_LOCALINFO);
+
     return;
   }
   else if (numeric == RPL_LIST) {
-    emit chanListItem(token.at(3), token.at(4), getMsg(data));
-    return;
+    //emit chanListItem(token.at(3), token.at(4), getMsg(data));
+      QString channel = token.at(3);
+      QString users = token.at(4);
+      QString topic = getMsg(data);
+
+      if (listInDialog) {
+          IChannelList *cl = *chanlistPtr;
+          cl->addItem(channel, users, trimCtrlCodes(topic));
+      }
+      else {
+          QString text = QString("%1 (%2 users): %3")
+                         .arg(channel)
+                         .arg(users)
+                         .arg(topic);
+          print("STATUS", text);
+      }
+      return;
   }
   else if (numeric == RPL_LISTEND) {
+    listInDialog = false;
+    print("STATUS", tr("End of /LIST"), PT_LOCALINFO);
     return;
   }
   else if (numeric == RPL_CHANNELMODEIS) {

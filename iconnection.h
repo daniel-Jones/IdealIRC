@@ -28,6 +28,7 @@
 #include "iwin.h"
 #include "config.h"
 #include "icommand.h"
+#include "ichannellist.h"
 
 // for parseUserinfo();
 typedef struct T_USER {
@@ -42,7 +43,7 @@ class IConnection : public QObject
   Q_OBJECT
 
   public:
-      explicit IConnection(QObject *parent, int connId, config *cfg);
+      explicit IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg);
       bool isOnline() { return active; } // True when we're registered to server.
       bool isSocketOpen() { return socket.isOpen(); } // True when socket is connected.
       QString getActiveNickname() { return activeNick; }
@@ -60,6 +61,7 @@ class IConnection : public QObject
       bool isValidCuLetter(char l);
       subwindow_t getSubWindowStruct(QString wname) { return winlist.value(wname); }
       QString getConnectionInfo() { return host + ":" + QString::number(port); } // Returns the connections server:port
+      QString trimCtrlCodes(QString &text);
       int maxBanList; // From isupport. Default is 3
       int maxExceptList; // Same as above ^
       int maxInviteList; // Same as above ^
@@ -91,6 +93,9 @@ class IConnection : public QObject
       int *activeConn;
       bool CloseChildren;
       bool tryingConnect;
+      IChannelList **chanlistPtr;
+      bool listInDialog;
+
 
       /* For retreiving data, onSocketReadyRead() */
       bool waitLF;

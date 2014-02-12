@@ -47,6 +47,9 @@
    </item>
    <item row="1" column="0" colspan="4">
     <widget class="QListView" name="chanView">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
      <property name="movement">
       <enum>QListView::Static</enum>
      </property>

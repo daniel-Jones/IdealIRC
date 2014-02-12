@@ -50,7 +50,8 @@ SOURCES += main.cpp\
     iconfig/iservereditor.cpp \
     iconfig/servermodel.cpp \
     iconfig/iconfigperform.cpp \
-    ifavourites.cpp
+    ifavourites.cpp \
+    ichannellist.cpp
 #    iconfig/servereditor/servertreeitem.cpp \
 #    iconfig/servereditor/servertreemodel.cpp
 
@@ -79,7 +80,8 @@ HEADERS  += idealirc.h \
     iconfig/iservereditor.h \
     iconfig/servermodel.h \
     iconfig/iconfigperform.h \
-    ifavourites.h
+    ifavourites.h \
+    ichannellist.h
 #    iconfig/servereditor/servertreeitem.h \
 #    iconfig/servereditor/servertreemodel.h
 
@@ -92,7 +94,8 @@ FORMS    += idealirc.ui \
     iconfig/iconfigcustomize.ui \
     iconfig/iservereditor.ui \
     iconfig/iconfigperform.ui \
-    ifavourites.ui
+    ifavourites.ui \
+    ichannellist.ui
 
 RESOURCES += \
     resources.qrc

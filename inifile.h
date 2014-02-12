@@ -59,7 +59,7 @@ class IniFile : public QObject
 
   public:
     explicit IniFile(QString filename, QObject *parent = 0);
-    ~IniFile() { delete file; }
+    ~IniFile() { file->deleteLater(); }
     QString ReadIni(QString Section, QString Item);
     QString ReadIni(QString Section, int ItemPos);
     QString ReadIni(int SectionPos);
