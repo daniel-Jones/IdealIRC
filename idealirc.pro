@@ -38,6 +38,10 @@ SOURCES += main.cpp\
     iconnection.cpp \
     iconfig.cpp \
     iconfig/iconfiggeneral.cpp \
+    iconfig/iservereditor.cpp \
+    iconfig/servermodel.cpp \
+    iconfig/iconfigperform.cpp \
+    iconfig/iconfiglogging.cpp \
     servermgr.cpp \
     icommand.cpp \
     ichanconfig.cpp \
@@ -47,13 +51,8 @@ SOURCES += main.cpp\
     iconfig/iconfigcustomize.cpp \
     iconfig/colorpickerscene.cpp \
     versionchecker.cpp \
-    iconfig/iservereditor.cpp \
-    iconfig/servermodel.cpp \
-    iconfig/iconfigperform.cpp \
     ifavourites.cpp \
     ichannellist.cpp
-#    iconfig/servereditor/servertreeitem.cpp \
-#    iconfig/servereditor/servertreemodel.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -67,6 +66,10 @@ HEADERS  += idealirc.h \
     iconnection.h \
     iconfig.h \
     iconfig/iconfiggeneral.h \
+    iconfig/iservereditor.h \
+    iconfig/servermodel.h \
+    iconfig/iconfigperform.h \
+    iconfig/iconfiglogging.h \
     servermgr.h \
     numerics.h \
     icommand.h \
@@ -77,23 +80,19 @@ HEADERS  += idealirc.h \
     iconfig/iconfigcustomize.h \
     iconfig/colorpickerscene.h \
     versionchecker.h \
-    iconfig/iservereditor.h \
-    iconfig/servermodel.h \
-    iconfig/iconfigperform.h \
     ifavourites.h \
     ichannellist.h
-#    iconfig/servereditor/servertreeitem.h \
-#    iconfig/servereditor/servertreemodel.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
     iconfig.ui \
     iconfig/iconfiggeneral.ui \
-    ichanconfig.ui \
-    iabout.ui \
     iconfig/iconfigcustomize.ui \
     iconfig/iservereditor.ui \
     iconfig/iconfigperform.ui \
+    iconfig/iconfiglogging.ui \
+    ichanconfig.ui \
+    iabout.ui \
     ifavourites.ui \
     ichannellist.ui
 

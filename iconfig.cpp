@@ -30,6 +30,7 @@ IConfig::IConfig(config *cfg, IConnection *con, QWidget *parent) :
     wGeneral(NULL),
     wPerform(NULL),
     wCustomize(NULL),
+    wLogging(NULL),
     current(con)
 {
     ui->setupUi(this);
@@ -80,6 +81,11 @@ void IConfig::showEvent(QShowEvent *)
         wCustomize->resize(ui->frame->size());
     }
 
+    if (wLogging == NULL) {
+        wLogging = new IConfigLogging(conf, ui->frame);
+        wLogging->resize(ui->frame->size());
+    }
+
 }
 
 void IConfig::closeEvent(QCloseEvent *)
@@ -125,10 +131,14 @@ void IConfig::buttonMapped(QWidget *btn)
     }
 
 
-    if (toolbutton->objectName() != "btLog")
+    if (toolbutton->objectName() != "btLog") {
         ui->btLog->setChecked(false);
-    else
+        wLogging->hide();
+    }
+    else {
         ui->btLog->setChecked(true);
+        wLogging->show();
+    }
 
 
 }
@@ -137,6 +147,14 @@ void IConfig::buttonMapped(QWidget *btn)
 
 IConfig::~IConfig()
 {
+    delete wGeneral;
+    delete wPerform;
+    delete wCustomize;
+    delete wLogging;
+    wGeneral = NULL;
+    wPerform = NULL;
+    wCustomize = NULL;
+    wLogging = NULL;
     delete ui;
 }
 
@@ -145,6 +163,7 @@ void IConfig::saveAll()
     wGeneral->saveConfig();
     wPerform->saveConfig();
     wCustomize->saveConfig();
+    wLogging->saveConfig();
 
     conf->save();
     emit configSaved();
@@ -168,6 +187,12 @@ void IConfig::closeSubWidgets()
         wCustomize->close();
         delete wCustomize;
         wCustomize = NULL;
+    }
+
+    if (wLogging != NULL) {
+        wLogging->close();
+        delete wLogging;
+        wLogging = NULL;
     }
 }
 

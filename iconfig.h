@@ -32,6 +32,7 @@
 #include "iconfig/iconfiggeneral.h"
 #include "iconfig/iconfigcustomize.h"
 #include "iconfig/iconfigperform.h"
+#include "iconfig/iconfiglogging.h"
 
 namespace Ui {
 class IConfig;
@@ -52,6 +53,7 @@ class IConfig : public QDialog
     IConfigGeneral *wGeneral;
     IConfigPerform *wPerform;
     IConfigCustomize *wCustomize;
+    IConfigLogging *wLogging;
 
     void saveAll();
     void closeSubWidgets();

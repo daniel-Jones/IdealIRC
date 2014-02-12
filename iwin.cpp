@@ -449,8 +449,8 @@ void IWin::print(const QString &text, const int ptype)
         msg.prepend(stamp);
     }
 
-    textdata->addLine(msg, ptype);
-    /// @todo Write to log
+    textdata->addLine(msg, ptype);   
+
 }
 
 void IWin::insertMember(QString nickname, member_t mt, bool sort)
