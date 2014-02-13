@@ -408,10 +408,12 @@ void IWin::listboxMenuRequested(QPoint p)
 
 void IWin::writeToLog(QString text)
 {
-  if (conf->logEnabled == false)
+  if (! conf->logEnabled)
     return;
 
-  QString LogFile = conf->logPath + "/" + target + ".txt";
+  QString LogFile = QString("%1/%2.txt")
+                    .arg(conf->logPath)
+                    .arg(target);
 
   QFile f(LogFile);
 
@@ -451,6 +453,8 @@ void IWin::print(const QString &text, const int ptype)
 
     textdata->addLine(msg, ptype);   
 
+    if ((WindowType == WT_CHANNEL) || (WindowType == WT_PRIVMSG))
+        writeToLog(msg);
 }
 
 void IWin::insertMember(QString nickname, member_t mt, bool sort)

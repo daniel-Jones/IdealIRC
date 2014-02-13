@@ -97,6 +97,15 @@ void IConfig::resizeEvent(QResizeEvent *)
 {
     if (wGeneral != NULL)
         wGeneral->resize(ui->frame->size());
+
+    if (wPerform != NULL)
+        wPerform->resize(ui->frame->size());
+
+    if (wCustomize != NULL)
+        wCustomize->resize(ui->frame->size());
+
+    if (wLogging != NULL)
+        wLogging->resize(ui->frame->size());
 }
 
 void IConfig::buttonMapped(QWidget *btn)
