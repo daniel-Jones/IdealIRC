@@ -42,11 +42,12 @@ class TIRCView : public QTextBrowser
 {
   Q_OBJECT
   public:
-    explicit TIRCView(config *cfg);
+    explicit TIRCView(config *cfg, QWidget *parent = NULL);
     ~TIRCView();
     void addLine(QString line, int ptype = 0, bool rebuilding = false);
     void rebuild();
     void reloadCSS();
+    void clear();
 
   private:
     QColor getColorFromCode(int num);
@@ -67,8 +68,6 @@ class TIRCView : public QTextBrowser
     void joinChannel(QString channel);
     void gotFocus();
     void menuRequested(QPoint point);
-
-
 };
 
 #endif // TIRCVIEW_H

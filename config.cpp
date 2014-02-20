@@ -102,6 +102,12 @@ void config::rehash()
   else
     checkVersion = stb(ini->ReadIni("Options", "CheckVersion"));
 
+  if (ini->ReadIni("Options", "ShowMotd").length() == 0)
+    showMotd = true;
+  else
+    showMotd = stb(ini->ReadIni("Options", "ShowMotd"));
+
+
   trayNotify = stb(ini->ReadIni("Options", "TrayNotify"));
 
   logEnabled = stb(ini->ReadIni("Options", "Log"));
@@ -261,6 +267,7 @@ void config::save()
   ini->WriteIni("Options", "TrayNotifyDelay", QString::number(trayNotifyDelay));
   ini->WriteIni("Options", "ShowWhois", QString::number(showWhois));
   ini->WriteIni("Options", "CheckVersion", QString::number(checkVersion));
+  ini->WriteIni("Options", "ShowMotd", QString::number(showMotd));
   ini->WriteIni("Options", "Log", QString::number(logEnabled));
   ini->WriteIni("Options", "LogPath", logPath);
   ini->WriteIni("Options", "LogChan", QString::number(logChannel));

@@ -46,6 +46,8 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId, conf
     tryingConnect(false),
     chanlistPtr(clptr),
     listInDialog(false),
+    connectionClosing(false),
+    motd(cfg, (QWidget*)parent),
     waitLF(false),
     cmA("b"),
     cmB("k"),
@@ -145,6 +147,10 @@ void IConnection::onSocketDisconnected()
         while (i.hasNext()) {
             i.next();
             subwindow_t win = i.value();
+
+            if (win.widget == NULL)
+                continue; // Window is already destroyed, can't do much with this. (Why is it even in the list? look closer on this if it becomes an issue!)
+
             if (win.type != WT_STATUS)
                 win.widget->close();
         }
@@ -197,6 +203,7 @@ void IConnection::closeConnection(bool cc)
     }
 
     if (socket.isOpen()) {
+        connectionClosing = true;
         CloseChildren = cc;
         QString data = QString("QUIT :%1")
                        .arg( conf->quit );
@@ -344,6 +351,8 @@ void IConnection::print(const QString window, const QString &line, const int pty
     w = getWinObj(window.toUpper()); // Attempt to get window object...
     if (w == NULL) // No such window, go back to default...
         w = getWinObj("STATUS"); // Default to Status window, this one always exsist.
+    if ((w == NULL) && (window == "STATUS"))
+        return; // Nowhere to send this text, ignore silently...
 
     w->print(line, ptype); // Do printing
 }
@@ -1810,31 +1819,41 @@ ENTER PUSHED 1="/list"
     return;
   }
 
-  else if (numeric == RPL_ENDOFMOTD) {
-    if (registered == true) {
-      print("STATUS", getMsg(data));
+  else if ((numeric == RPL_MOTDSTART) && (conf->showMotd)) {
+      print("STATUS", "Loading MOTD...", PT_LOCALINFO);
+      motd.reset();
       return;
-    }
+  }
+
+  else if ((numeric == RPL_MOTD) && (conf->showMotd)) {
+      QString text = getMsg(data);
+      motd.print(text);
+      return;
+  }
+
+  else if (numeric == RPL_ENDOFMOTD) {
+    print("STATUS", getMsg(data));
+
+    if (conf->showMotd)
+      motd.show();
+
+    if (registered == true)
+      return; // Stop here
+
     serverName = data.split(" ").at(0).mid(1);
 
     // Show favourites if its chosed to do so.
     if (conf->showFavourites)
       emit RequestFavourites();
-/** @todo isupport stuff
-    if (isupport == false) {
-      cmap->push_front('+');
-      cmap->push_front('@');
-      chantype.push_back('#');
-      chantype.push_back('&');
-    }
-*/
     registered = true;
 
     if (cumode.count() == 0) {
-      // We're just connected, but no ISUPPORT were received.
+      // We're just connected, but no ISUPPORT were received. Use the default ones.
       cumode << 'o' << 'v';
       culetter << '@' << '+';
       resetSortRules();
+
+      return;
     }
 
 /** @todo more isupport stuff
@@ -1849,6 +1868,7 @@ ENTER PUSHED 1="/list"
     */
     emit RequestTrayMsg("Connected to server", "Successfully connected to " + conf->server);
     emit connectedToIRC();
+
   }
 
   else if ((numeric == RPL_BANLIST) || (numeric == RPL_EXCEPTLIST) || (numeric == RPL_INVITELIST)) {

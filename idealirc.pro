@@ -52,7 +52,8 @@ SOURCES += main.cpp\
     iconfig/colorpickerscene.cpp \
     versionchecker.cpp \
     ifavourites.cpp \
-    ichannellist.cpp
+    ichannellist.cpp \
+    imotdview.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -81,7 +82,8 @@ HEADERS  += idealirc.h \
     iconfig/colorpickerscene.h \
     versionchecker.h \
     ifavourites.h \
-    ichannellist.h
+    ichannellist.h \
+    imotdview.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
@@ -94,7 +96,8 @@ FORMS    += idealirc.ui \
     ichanconfig.ui \
     iabout.ui \
     ifavourites.ui \
-    ichannellist.ui
+    ichannellist.ui \
+    imotdview.ui
 
 RESOURCES += \
     resources.qrc

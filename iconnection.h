@@ -29,6 +29,7 @@
 #include "config.h"
 #include "icommand.h"
 #include "ichannellist.h"
+#include "imotdview.h"
 
 // for parseUserinfo();
 typedef struct T_USER {
@@ -95,6 +96,8 @@ class IConnection : public QObject
       bool tryingConnect;
       IChannelList **chanlistPtr;
       bool listInDialog;
+      bool connectionClosing;
+      IMotdView motd;
 
 
       /* For retreiving data, onSocketReadyRead() */

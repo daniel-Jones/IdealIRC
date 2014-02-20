@@ -139,7 +139,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
 
       input = new QMyLineEdit(this, conf);
       listbox = new QMyListWidget(this, conf);
-      listbox->setSelectionMode(QAbstractItemView::MultiSelection);
+      listbox->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
       split = new QSplitter(this);
       ui->gridLayout->addWidget(split, 0, 0);
@@ -257,6 +257,8 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
 
 IWin::~IWin()
 {
+    textdata = NULL;
+
     delete ui;
 }
 
@@ -271,8 +273,13 @@ void IWin::closeEvent(QCloseEvent *e)
         return;
     }
 
-    if (WindowType == WT_STATUS)
+    if (WindowType == WT_STATUS) {
         statusCount--;
+        if (connection->isOnline()) {
+            connection->closeConnection(true);
+            e->ignore();
+        }
+    }
 
     emit activeWin("STATUS");
     emit closed(winid);

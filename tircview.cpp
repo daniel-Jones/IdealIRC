@@ -26,8 +26,8 @@
 #include <QVectorIterator>
 #include <QApplication>
 
-TIRCView::TIRCView(config *cfg) :
-  QTextBrowser(NULL),
+TIRCView::TIRCView(config *cfg, QWidget *parent) :
+  QTextBrowser(parent),
   conf(cfg)
 {
   clip = QApplication::clipboard();
@@ -59,6 +59,7 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
 {
   /// "bool rebuilding" prevents this function to add data to the text vector.
   /// Used to rebuild the QTextBrowser with new css style.
+  /// Usually you want to keep this one to the default (false) value.
 
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
@@ -524,6 +525,14 @@ void TIRCView::reloadCSS()
   QTextCursor c = textCursor();
   c.movePosition(QTextCursor::End);
   setTextCursor(c);
+}
+
+void TIRCView::clear()
+{
+    text.clear();
+    textHTML.clear();
+
+    QTextBrowser::clear();
 }
 
 void TIRCView::focusInEvent(QFocusEvent *e)

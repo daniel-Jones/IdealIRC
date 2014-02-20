@@ -74,6 +74,7 @@ class config : public QObject
     bool linkUnderline;
     bool showWhois;
     bool checkVersion;
+    bool showMotd;
 
     // Colors
     int colDefault;
