@@ -141,8 +141,8 @@ void QMyLineEdit::keyPressEvent(QKeyEvent *e)
 
 void QMyLineEdit::updateCSS()
 {
-  QString bg = getColorFromCode(conf->colInputBackground).name();
-  QString fg = getColorFromCode(conf->colInput).name();
+  QString bg = conf->colInputBackground;
+  QString fg = conf->colInput;
 
   setStyleSheet("background-color: " + bg + "; color: " + fg + ";");
 }

@@ -128,87 +128,88 @@ void config::rehash()
   QString c;
   c = ini->ReadIni("Colors", "Default");
   if (c.length() == 0)
-    colDefault = 1; // Default value
+    colDefault = C_BLACK.name(); // Default value
   else
-    colDefault = c.toInt();
+    colDefault = c;
 
   c = ini->ReadIni("Colors", "LocalInfo");
   if (c.length() == 0)
-    colLocalInfo = 2; // Default value
+    colLocalInfo = C_BLUE.name(); // Default value
   else
-    colLocalInfo = c.toInt();
+    colLocalInfo = c;
 
   c = ini->ReadIni("Colors", "ServerInfo");
   if (c.length() == 0)
-    colServerInfo = 3; // Default value
+    colServerInfo = C_GREEN.name(); // Default value
   else
-    colServerInfo = c.toInt();
+    colServerInfo = c;
 
   c = ini->ReadIni("Colors", "Action");
   if (c.length() == 0)
-    colAction = 6; // Default value
+    colAction = C_MAGENTA.name(); // Default value
   else
-    colAction = c.toInt();
+    colAction = c;
 
   c = ini->ReadIni("Colors", "CTCP");
   if (c.length() == 0)
-    colCTCP = 4; // Default value
+    colCTCP = C_BRIGHTRED.name(); // Default value
   else
-    colCTCP = c.toInt();
+    colCTCP = c;
 
   c = ini->ReadIni("Colors", "Notice");
   if (c.length() == 0)
-    colNotice = 5; // Default value
+    colNotice = C_RED.name(); // Default value
   else
-    colNotice = c.toInt();
+    colNotice = c;
 
+  /* not in use
   c = ini->ReadIni("Colors", "OwnTextBackground");
   if (c.length() == 0)
     colOwntextBg = -1; // Default value
   else
     colOwntextBg = c.toInt();
-
+*/
   c = ini->ReadIni("Colors", "OwnText");
   if (c.length() == 0)
-    colOwntext = 10; // Default value
+    colOwntext = C_CYAN.name(); // Default value
   else
-    colOwntext = c.toInt();
+    colOwntext = c;
 
   c = ini->ReadIni("Colors", "Links");
   if (c.length() == 0)
-    colLinks = 12; // Default value
+    colLinks = C_BRIGHTBLUE.name(); // Default value
   else
-    colLinks = c.toInt();
+    colLinks = c;
 
   c = ini->ReadIni("Colors", "Background");
   if (c.length() == 0)
-    colBackground = 0; // Default value
+    colBackground = C_WHITE.name(); // Default value
   else
-    colBackground = c.toInt();
+    colBackground = c;
 
   c = ini->ReadIni("Colors", "Input");
   if (c.length() == 0)
-    colInput = 1; // Default value
+    colInput = C_BLACK.name(); // Default value
   else
-    colInput = c.toInt();
+    colInput = c;
 
   c = ini->ReadIni("Colors", "InputBackground");
   if (c.length() == 0)
-    colInputBackground = 0; // Default value
+    colInputBackground = C_WHITE.name(); // Default value
   else
-    colInputBackground = c.toInt();
+    colInputBackground = c;
 
   c = ini->ReadIni("Colors", "Listbox");
   if (c.length() == 0)
-    colListbox = 1; // Default value
+    colListbox = C_BLACK.name(); // Default value
   else
-    colListbox = c.toInt();
+    colListbox = c;
 
   c = ini->ReadIni("Colors", "ListboxBackground");
   if (c.length() == 0)
-    colListboxBackground = 0; // Default value
+    colListboxBackground = C_WHITE.name(); // Default value
   else
-    colListboxBackground = c.toInt();
+    colListboxBackground = c;
 
 
   if (treeWidth < 25)
@@ -274,20 +275,20 @@ void config::save()
   ini->WriteIni("Options", "LogPM", QString::number(logPM));
 
   // Save colors
-  ini->WriteIni("Colors", "Default", QString::number(colDefault));
-  ini->WriteIni("Colors", "LocalInfo", QString::number(colLocalInfo));
-  ini->WriteIni("Colors", "ServerInfo", QString::number(colServerInfo));
-  ini->WriteIni("Colors", "Action", QString::number(colAction));
-  ini->WriteIni("Colors", "CTCP", QString::number(colCTCP));
-  ini->WriteIni("Colors", "Notice", QString::number(colNotice));
-  ini->WriteIni("Colors", "Background", QString::number(colBackground));
-  ini->WriteIni("Colors", "OwnTextBackground", QString::number(colOwntextBg));
-  ini->WriteIni("Colors", "OwnText", QString::number(colOwntext));
-  ini->WriteIni("Colors", "Links", QString::number(colLinks));
-  ini->WriteIni("Colors", "Input", QString::number(colInput));
-  ini->WriteIni("Colors", "InputBackground", QString::number(colInputBackground));
-  ini->WriteIni("Colors", "Listbox", QString::number(colListbox));
-  ini->WriteIni("Colors", "ListboxBackground", QString::number(colListboxBackground));
+  ini->WriteIni("Colors", "Default", colDefault);
+  ini->WriteIni("Colors", "LocalInfo", colLocalInfo);
+  ini->WriteIni("Colors", "ServerInfo", colServerInfo);
+  ini->WriteIni("Colors", "Action", colAction);
+  ini->WriteIni("Colors", "CTCP", colCTCP);
+  ini->WriteIni("Colors", "Notice", colNotice);
+  ini->WriteIni("Colors", "Background", colBackground);
+  ini->WriteIni("Colors", "OwnTextBackground", colOwntextBg);
+  ini->WriteIni("Colors", "OwnText", colOwntext);
+  ini->WriteIni("Colors", "Links", colLinks);
+  ini->WriteIni("Colors", "Input", colInput);
+  ini->WriteIni("Colors", "InputBackground", colInputBackground);
+  ini->WriteIni("Colors", "Listbox", colListbox);
+  ini->WriteIni("Colors", "ListboxBackground", colListboxBackground);
 }
 
 

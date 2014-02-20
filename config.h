@@ -77,20 +77,20 @@ class config : public QObject
     bool showMotd;
 
     // Colors
-    int colDefault;
-    int colLocalInfo;
-    int colServerInfo;
-    int colAction;
-    int colCTCP;
-    int colNotice;
-    int colOwntextBg;
-    int colOwntext;
-    int colLinks;
-    int colBackground;
-    int colInput;
-    int colInputBackground;
-    int colListbox;
-    int colListboxBackground;
+    QString colDefault;
+    QString colLocalInfo;
+    QString colServerInfo;
+    QString colAction;
+    QString colCTCP;
+    QString colNotice;
+    QString colOwntextBg;
+    QString colOwntext;
+    QString colLinks;
+    QString colBackground;
+    QString colInput;
+    QString colInputBackground;
+    QString colListbox;
+    QString colListboxBackground;
 
     bool connectionActive;
 

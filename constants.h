@@ -32,7 +32,7 @@
 // Define if this compile is a Standalone or Packaged version
 // STANDALONE: .zip'ed IIRC to be used on memory sticks, etc.
 // PACKAGED: Installed IIRC to system and read configs from ~/.idealirc
-#define PACKAGED
+#define STANDALONE
 
 
 // Define system names and OS specifics TIRC supports here.

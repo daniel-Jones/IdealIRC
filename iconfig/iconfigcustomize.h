@@ -23,6 +23,7 @@
 
 #include <QWidget>
 #include <QPalette>
+#include <QSignalMapper>
 #include "config.h"
 #include "colorpickerscene.h"
 
@@ -44,12 +45,15 @@ private:
     config *conf;
     ColorPickerScene scene;
     QPalette pp; // preview palette
+    QSignalMapper colorSignals;
 
 public slots:
     void colorPicked(QColor color);
+
 private slots:
     void on_colorCode_textChanged(const QString &arg1);
     void on_spinBox_valueChanged(int arg1);
+    void colorSelected(QString objName);
 };
 
 #endif // ICONFIGCUSTOMIZE_H

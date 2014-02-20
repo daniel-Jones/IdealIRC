@@ -362,7 +362,7 @@ void IWin::inputEnterPushed()
     if ((WindowType == WT_CHANNEL) || (WindowType == WT_PRIVMSG)) {
         // Reaching here means we've eliminated status window and commands. Send text to chat.
         sockwrite("PRIVMSG " + target + " :" + text);
-        print("<" + connection->getActiveNickname() + "> " + text);
+        print("<" + connection->getActiveNickname() + "> " + text, PT_OWNTEXT);
     }
 }
 

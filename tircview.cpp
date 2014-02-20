@@ -482,22 +482,24 @@ void TIRCView::reloadCSS()
   QString css = f->readAll();
   f->close();
 
-  QString ptnormal = getColorFromCode(conf->colDefault).name();
-  QString ptlocalinfo = getColorFromCode(conf->colLocalInfo).name();
-  QString ptservinfo = getColorFromCode(conf->colServerInfo).name();
-  QString ptnotice = getColorFromCode(conf->colNotice).name();
-  QString ptaction = getColorFromCode(conf->colAction).name();
-  QString ptctcp = getColorFromCode(conf->colCTCP).name();
+  QString ptnormal = conf->colDefault;
+  QString ptlocalinfo = conf->colLocalInfo;
+  QString ptservinfo = conf->colServerInfo;
+  QString ptnotice = conf->colNotice;
+  QString ptaction = conf->colAction;
+  QString ptctcp = conf->colCTCP;
   QString ptowntextbg = "none";
-  QString ptowntext = getColorFromCode(conf->colOwntext).name();
+  QString ptowntext = conf->colOwntext;
 
+  /* not in use.
   if (conf->colOwntextBg > -1)
-      ptowntextbg = getColorFromCode(conf->colOwntextBg).name();
+      ptowntextbg = conf->colOwntextBg;
+*/
 
-  QString bgColor = getColorFromCode(conf->colBackground).name();
+  QString bgColor = conf->colBackground;
   QString bgImagePath = conf->bgImagePath;
 
-  QString linkColor = getColorFromCode(conf->colLinks).name();
+  QString linkColor = conf->colLinks;
   QString linkUnderline;
 
   if (conf->linkUnderline == false)

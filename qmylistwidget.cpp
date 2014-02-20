@@ -40,8 +40,8 @@ void QMyListWidget::contextMenuEvent(QContextMenuEvent *e)
 
 void QMyListWidget::updateCSS()
 {
-  QString bg = getColorFromCode(conf->colListboxBackground).name();
-  QString fg = getColorFromCode(conf->colListbox).name();
+  QString bg = conf->colListboxBackground;
+  QString fg = conf->colListbox;
 
   setStyleSheet("background-color: " + bg + "; color: " + fg + ";");
 }
