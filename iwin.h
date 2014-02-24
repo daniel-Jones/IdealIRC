@@ -114,8 +114,10 @@ class IWin : public QWidget
       QHash<QString,member_t> members; // Members of a channel
       QStringList memberlist; // This one is also complete with nicknames+modes at all time. Add nickname here, run sort and it'll add result to listbox.
 
-      int acIndex; // Index at autocomplete
+      int acIndex; // Index at autocomplete (practically, index of acMatch)
       int acCursor; // Cursor position, but before the autocompleted word. Remember to add length of a.c. word!
+      QStringList acList; // Items we can get from autocomplete
+      QStringList acMatch; // List of strings that matches the pattern.
       QString acPatt; // Pattern to autocomplete
       QString acPre; // All text before the autocompleted word.
       QString acPost; // All text after the autocompleted word.

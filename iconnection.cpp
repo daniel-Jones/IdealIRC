@@ -98,10 +98,14 @@ void IConnection::tryConnect()
 void IConnection::addWindow(QString name, subwindow_t win)
 {
     winlist.insert(name.toUpper(), win);
+    if (win.type == WT_CHANNEL)
+        acList << name;
 }
 void IConnection::freeWindow(QString name)
 {
     winlist.remove(name.toUpper());
+
+    acList.removeAll(name);
 }
 
 bool IConnection::sockwrite(QString data)

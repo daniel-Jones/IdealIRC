@@ -63,6 +63,7 @@ class IConnection : public QObject
       subwindow_t getSubWindowStruct(QString wname) { return winlist.value(wname); }
       QString getConnectionInfo() { return host + ":" + QString::number(port); } // Returns the connections server:port
       QString trimCtrlCodes(QString &text);
+      QStringList getAcList() { return acList; }
       int maxBanList; // From isupport. Default is 3
       int maxExceptList; // Same as above ^
       int maxInviteList; // Same as above ^
@@ -98,6 +99,7 @@ class IConnection : public QObject
       bool listInDialog;
       bool connectionClosing;
       IMotdView motd;
+      QStringList acList; // Contains channel names we'd like to autocomplete.
 
 
       /* For retreiving data, onSocketReadyRead() */

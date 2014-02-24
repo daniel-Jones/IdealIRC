@@ -32,6 +32,7 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QDesktopWidget>
+#include <QDebug>
 #include <qalgorithms.h>
 
 #include "iconnection.h"
@@ -187,9 +188,6 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
       connect(textdata, SIGNAL(menuRequested(QPoint)),
               this, SLOT(textboxMenuRequested(QPoint)));
 
-      connect(input, SIGNAL(TabKeyPressed()),
-              this, SLOT(tabKeyPushed()));
-
 
       textboxMenu = new QMenu(this);
       textboxMenu->addAction(ui->actionChannel_settings);
@@ -214,6 +212,10 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
       QObject::connect(input, SIGNAL(returnPressed()),
                        this, SLOT(inputEnterPushed()));
 
+      QObject::connect(input, SIGNAL(TabKeyPressed()),
+                       this, SLOT(tabKeyPushed()));
+
+      acIndex = -2;
       input->acIndex = &acIndex; // Pass a pointer so the input box can reset it when neccessary
     }
 
@@ -368,7 +370,50 @@ void IWin::inputEnterPushed()
 
 void IWin::tabKeyPushed()
 {
-    std::cout << "TAB KEY PUSHED" << std::endl;
+    if (input == NULL)
+        return; // We got no input, ignore.
+
+    if (acIndex == -2)
+        return; // By some reason when connecting this function is ran twice.
+                // Starting to type in the input will unlock this though.
+
+    if (acIndex < 0) {
+        acPatt = input->acPhrase();
+
+        acMatch.clear();
+        for (int i = 0; i <= acList.length()-1; i++) {
+            QString item = acList[i];
+            if (item.startsWith(acPatt, Qt::CaseInsensitive))
+                acMatch << item;
+        }
+
+        if (connection != NULL) {
+            QStringList chanAcList = connection->getAcList();
+
+            for (int i = 0; i <= chanAcList.length()-1; i++) {
+                QString item = chanAcList[i];
+                if (item.startsWith(acPatt, Qt::CaseInsensitive))
+                    acMatch << item;
+            }
+        }
+
+        acMatch.sort();
+
+        if (acMatch.length() == 0)
+            return; // Nothing to do.
+
+        acIndex = 0;
+        acCursor = input->acBegin();
+        acPre = input->text().mid(0, acCursor);
+        acPost = input->text().mid(acCursor+acPatt.length());
+    }
+
+    QString match = acMatch[acIndex];
+    input->setText(QString(acPre+match+acPost));
+    input->setCursorPosition(acCursor + match.length());
+    acIndex++;
+    if (acIndex == acMatch.length())
+        acIndex = 0; // Reset since we're out of index.
 }
 
 void IWin::joinChannel(QString channel)
@@ -472,6 +517,8 @@ void IWin::insertMember(QString nickname, member_t mt, bool sort)
     memberlist.append(item);
     members.insert(nickname, mt);
 
+    acList << nickname;
+
     if (sort)
         sortMemberList(); // This function add new member to listbox
 }
@@ -486,6 +533,7 @@ void IWin::removeMember(QString nickname,  bool sort)
         nickname.prepend(m.mode.at(0));
 
     memberlist.removeAll(nickname);
+    acList.removeAll(nickname);
 
     if (sort)
         sortMemberList();

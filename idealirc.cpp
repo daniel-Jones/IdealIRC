@@ -366,7 +366,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
 
     qDebug() << "Adding this window to the connections window list...";
 
-    connection->addWindow(name.toUpper(), wt);
+    connection->addWindow(name, wt); // toUpper is ran inside this function. Do not do toUpper here, it'll make it look weird in autocomplete.
 
     qDebug() << "Passing the command handler...";
 

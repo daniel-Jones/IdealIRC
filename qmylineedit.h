@@ -32,7 +32,9 @@ class QMyLineEdit : public QLineEdit
   public:
     explicit QMyLineEdit(QWidget *parent, config *cfg);
     void updateCSS();
-    int *acIndex; // Get this one from TWin. We need it here because whenever
+    QString acPhrase(); // Return a phrase to match, based on where the text cursor is.
+    int acBegin(); // Same as above but returns the first index of where to replace ac text.
+    int *acIndex; // Get this one from IWin. We need it here because whenever
                     // a key NOT being TAB_KEY, we must reset it to zero.
                     // Should not be unsafe to have it as public either.
 

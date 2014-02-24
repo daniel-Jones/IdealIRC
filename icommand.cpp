@@ -20,7 +20,7 @@
 
 #include <QStringList>
 #include <QTextCodec>
-#include <QDebug>
+#include <QDateTime>
 #include "icommand.h"
 #include "iwin.h"
 #include "iconnection.h"
@@ -176,6 +176,18 @@ bool ICommand::parse(QString command)
                   .arg(token[1]));
             conf->charset = token[1];
         }
+        return true;
+    }
+
+    if (t1 == "PING") {
+        if (! connection->isOnline()) {
+            fault("/Ping: Not connected to server.");
+            return true;
+        }
+        QString ms = QString::number(QDateTime::currentMSecsSinceEpoch());
+        echo("Sending PING to server...", PT_SERVINFO);
+        sockwrite(QString("PING :%1")
+                  .arg(ms));
         return true;
     }
 

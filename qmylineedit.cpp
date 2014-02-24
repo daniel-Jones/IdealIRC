@@ -75,7 +75,7 @@ void QMyLineEdit::keyPressEvent(QKeyEvent *e)
   }
 
   if (acIndex != NULL) {
-    *acIndex = 0; // Reset the autocomplete index.
+    *acIndex = -1; // Reset the autocomplete index.
     //std::cout << "reset!" << std::endl;
   }
 
@@ -132,11 +132,11 @@ void QMyLineEdit::keyPressEvent(QKeyEvent *e)
         QString tx = text().insert(cpos, code);
         setText(tx);
         setCursorPosition(cpos + 1); // Set back, +1 because we added a char, and we want the cursor to be on the right hand side.
+        return;
       }
     }
-
-    QLineEdit::keyPressEvent(e);
   }
+  QLineEdit::keyPressEvent(e);
 }
 
 void QMyLineEdit::updateCSS()
@@ -146,6 +146,32 @@ void QMyLineEdit::updateCSS()
 
   setStyleSheet("background-color: " + bg + "; color: " + fg + ";");
 }
+
+QString QMyLineEdit::acPhrase()
+{
+    QString phrase;
+    for (int i = cursorPosition()-1; i >= 0; i--) {
+        QChar c = text().at(i);
+        if (c == ' ')
+            break;
+        phrase.prepend(c);
+    }
+
+    return phrase;
+}
+
+int QMyLineEdit::acBegin()
+{
+    int i = cursorPosition()-1;
+    for (; i >= 0; i--) {
+        QChar c = text().at(i);
+        if (c == ' ')
+            break;
+    }
+
+    return i+1;
+}
+
 
 QColor QMyLineEdit::getColorFromCode(int num)
 {
