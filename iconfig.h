@@ -45,6 +45,7 @@ class IConfig : public QDialog
   public:
     explicit IConfig(config *cfg, IConnection *con, QWidget *parent = 0);
     ~IConfig();
+    void setConnectionEnabled(bool enable); // Enable or disable Connect buttons
     
   private:
     Ui::IConfig *ui;
@@ -54,10 +55,11 @@ class IConfig : public QDialog
     IConfigPerform *wPerform;
     IConfigCustomize *wCustomize;
     IConfigLogging *wLogging;
+    IConnection *current;
+    bool connectEnabled;
 
     void saveAll();
     void closeSubWidgets();
-    IConnection *current;
 
   private slots:
     void buttonMapped(QWidget *btn);
@@ -66,6 +68,8 @@ class IConfig : public QDialog
     void on_btnCancel_clicked();
 
     void on_btnDisconnect_clicked();
+
+    void on_newServer_toggled(bool checked);
 
 protected:
     void showEvent(QShowEvent *);

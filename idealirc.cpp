@@ -40,7 +40,8 @@ IdealIRC::IdealIRC(QWidget *parent) :
     chanlist(NULL),
     connectionsRemaining(-1),
     preventSocketAction(false),
-    reconnect(NULL)
+    reconnect(NULL),
+    scriptParent(this, this, &conf, &conlist, &winlist, &activeWid, &activeConn)
 {
     ui->setupUi(this);
 
@@ -67,6 +68,9 @@ IdealIRC::IdealIRC(QWidget *parent) :
     QFont f(conf.fontName);
     f.setPixelSize(conf.fontSize);
     ui->treeWidget->setFont(f);
+
+    connect(&scriptParent, SIGNAL(RequestWindow(QString,int,int,bool)),
+            this, SLOT(CreateSubWindow(QString,int,int,bool)));
 }
 
 IdealIRC::~IdealIRC()
@@ -91,6 +95,15 @@ void IdealIRC::recreateConfDlg()
             this, SLOT(extConnectServer(bool)));
     connect(confDlg, SIGNAL(configSaved()),
             this, SLOT(configSaved()));
+
+    subwindow_t sw = winlist.value(activeWid);
+    if (sw.type >= WT_GRAPHIC) {
+        // Custom window
+        confDlg->setConnectionEnabled(false);
+    }
+    else {
+        confDlg->setConnectionEnabled(true);
+    }
 }
 
 void IdealIRC::recreateFavouritesDlg()
@@ -130,6 +143,9 @@ void IdealIRC::showEvent(QShowEvent *)
 
     if (conf.showOptionsStartup)
         on_actionOptions_triggered();
+
+    scriptParent.loadAllScripts();
+    scriptParent.runevent(te_start);
 }
 
 void IdealIRC::closeEvent(QCloseEvent *e)
@@ -251,8 +267,9 @@ void IdealIRC::subWinClosed(int wid)
     }
 
     else {
-        IConnection *con = conlist.value(sw.parent);
-        con->freeWindow( sw.widget->objectName() );
+        IConnection *con = conlist.value(sw.parent, NULL);
+        if (con != NULL)
+            con->freeWindow( sw.widget->objectName() );
         winlist.remove(sw.wid);
     }
 
@@ -283,7 +300,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
 
     qDebug() << "Creating new subwindow type " << type << " name " << name;
 
-    IWin *s = new IWin(ui->mdiArea, name, type, &conf);
+    IWin *s = new IWin(ui->mdiArea, name, type, &conf, &scriptParent);
 
     IConnection *connection = conlist.value(parent, NULL);
     if (type == WT_STATUS) {
@@ -299,7 +316,8 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     qDebug() << "Connection added, setting pointers";
 
     s->setConnectionPtr(connection);
-    s->setSortRuleMap(connection->getSortRuleMapPtr());
+    if (connection != NULL)
+        s->setSortRuleMap(connection->getSortRuleMapPtr());
 
     qDebug() << "Pointers set, setting up mdiSubWindow";
 
@@ -364,27 +382,30 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
                 this, SLOT(Highlight(int,int)));
     }
 
-    qDebug() << "Adding this window to the connections window list...";
+    if (connection != NULL) {
+        qDebug() << "Adding this window to the connections window list...";
 
-    connection->addWindow(name, wt); // toUpper is ran inside this function. Do not do toUpper here, it'll make it look weird in autocomplete.
+        connection->addWindow(name, wt); // toUpper is ran inside this function. Do not do toUpper here, it'll make it look weird in autocomplete.
 
-    qDebug() << "Passing the command handler...";
+        qDebug() << "Passing the command handler...";
 
-    s->setCmdHandler( connection->getCmdHndlPtr() );
+        s->setCmdHandler( connection->getCmdHndlPtr() );
 
-    qDebug() << "Different signals...";
+        connect(s, SIGNAL(doCommand(QString)),
+                connection->getCmdHndlPtr(), SLOT(parse(QString)));
+
+        connect(s, SIGNAL(sendToSocket(QString)),
+                connection, SLOT(sockwrite(QString)));
+
+        connect(connection, SIGNAL(updateConnectionButton()),
+                this, SLOT(updateConnectionButton()));
+
+    }
+
+    qDebug() << "General signals...";
 
     connect(s, SIGNAL(closed(int)),
             this, SLOT(subWinClosed(int)));
-
-    connect(s, SIGNAL(doCommand(QString)),
-            connection->getCmdHndlPtr(), SLOT(parse(QString)));
-
-    connect(s, SIGNAL(sendToSocket(QString)),
-            connection, SLOT(sockwrite(QString)));
-
-    connect(connection, SIGNAL(updateConnectionButton()),
-            this, SLOT(updateConnectionButton()));
 
     connect(s, SIGNAL(RequestWindow(QString,int,int,bool)),
             this, SLOT(CreateSubWindow(QString,int,int,bool)));
@@ -460,14 +481,16 @@ void IdealIRC::on_treeWidget_itemSelectionChanged()
             ui->mdiArea->setActiveSubWindow( sw.subwin );
             activeWid = i.key();
             activeWname = sw.widget->objectName();
-            activeConn = sw.connection->getCid();
+
+            if (sw.connection != NULL)
+                activeConn = sw.connection->getCid();
             sw.widget->setFocus();
             std::cout << "activeWid=" << activeWid << std::endl;
 
-            if (favourites != NULL)
+            if ((favourites != NULL) && (sw.connection != NULL))
                 favourites->setConnection(sw.connection);
 
-            if (chanlist != NULL)
+            if ((chanlist != NULL) && (sw.connection != NULL))
                 chanlist->setConnection(sw.connection);
 
         }
@@ -530,7 +553,16 @@ void IdealIRC::updateConnectionButton()
         ui->actionConnect->setChecked(false);
         ui->actionConnect->setEnabled(false);
         preventSocketAction = false;
+
+        if (confDlg != NULL)
+            confDlg->setConnectionEnabled(false);
+
         return;
+    }
+    else {
+        ui->actionConnect->setEnabled(true);
+        if (confDlg != NULL)
+            confDlg->setConnectionEnabled(true);
     }
 
     IConnection *c = sw.widget->getConnection();

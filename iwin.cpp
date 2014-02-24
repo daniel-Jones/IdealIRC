@@ -38,18 +38,20 @@
 #include "iconnection.h"
 #include "iwin.h"
 #include "ui_iwin.h"
+#include "script/tscriptparent.h"
 
 #include <iostream>
 
 int IWin::winidCount = 1;
 int IWin::statusCount = 0; // IdealIRC always starts with no windows, but the init function increments so this should be okay.
 
-IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg) :
+IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp) :
     QWidget(parent),
     settings(NULL),
     ui(new Ui::IWin),
     WindowType(WinType),
     connection(NULL),
+    scriptParent(sp),
     split(NULL),
     textdata(NULL),
     conf(cfg),
@@ -340,14 +342,20 @@ void IWin::inputEnterPushed()
     std::cout << "ENTER PUSHED " << WindowType << "=\"" << text.toStdString().c_str() << "\"" << std::endl;
 
     if (text.at(0) == '/') {
+
+
         bool commandOk = cmdhndl->parse(text);
+
+        if (! commandOk) // We didn't have it in internal commands list, check for custom command.
+            commandOk = scriptParent->command(text);
+
         if ((! commandOk) && (connection->isSocketOpen() == true)) {
             // Run this if we didn't have the command, assume it's on the server.
             sockwrite( text.mid(1) );
         }
 
         if ((! commandOk) && (connection->isSocketOpen() == false)) {
-            // We're disconnected and command wasn't found in ICommand.
+            // We're disconnected and command wasn't found in ICommand nor as custom.
             print("Not connected to server.", PT_LOCALINFO);
         }
 

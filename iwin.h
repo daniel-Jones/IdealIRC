@@ -45,6 +45,7 @@ namespace Ui {
     class IWin;
 }
 
+class TScriptParent;
 class IConnection;
 class IWin;
 
@@ -62,7 +63,7 @@ class IWin : public QWidget
     Q_OBJECT
     
   public:
-      explicit IWin(QWidget *parent, QString wname, int WinType, config *cfg);
+      explicit IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp);
       ~IWin();
       int getId() { return winid; }
       int getType() { return WindowType; }
@@ -96,6 +97,7 @@ class IWin : public QWidget
       static int statusCount; // count of status windows.
       int winid;
       IConnection *connection;
+      TScriptParent *scriptParent;
 
       QString iname;
       QSplitter *split;

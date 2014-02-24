@@ -38,6 +38,8 @@
 #include "ifavourites.h"
 #include "ichannellist.h"
 
+#include "script/tscriptparent.h"
+
 namespace Ui {
     class IdealIRC;
 }
@@ -70,6 +72,7 @@ class IdealIRC : public QMainWindow
       bool preventSocketAction; // Used when updating connection toolbutton, when using setChecked it also performs its signal.
       IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
       VersionChecker vc;
+      TScriptParent scriptParent;
 
       void recreateConfDlg();
       void recreateFavouritesDlg();

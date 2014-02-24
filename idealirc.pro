@@ -53,7 +53,16 @@ SOURCES += main.cpp\
     versionchecker.cpp \
     ifavourites.cpp \
     ichannellist.cpp \
-    imotdview.cpp
+    imotdview.cpp \
+    script/tsockfactory.cpp \
+    script/tsock.cpp \
+    script/tsdialog.cpp \
+    script/tscriptparent.cpp \
+    script/tscriptinternalfunctions.cpp \
+    script/tscript.cpp \
+    script/ttimer.cpp \
+    script/tscriptcommand.cpp \
+    script/tcustomscriptdialog.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -83,7 +92,17 @@ HEADERS  += idealirc.h \
     versionchecker.h \
     ifavourites.h \
     ichannellist.h \
-    imotdview.h
+    imotdview.h \
+    script/tsock.h \
+    script/tsdialog.h \
+    script/tscriptparent.h \
+    script/tscriptinternalfunctions.h \
+    script/tscript.h \
+    script/tsockfactory.h \
+    script/ttimer.h \
+    script/exprtk/exprtk.hpp \
+    script/tscriptcommand.h \
+    script/tcustomscriptdialog.h
 
 FORMS    += idealirc.ui \
     iwin.ui \

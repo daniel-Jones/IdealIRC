@@ -31,7 +31,8 @@ IConfig::IConfig(config *cfg, IConnection *con, QWidget *parent) :
     wPerform(NULL),
     wCustomize(NULL),
     wLogging(NULL),
-    current(con)
+    current(con),
+    connectEnabled(true)
 {
     ui->setupUi(this);
 
@@ -148,8 +149,6 @@ void IConfig::buttonMapped(QWidget *btn)
         ui->btLog->setChecked(true);
         wLogging->show();
     }
-
-
 }
 
 
@@ -205,6 +204,15 @@ void IConfig::closeSubWidgets()
     }
 }
 
+void IConfig::setConnectionEnabled(bool enable)
+{
+    bool newServer = ui->newServer->isChecked();
+    ui->btnSaveConnect->setEnabled(enable || newServer);
+    ui->btnSaveClose->setEnabled(enable || newServer);
+
+    connectEnabled = enable;
+}
+
 void IConfig::on_btnSaveConnect_clicked()
 {
     saveAll();
@@ -228,4 +236,12 @@ void IConfig::on_btnDisconnect_clicked()
     ui->btnDisconnect->hide();
 
     current->closeConnection();
+}
+
+void IConfig::on_newServer_toggled(bool checked)
+{
+    if (connectEnabled == false) {
+        ui->btnSaveConnect->setEnabled(checked);
+        ui->btnSaveClose->setEnabled(checked);
+    }
 }

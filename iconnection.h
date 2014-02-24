@@ -64,6 +64,8 @@ class IConnection : public QObject
       QString getConnectionInfo() { return host + ":" + QString::number(port); } // Returns the connections server:port
       QString trimCtrlCodes(QString &text);
       QStringList getAcList() { return acList; }
+      bool windowExist(QString name);
+      void print(const QString window, const QString &line, const int ptype = PT_NORMAL);
       int maxBanList; // From isupport. Default is 3
       int maxExceptList; // Same as above ^
       int maxInviteList; // Same as above ^
@@ -121,10 +123,8 @@ class IConnection : public QObject
 
       QString getMsg(QString &data);
       IWin* getWinObj(QString name); // Returns NULL if no matches.
-      bool windowExist(QString name);
       bool isValidChannel(QString channel);
 
-      void print(const QString window, const QString &line, const int ptype = PT_NORMAL);
       user_t parseUserinfo(QString uinfo);
       void parse(QString &data);
       void parseNumeric(int numeric, QString &data);
