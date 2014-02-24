@@ -102,7 +102,7 @@ class IConnection : public QObject
 
       /* For retreiving data, onSocketReadyRead() */
       bool waitLF;
-      QString linedata;
+      QByteArray linedata;
 
       QList<char> chantype; // #&, etc
       QList<char> cumode; // ohv, etc
@@ -124,8 +124,8 @@ class IConnection : public QObject
 
       void print(const QString window, const QString &line, const int ptype = PT_NORMAL);
       user_t parseUserinfo(QString uinfo);
-      void parse(QString data);
-      void parseNumeric(int numeric, QString data);
+      void parse(QString &data);
+      void parseNumeric(int numeric, QString &data);
       void resetSortRules();
       QString activewin();
 

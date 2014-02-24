@@ -18,15 +18,16 @@
  *
  */
 
-#include "icommand.h"
 #include <QStringList>
-#include <iostream>
-
+#include <QTextCodec>
+#include <QDebug>
+#include "icommand.h"
 #include "iwin.h"
 #include "iconnection.h"
 
-ICommand::ICommand(IConnection *con, QObject *parent) :
+ICommand::ICommand(IConnection *con, config *cfg, QObject *parent) :
     QObject(parent),
+    conf(cfg),
     connection(con)
 {
 }
@@ -143,6 +144,38 @@ bool ICommand::parse(QString command)
         echo(  QString("RAW: %1")
                .arg(c)
              );
+        return true;
+    }
+
+    if (t1 == "CHARSET") {
+        if (token.count() < 2) {
+            fault(QString("/Charset: Current set is '%1'")
+                  .arg(conf->charset));
+            return true;
+        }
+
+        QList<QByteArray> codecList = QTextCodec::availableCodecs();
+        bool exist = false;
+        QByteArray codec;
+        codec.append(token[1]);
+
+        for (int i = 0; i <= codecList.length()-1; i++) {
+            QString item = codecList[i];
+            if (item.toUpper() == token[1].toUpper()) {
+                exist = true;
+                break;
+            }
+        }
+        if (! exist) {
+            fault(QString("/Charset: Encoding '%1' doesn't exsist.")
+                  .arg(token[1]));
+        }
+        else {
+            // Not really a fault, but it doesn't do anything else than printing.
+            fault(QString("/Charset: Set encoding to '%1'")
+                  .arg(token[1]));
+            conf->charset = token[1];
+        }
         return true;
     }
 

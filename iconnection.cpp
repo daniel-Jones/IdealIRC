@@ -22,6 +22,7 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QDebug>
+#include <QTextCodec>
 
 #include "constants.h"
 #include "iconnection.h"
@@ -36,7 +37,7 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId, conf
     haveExceptionList(false),
     haveInviteList(false),
     FillSettings(false),
-    cmdhndl(this),
+    cmdhndl(this, cfg),
     conf(cfg),
     cid(connId),
     active(false),
@@ -231,10 +232,14 @@ void IConnection::onSocketReadyRead()
     QByteArray in = socket.readAll();
     tryingConnect = false;
 
+    QTextCodec *tc = QTextCodec::codecForName(conf->charset.toStdString().c_str());
+
     for (int i = 0; i <= in.length()-1; i++) {
 
       if (in.at(i) == '\0') { // Reached end of data in buffer
-        parse(QString::fromUtf8(linedata.toStdString().c_str()));
+        //parse(QString::fromUtf8(linedata.toStdString().c_str()));
+        QString text = tc->toUnicode(linedata);
+        parse(text);
         linedata.clear();
       }
 
@@ -245,7 +250,9 @@ void IConnection::onSocketReadyRead()
 
       if ((waitLF == true) && (in.at(i) == '\n')) { // Expecting LF, found LF
         waitLF = false;
-        parse(QString::fromUtf8(linedata.toStdString().c_str()));
+        //parse(QString::fromUtf8(linedata.toStdString().c_str()));
+        QString text = tc->toUnicode(linedata);
+        parse(text);
         linedata.clear();
         continue;
       }
@@ -442,7 +449,7 @@ QString IConnection::getMsg(QString &data)
   return data.mid(l);
 }
 
-void IConnection::parse(QString data)
+void IConnection::parse(QString &data)
 {
 /*
   format
@@ -930,7 +937,7 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
   print("STATUS", text);
 }
 
-void IConnection::parseNumeric(int numeric, QString data)
+void IConnection::parseNumeric(int numeric, QString &data)
 {
 /*
   format

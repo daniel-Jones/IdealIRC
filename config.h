@@ -56,6 +56,7 @@ class config : public QObject
     QString bgImagePath;
     QString timestamp;
     QString fontName;
+    QString charset;
     int fontSize;
     int treeWidth;
     int listboxWidth;

@@ -1,4 +1,11 @@
-0.1.0 - February 13th 2014
+0.1.1 - February 21st 2014
+ * Color picker works now.
+ * All colors in iirc.ini are now in hex/html format.
+ * Crash upon closing another status window fixed.
+ * MOTD can now be showed in an own window.
+ * Multi-selection in different list views behave more "usual" now.
+ 
+ 0.1.0 - February 13th 2014
  New additions:
  * Logging of channels and PM's
  * Channel listing

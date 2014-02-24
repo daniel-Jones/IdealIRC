@@ -73,6 +73,10 @@ void config::rehash()
   if (fontName.length() == 0)
       fontName = "Courier New"; // Default font
 
+  charset = ini->ReadIni("Options", "Charset");
+  if (charset.length() == 0)
+      charset = "UTF-8"; // Default charset
+
   fontSize = ini->ReadIni("Options", "FontSize").toInt();
   if (fontSize == 0)
       fontSize = 13; // Default size
@@ -255,6 +259,7 @@ void config::save()
   ini->WriteIni("Options", "BgZoomScaled", QString::number(bgZoomScaled));
   ini->WriteIni("Options", "FontName", fontName);
   ini->WriteIni("Options", "FontSize", QString::number(fontSize));
+  ini->WriteIni("Options", "Charset", charset);
   ini->WriteIni("Options", "LinksUnderline", QString::number(linkUnderline));
   ini->WriteIni("Options", "TreeWidth", QString::number(treeWidth));
   ini->WriteIni("Options", "ListBoxWidth", QString::number(listboxWidth));
