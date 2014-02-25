@@ -27,8 +27,10 @@
 #include "constants.h"
 #include "iconnection.h"
 #include "numerics.h"
+#include "script/tscriptparent.h"
 
-IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg) :
+IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
+                         config *cfg, TScriptParent *sp) :
     QObject(parent),
     maxBanList(-1), /** -1 means undefined. **/
     maxExceptList(-1),
@@ -49,6 +51,7 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId, conf
     listInDialog(false),
     connectionClosing(false),
     motd(cfg, (QWidget*)parent),
+    scriptParent(sp),
     waitLF(false),
     cmA("b"),
     cmB("k"),
@@ -196,6 +199,11 @@ void IConnection::onSocketDisconnected()
     socket.close();
     emit updateConnectionButton();
     emit connectionClosed();
+
+    QString hostinfo = QString("%1:%2")
+                      .arg(host)
+                      .arg(port);
+    scriptParent->runevent(te_disconnect, QStringList()<<hostinfo);
 }
 
 void IConnection::closeConnection(bool cc)
@@ -623,11 +631,7 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
 
     }
     // privmsg script event
-    QStringList para;
-    para.push_back(name);
-    para.push_back(token.at(2));
-    para.push_back(text);
-    /// script->runevent(te_msg, para); @SCRIPT
+    scriptParent->runevent(te_msg, QStringList()<<name<<token[2]<<text);
     return;
   }
 /** @todo readd ********//////////////////////////***************************************/
@@ -697,10 +701,7 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
 
     }
     // join script event.
-    QStringList para;
-    para.push_back(chan);
-    para.push_back(u.nick);
-    /// @todo  script->runevent(te_join, para);
+    scriptParent->runevent(te_join, QStringList()<<chan<<u.nick);
     return;
   }
 
@@ -733,11 +734,7 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
       print(chan.toUpper(), "You've left " + chan, PT_LOCALINFO);
     }
     // part script event.
-    QStringList para;
-    para.push_back(token.at(2));
-    para.push_back(u.nick);
-    para.push_back(getMsg(data));
-    /// @todo  script->runevent(te_part, para);
+    scriptParent->runevent(te_part, QStringList()<<token[2]<<u.nick<<getMsg(data));
     return;
   }
 
@@ -772,13 +769,9 @@ std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
       }
 
     }
-    /*
+
     // quit script event.
-    QStringList para;
-    para.push_back(u.nick);
-    para.push_back(getMsg(data));
-    script->runevent(te_quit, para);
-    */
+    scriptParent->runevent(te_quit,QStringList()<<u.nick<<getMsg(data));
     return;
   }
 
@@ -1275,6 +1268,11 @@ void IConnection::parseNumeric(int numeric, QString &data)
             sockwrite(data);
         }
     }
+
+    QString hostinfo = QString("%1:%2")
+                      .arg(host)
+                      .arg(port);
+    scriptParent->runevent(te_connect, QStringList()<<hostinfo);
 
   }
 

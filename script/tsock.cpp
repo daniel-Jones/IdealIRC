@@ -121,41 +121,26 @@ QString TSock::readBufferLn() // Read out first line (to next \n).
 
 void TSock::socketError(QAbstractSocket::SocketError error)
 {
-  QStringList para;
-  para.push_back(objectName());
-  para.push_back( QString::number(error+100) );
-
-  emit eventAvailable(objectName(), te_sockerror, para);
+  QString eid = QString::number(error+100);
+  emit eventAvailable(objectName(), te_sockerror, QStringList()<<objectName()<<eid);
 }
 
 void TSock::socketConnected()
 {
-  QStringList para;
-  para.push_back(objectName());
-
-  emit eventAvailable(objectName(), te_sockopen, para);
+  emit eventAvailable(objectName(), te_sockopen, QStringList()<<objectName());
 }
 
 void TSock::socketDisconnected()
 {
-  QStringList para;
-  para.push_back(objectName());
-
-  emit eventAvailable(objectName(), te_sockclose, para);
+  emit eventAvailable(objectName(), te_sockclose, QStringList()<<objectName());
 }
 
 void TSock::socketDataReady()
 {
-  QStringList para;
-  para.push_back(objectName());
-
-  emit eventAvailable(objectName(), te_sockread, para);
+  emit eventAvailable(objectName(), te_sockread, QStringList()<<objectName());
 }
 
 void TSock::serverConnection()
 {
-  QStringList para;
-  para.push_back(objectName());
-
-  emit eventAvailable(objectName(), te_socklisten, para);
+  emit eventAvailable(objectName(), te_socklisten, QStringList()<<objectName());
 }

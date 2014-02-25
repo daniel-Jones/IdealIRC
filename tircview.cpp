@@ -533,8 +533,9 @@ void TIRCView::clear()
 {
     text.clear();
     textHTML.clear();
-
     QTextBrowser::clear();
+
+    rebuild();
 }
 
 void TIRCView::focusInEvent(QFocusEvent *e)

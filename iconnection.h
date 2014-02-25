@@ -31,6 +31,8 @@
 #include "ichannellist.h"
 #include "imotdview.h"
 
+class TScriptParent;
+
 // for parseUserinfo();
 typedef struct T_USER {
   QString nick;
@@ -44,7 +46,7 @@ class IConnection : public QObject
   Q_OBJECT
 
   public:
-      explicit IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg);
+      explicit IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg, TScriptParent *sp);
       bool isOnline() { return active; } // True when we're registered to server.
       bool isSocketOpen() { return socket.isOpen(); } // True when socket is connected.
       QString getActiveNickname() { return activeNick; }
@@ -102,6 +104,7 @@ class IConnection : public QObject
       bool connectionClosing;
       IMotdView motd;
       QStringList acList; // Contains channel names we'd like to autocomplete.
+      TScriptParent *scriptParent;
 
 
       /* For retreiving data, onSocketReadyRead() */

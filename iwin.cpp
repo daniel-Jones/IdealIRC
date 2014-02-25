@@ -221,7 +221,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
       input->acIndex = &acIndex; // Pass a pointer so the input box can reset it when neccessary
     }
 
-    if (textdata != 0) {
+    if (textdata != NULL) {
       connect(textdata, SIGNAL(joinChannel(QString)),
               this, SLOT(joinChannel(QString)));
 
@@ -234,6 +234,11 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
       textdata->reloadCSS();
     }
 
+    if (picwin != NULL) {
+        connect(picwin, SIGNAL(mouseEvent(e_iircevent,int,int,int)),
+                this, SLOT(picwinMouseEvent(e_iircevent,int,int,int)));
+    }
+
     if (split != NULL) {
         connect(split, SIGNAL(splitterMoved(int,int)),
                 this, SLOT(splitterMoved(int,int)));
@@ -242,21 +247,6 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     iname = wname.toUpper();
     setObjectName(wname);
 
-  #ifdef TIRC_DEBUG_TWIN
-    std::cout << "Subwindow init: " << iname.toStdString().c_str()
-              << "\n  textdata="
-              << textdata
-              << "\n  conf="
-              << conf
-              << "\n  WinType="
-              << WinType
-              << "\n  picwin="
-              << picwin
-              << "\n  listbox="
-              << listbox
-              << "EOL."
-              << std::endl;
-  #endif
 }
 
 IWin::~IWin()
@@ -682,6 +672,147 @@ void IWin::reloadCSS()
         return;
 
     textdata->reloadCSS();
+}
+
+void IWin::clear()
+{
+    if (textdata != NULL)
+        textdata->clear();
+    if (picwin != NULL)
+        picwin->clear();
+}
+
+void IWin::doGfx(e_painting command, QStringList param)
+{
+  if (picwin == NULL)
+    return;
+
+  if (command == pc_clear) {
+    picwin->clear();
+    return;
+  }
+
+  if (command == pc_paintdot) {
+    int X = floor(param[0].toFloat());
+    int Y = floor(param[1].toFloat());
+    int size = param[2].toInt();
+    QColor color(param[3]);
+
+    QBrush br(color, Qt::SolidPattern);
+    QPen pn(color);
+    pn.setWidth(size);
+    picwin->setBrush(br);
+    picwin->setPen(pn);
+    picwin->paintDot(X, Y);
+    return;
+  }
+
+  if (command == pc_paintline) {
+    int X1 = floor(param[0].toFloat());
+    int Y1 = floor(param[1].toFloat());
+    int X2 = floor(param[2].toFloat());
+    int Y2 = floor(param[3].toFloat());
+    int size = param[4].toInt();
+    QColor color(param[5]);
+
+    QBrush br(color, Qt::SolidPattern);
+    QPen pn(color);
+    pn.setWidth(size);
+    picwin->setBrush(br);
+    picwin->setPen(pn);
+    picwin->paintLine(X1, Y1, X2, Y2);
+    return;
+  }
+
+  if (command == pc_paintrect) {
+    int X = floor(param[0].toFloat());
+    int Y = floor(param[1].toFloat());
+    int W = floor(param[2].toFloat());
+    int H = floor(param[3].toFloat());
+    int size = param[4].toInt();
+    QColor color(param[5]);
+
+    QBrush br(color, Qt::SolidPattern);
+    QPen pn(color);
+    pn.setWidth(size);
+    picwin->setBrush(br);
+    picwin->setPen(pn);
+    picwin->paintRect(X, Y, W, H);
+    return;
+  }
+
+  if (command == pc_paintimage) {
+    int X = floor(param[0].toFloat());
+    int Y = floor(param[1].toFloat());
+    QString fn = param[2];
+    picwin->paintImage(fn, X, Y);
+    return;
+  }
+
+  if (command == pc_clearimagebuffer) {
+    picwin->clearImageBuffer();
+    return;
+  }
+
+  if (command == pc_painttext) {
+      int X = floor(param[0].toFloat());
+      int Y = floor(param[1].toFloat());
+      int size = param[2].toInt();
+      QColor color(param[3]);
+
+      QString font = param[4];
+      QString text = param[5];
+
+      QFont f(font);
+      f.setPixelSize(size);
+      QBrush br(color, Qt::SolidPattern);
+      QPen pn(color);
+
+      picwin->setBrush(br);
+      picwin->setPen(pn);
+      picwin->paintText(X, Y, f, text);
+
+      return;
+  }
+
+  if (command == pc_paintfill) {
+      int X = floor(param[0].toFloat());
+      int Y = floor(param[1].toFloat());
+      int W = floor(param[2].toFloat());
+      int H = floor(param[3].toFloat());
+      QColor color(param[4]);
+
+      QBrush br(color, Qt::SolidPattern);
+      QPen pn(color);
+      pn.setWidth(0);
+      picwin->setBrush(br);
+      picwin->setPen(pn);
+      picwin->paintFill(X, Y, W, H);
+
+      return;
+  }
+
+  if (command == pc_buffer) {
+    bool state = (bool*)param[0].toInt();
+    picwin->setViewBuffer(state);
+
+    return;
+  }
+}
+
+void IWin::picwinMouseEvent(e_iircevent event, int x, int y, int delta)
+{
+    if (event == te_mousemiddleroll) {
+        QString X = QString::number(x);
+        QString Y = QString::number(y);
+        QString Delta = QString::number(delta);
+        scriptParent->runevent(event, QStringList()<<objectName()<<X<<Y<<Delta);
+    }
+    else {
+        QString X = QString::number(x);
+        QString Y = QString::number(y);
+        scriptParent->runevent(event, QStringList()<<objectName()<<X<<Y);
+    }
 }
 
 void IWin::settingsClosed()

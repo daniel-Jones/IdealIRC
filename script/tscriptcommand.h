@@ -46,6 +46,8 @@ private:
     int *activeConn;
     int *activeWid;
 
+    subwindow_t getCustomWindow(QString name);
+
 signals:
     void RequestWindow(QString name, int type, int parent, bool activate);
 

@@ -88,6 +88,8 @@ class IWin : public QWidget
       void setSortRuleMap(QList<char> *sl) { sortrule = sl; }
       void setFont(const QFont &font);
       void reloadCSS(); // Runs only if TIRCVIEW is present.
+      void clear(); // Clear contents
+      void doGfx(e_painting command, QStringList param);
 
   private:
       Ui::IWin *ui;
@@ -138,6 +140,7 @@ class IWin : public QWidget
       void focusInEvent(QFocusEvent *);
 
   private slots:
+      void picwinMouseEvent(e_iircevent event, int x, int y, int delta = 0);
       void inputEnterPushed();
       void tabKeyPushed();
       void joinChannel(QString channel);

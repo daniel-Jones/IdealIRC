@@ -305,7 +305,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     IConnection *connection = conlist.value(parent, NULL);
     if (type == WT_STATUS) {
         qDebug() << "Window is status, new connection added with id " << s->getId();
-        connection = new IConnection(this, &chanlist, s->getId(), &conf);
+        connection = new IConnection(this, &chanlist, s->getId(), &conf, &scriptParent);
         connection->setActiveInfo(&activeWname, &activeConn);
         connect(connection, SIGNAL(connectionClosed()),
                 this, SLOT(connectionClosed()));
