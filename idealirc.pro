@@ -1,5 +1,5 @@
 #    IdealIRC - Internet Relay Chat client
-#    Copyright (C) 2013  Tom-Andre Barstad
+#    Copyright (C) 2014  Tom-Andre Barstad
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -62,7 +62,8 @@ SOURCES += main.cpp\
     script/tscript.cpp \
     script/ttimer.cpp \
     script/tscriptcommand.cpp \
-    script/tcustomscriptdialog.cpp
+    script/tcustomscriptdialog.cpp \
+    script/iscriptmanager.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -102,7 +103,8 @@ HEADERS  += idealirc.h \
     script/ttimer.h \
     script/exprtk/exprtk.hpp \
     script/tscriptcommand.h \
-    script/tcustomscriptdialog.h
+    script/tcustomscriptdialog.h \
+    script/iscriptmanager.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
@@ -116,7 +118,8 @@ FORMS    += idealirc.ui \
     iabout.ui \
     ifavourites.ui \
     ichannellist.ui \
-    imotdview.ui
+    imotdview.ui \
+    script/iscriptmanager.ui
 
 RESOURCES += \
     resources.qrc

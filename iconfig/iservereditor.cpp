@@ -1,6 +1,6 @@
 /*
  *   IdealIRC - Internet Relay Chat client
- *   Copyright (C) 2013  Tom-Andre Barstad
+ *   Copyright (C) 2014  Tom-Andre Barstad
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -207,7 +207,7 @@ void IServerEditor::on_actionNewServerNoNetwork_triggered()
     model.addServer(newname, "host.name:6667");
 }
 
-void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModelIndex& previous)
+void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModelIndex &)
 {
     // Todo: This code can be shortened down.
 

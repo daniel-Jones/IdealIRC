@@ -1,6 +1,6 @@
 /*
  *   IdealIRC - Internet Relay Chat client
- *   Copyright (C) 2013  Tom-Andre Barstad
+ *   Copyright (C) 2014  Tom-Andre Barstad
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ private slots:
     void on_btnDelete_clicked();
     void on_actionNewNetwork_triggered();
     void on_actionNewServerNetwork_triggered();
-    void selectionRowChanged(const QModelIndex& current, const QModelIndex& previous);
+    void selectionRowChanged(const QModelIndex& current, const QModelIndex &);
 
     void on_btnSave_clicked();
 

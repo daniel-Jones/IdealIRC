@@ -184,7 +184,7 @@
   </action>
   <action name="actionScript_Manager">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string extracomment="Toolbar">Script Manager</string>

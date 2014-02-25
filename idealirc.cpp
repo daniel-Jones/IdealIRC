@@ -1,6 +1,6 @@
 /*
  *   IdealIRC - Internet Relay Chat client
- *   Copyright (C) 2013  Tom-Andre Barstad
+ *   Copyright (C) 2014  Tom-Andre Barstad
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ IdealIRC::IdealIRC(QWidget *parent) :
     confDlg(NULL),
     favourites(NULL),
     chanlist(NULL),
+    scriptManager(NULL),
     connectionsRemaining(-1),
     preventSocketAction(false),
     reconnect(NULL),
@@ -123,6 +124,15 @@ void IdealIRC::recreateChanlistDlg()
 
     chanlist = new IChannelList(this);
 }
+
+void IdealIRC::recreateScriptManager()
+{
+    if (scriptManager != NULL)
+        scriptManager->deleteLater();
+
+    scriptManager = new IScriptManager(this, &scriptParent);
+}
+
 
 void IdealIRC::showEvent(QShowEvent *)
 {
@@ -746,4 +756,10 @@ void IdealIRC::on_actionChannels_list_triggered()
     chanlist->show();
 
     chanlistEnabler();
+}
+
+void IdealIRC::on_actionScript_Manager_triggered()
+{
+    recreateScriptManager();
+    scriptManager->show();
 }

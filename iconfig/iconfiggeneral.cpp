@@ -1,6 +1,6 @@
 /*
  *   IdealIRC - Internet Relay Chat client
- *   Copyright (C) 2013  Tom-Andre Barstad
+ *   Copyright (C) 2014  Tom-Andre Barstad
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -133,7 +133,7 @@ void IConfigGeneral::saveConfig()
     conf->password = serverpass;
 }
 
-void IConfigGeneral::selectionRowChanged(const QModelIndex &current, const QModelIndex &previous)
+void IConfigGeneral::selectionRowChanged(const QModelIndex &current, const QModelIndex &)
 {
     // Todo: This code can be shortened down.
 

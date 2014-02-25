@@ -2908,7 +2908,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QFile *f = ts.file;
 
 
-          int r = f->write(data);
+          f->write(data);
           f->flush();
 
           keyword.clear();

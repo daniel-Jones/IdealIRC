@@ -18,42 +18,45 @@
  *
  */
 
-#ifndef ICHANNELLIST_H
-#define ICHANNELLIST_H
+#ifndef ISCRIPTMANAGER_H
+#define ISCRIPTMANAGER_H
 
 #include <QDialog>
 #include <QStandardItemModel>
+#include <QStandardItem>
+#include <QItemSelectionModel>
 #include <QHash>
-
-class IConnection;
+#include <QTimer>
+#include "script/tscriptparent.h"
 
 namespace Ui {
-class IChannelList;
+class IScriptManager;
 }
 
-class IChannelList : public QDialog
+class IScriptManager : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit IChannelList(QWidget *parent = 0);
-    ~IChannelList();
-    void setConnection(IConnection *cptr) { connection = cptr; }
-    void enable();
-    void disable();
-    void reset();
-    void addItem(QString channel, QString users, QString topic);
+    explicit IScriptManager(QWidget *parent, TScriptParent *sp);
+    ~IScriptManager();
 
 private slots:
-    void on_btnDownload_clicked();
+    void on_btnReload_clicked();
 
-    void on_btnJoin_clicked();
+    void on_btnDelete_clicked();
+
+    void on_btnLoad_clicked();
 
 private:
-    Ui::IChannelList *ui;
-    IConnection *connection;
+    Ui::IScriptManager *ui;
+    TScriptParent *scriptParent;
     QStandardItemModel model;
-    QHash<QString,QStandardItem*> itemmap;
+    QItemSelectionModel *selection;
+    QHash<QString,QStandardItem*> scriptList;
+    QTimer clearLabel;
+    void addItem(QString name, QString path);
+    void reloadLabel(QString text);
 };
 
-#endif // ICHANNELLIST_H
+#endif // ISCRIPTMANAGER_H

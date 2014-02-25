@@ -1,6 +1,6 @@
 /*
  *   IdealIRC - Internet Relay Chat client
- *   Copyright (C) 2013  Tom-Andre Barstad
+ *   Copyright (C) 2014  Tom-Andre Barstad
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include "ichannellist.h"
 
 #include "script/tscriptparent.h"
+#include "script/iscriptmanager.h"
 
 namespace Ui {
     class IdealIRC;
@@ -68,6 +69,7 @@ class IdealIRC : public QMainWindow
       IConfig *confDlg;
       IFavourites *favourites;
       IChannelList *chanlist;
+      IScriptManager *scriptManager;
       int connectionsRemaining; // When closing IIRC we must wait for all connections to close before exiting IIRC. This one counts backwards for each disconneciton.
       bool preventSocketAction; // Used when updating connection toolbutton, when using setChecked it also performs its signal.
       IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
@@ -78,6 +80,7 @@ class IdealIRC : public QMainWindow
       void recreateFavouritesDlg();
       void favouritesJoinEnabler();
       void recreateChanlistDlg();
+      void recreateScriptManager();
       void chanlistEnabler();
 
   protected:
@@ -106,6 +109,7 @@ class IdealIRC : public QMainWindow
       void on_actionChannel_favourites_triggered();
       void connectionEstablished();
       void on_actionChannels_list_triggered();
+      void on_actionScript_Manager_triggered();
 };
 
 #endif // IDEALIRC_H
