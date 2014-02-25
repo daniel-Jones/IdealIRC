@@ -1570,34 +1570,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
     return;
   }
 
-  /*
-
-ENTER PUSHED 1="/list"
-[UT] list
-[IN] :irc.3phasegaming.net 321 Tomatix Channel :Users  Name
-[IN] :irc.3phasegaming.net 322 Tomatix #OpenTTD 1 : Welcome to #OpenTTD | IP: 3phasegaming.net | Server Status: UP | Round Started: 28/11/2013
-[IN] :irc.3phasegaming.net 322 Tomatix #Help 2 :[+ntr] 4This is a chat-help only channel. Anything irrelevant to help with chat will be ignored!
-[IN] :irc.3phasegaming.net 322 Tomatix #Dicks 1 :[+nt]
-[IN] :irc.3phasegaming.net 322 Tomatix #beamng 25 :[+ntrf] State-of-the-art, soft-body physics - http://www.beamng.com/store | Billing questions? support@beamng.com | FAQ: http://wiki.beamng.com/BeamNG_FAQ | Official Forum: http://www.beamng.com/forum/ | http://wiki.beamng.com/Requirements
-[IN] :irc.3phasegaming.net 322 Tomatix #opers 4 :[+rO] Register at https://internal.3phasegaming.net/forum/ - I have to manually confirm your account, etc.
-[IN] :irc.3phasegaming.net 322 Tomatix #tests 1 :[+ntr] 4Tests: 9For testing BeamBot commands
-[IN] :irc.3phasegaming.net 322 Tomatix #RigsofRodsInternal 4 :[+r] How to utilize IRC better for admins and invited members?
-[IN] :irc.3phasegaming.net 322 Tomatix #RigsOfRodsOfftopic 1 :
-[IN] :irc.3phasegaming.net 322 Tomatix #secret 2 :[+sn] this channel is secret
-[IN] :irc.3phasegaming.net 322 Tomatix #speedsims 4 :[+ntr] .:Welcome To #Speedsims:. Motorsport, Motorsport related gaming and Stuff
-[IN] :irc.3phasegaming.net 322 Tomatix #RigsOfRods 10 :[+ntr] http://www.rigsofrods.com/wiki/pages/Forum_Chat#Rules and http://www.rigsofrods.com/threads/70874-IRC | #offtopic for your offtopic needs , and #BeamNG for BeamNG. | Don't ask for permission to ask. Just ask your question! | Don't use slap in here, this is your official warning
-[IN] :irc.3phasegaming.net 322 Tomatix #hackers 3 :[+smntr] 4Buffer 7Overflow
-[IN] :irc.3phasegaming.net 322 Tomatix #minecraft 6 :[+nt] Vanilla server, 3phasegaming.net:25566 (Whitelisting)
-[IN] :irc.3phasegaming.net 322 Tomatix #Sushiville 2 :[+r]
-[IN] :irc.3phasegaming.net 322 Tomatix #asyedbabbles 9 :[+sntr] RIP Asyed, you died as an hero
-[IN] :irc.3phasegaming.net 322 Tomatix #Offtopic 16 :[+sntr] www.kristianf.com/stats | www.kristianf.com/qdbs | OH GOD IT'S OFFICIAL, WE GOT A SHITTY FORUM, www.3phasegaming.net - REGISTER NAO. SPREAD THE WORD, ETC.
-[IN] :irc.3phasegaming.net 323 Tomatix :End of /LIST
-
-*/
-
-  /** @todo /LIST is to be put in an own dialog box or widget. Need to be determined. **/
-  /** RFC1459: RPL_LISTSTART, RPL_LIST, RPL_LISTEND **/
-
   else if (numeric == RPL_LISTSTART) {
     IChannelList *cl = *chanlistPtr;
     if (cl == NULL) {
@@ -1767,13 +1739,6 @@ ENTER PUSHED 1="/list"
     return;
   }
 
-    /** @todo insert members to channel and/or view NAMES data in status
-      [IN] :irc.3phasegaming.net 353 Tomatix_ = #Offtopic :Tomatix_ OzzX chippy Shadow Proadox nug700 Tiesto MrBill_ DarthCain deathride58 neorej16 MrBill Chalky +sergy moby Ducky Jerald9000 hundanth Briman SnowFlake|Sleep VitoCorleone Tomatix Vasilis Nach0z +NotAsAwesome +Kristian @Offtopic
-      [IN] :irc.3phasegaming.net 366 Tomatix_ #Offtopic :End of /NAMES list.
-     */
-
-
-
   else if (numeric == RPL_NAMREPLY) {
     QString chan = token.at(4);
     QString msg = getMsg(data);
@@ -1861,23 +1826,16 @@ ENTER PUSHED 1="/list"
       cumode << 'o' << 'v';
       culetter << '@' << '+';
       resetSortRules();
-
-      return;
     }
 
-/** @todo more isupport stuff
-    if (conf->connectInvisible == true)
-      sockwrite("MODE " + conf->activeNick + " +i");
 
-    // Finally, pass Connected event to script parent.
-    QStringList para;
-    para.push_back(conf->server.split(':').at(0));
-    para.push_back(conf->server.split(':').at(1));
-    script->runevent(te_connect, para);
-    */
+    if (conf->connectInvisible == true)
+      sockwrite("MODE " + activeNick + " +i");
+
     emit RequestTrayMsg("Connected to server", "Successfully connected to " + conf->server);
     emit connectedToIRC();
 
+    return;
   }
 
   else if ((numeric == RPL_BANLIST) || (numeric == RPL_EXCEPTLIST) || (numeric == RPL_INVITELIST)) {
@@ -2007,7 +1965,7 @@ ENTER PUSHED 1="/list"
     return;
   }
 
-    /** @todo userhost, for banning members. Also whois.
+    /** @todo userhost, for banning members.
   else if (numeric == RPL_USERHOST) {
     if (userhostAction.length() > 0) {
       // Do action and return, nothing to view in STATUS.
@@ -2029,6 +1987,7 @@ ENTER PUSHED 1="/list"
       userhostAction.clear();
     }
   }
+  */
   else if (numeric == RPL_WHOISACTUALHOST) {
     QString nick, text;
     nick = token.at(3);
@@ -2038,7 +1997,7 @@ ENTER PUSHED 1="/list"
     std::cout << "actualhost" << std::endl;
 
     if (conf->showWhois)
-      print(*activewin, nick+": "+text);
+        print(activewin(), nick+": "+text);
     else
       print("STATUS", nick+": "+text);
 
@@ -2054,7 +2013,7 @@ ENTER PUSHED 1="/list"
     std::cout << "modes" << std::endl;
 
     if (conf->showWhois)
-      print(*activewin, nick+": "+text);
+      print(activewin(), nick+": "+text);
     else
       print("STATUS", nick+": "+text);
 
@@ -2070,7 +2029,7 @@ ENTER PUSHED 1="/list"
     std::cout << "identified" << std::endl;
 
     if (conf->showWhois)
-      print(*activewin, nick+": "+text);
+      print(activewin(), nick+": "+text);
     else
       print("STATUS", nick+": "+text);
 
@@ -2083,22 +2042,13 @@ ENTER PUSHED 1="/list"
     user = token.at(4);
     text = getMsg(data);
 
-    std::cout << "loggedin" << std::endl;
-
     if (conf->showWhois)
-      print(*activewin, nick+": "+text+" "+user);
+      print(activewin(), nick+": "+text+" "+user);
     else
       print("STATUS", nick+": "+text+" "+user);
 
     return;
   }
-*/
-
-/*
-  QString text = getMsg(data).replace('&', "&amp;");
-  text = text.replace('<', "&lt;");
-  text = text.replace('>', "&gt;");
-  print("STATUS", text);*/
 
   // :server num target interesting data goes here
   int skip = token.at(0).length() + 1;

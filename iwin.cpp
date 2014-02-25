@@ -34,6 +34,7 @@
 #include <QDesktopWidget>
 #include <QDebug>
 #include <qalgorithms.h>
+#include <QInputDialog>
 
 #include "iconnection.h"
 #include "iwin.h"
@@ -534,7 +535,7 @@ void IWin::removeMember(QString nickname,  bool sort)
     acList.removeAll(nickname);
 
     if (sort)
-        sortMemberList();
+        sortMemberList(nickname);
 }
 
 bool IWin::memberExist(QString nickname)
@@ -552,15 +553,16 @@ void IWin::memberSetNick(QString nickname, QString newnick)
 
 void IWin::resetMemberlist()
 {
+    if (listbox == NULL)
+        return;
+
     members.clear();
     memberlist.clear();
+    listbox->clear();
 }
 
-void IWin::sortMemberList()
+void IWin::sortMemberList(QString memberRemoved)
 {
-    // Selected items. Re-select after sort.
-    const QList<QListWidgetItem*> si = listbox->selectedItems();
-
     // Loop through the memberlist stringlist, sort it.
     for (int i = 0; i < memberlist.count(); i++) {
         for (int pos = i; ((pos > 0) && sortLargerThan( memberlist.at(pos-1), memberlist.at(pos) )); pos--) {
@@ -576,12 +578,19 @@ void IWin::sortMemberList()
     listbox->clear();
     listbox->addItems(memberlist);
 
+    // Selected items. Re-select after sort.
+    const QList<QListWidgetItem*> si = listbox->selectedItems();
+
     // Re-select from "si"
     for (int i = 0; i <= listbox->count()-1; i++) {
+        QString mr = memberRemoved;
         QString text = listbox->item(i)->text();
+        QString stext = stripModeChar(text);
+        if (stext == memberRemoved)
+            continue;
 
         for (int j = 0; j <= si.length()-1; j++)
-            if (text == si.at(j)->text())
+            if (text == si[j]->text())
                 listbox->item(i)->setSelected(true);
 
     }
@@ -937,5 +946,23 @@ void IWin::on_nickmenu_Whois_triggered()
     if (item == 0)
         return;
 
-    sockwrite("WHOIS " + stripModeChar(item->text()));
+    QString nickname = stripModeChar(item->text());
+    sockwrite(QString("WHOIS %1")
+              .arg(nickname));
+}
+
+void IWin::on_actionKick_triggered()
+{
+    QListWidgetItem *item = listbox->currentItem();
+    if (item == 0)
+        return;
+
+    QString reason = QInputDialog::getText(this, tr("Kick reason"), tr("Type a reson for the kick:"));
+
+    QString nickname = stripModeChar(item->text());
+    sockwrite(QString("KICK %1 %2 :%3")
+                .arg(target)
+                .arg(nickname)
+                .arg(reason)
+              );
 }

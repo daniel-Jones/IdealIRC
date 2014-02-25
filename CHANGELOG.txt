@@ -1,3 +1,13 @@
+0.2.0 - Febryary 25th 2014
+ * Added the script engine.
+ * Added autocomplete for nicknames in current channel and channels in current network.
+ * Fixed MOTD in own window
+ * KICK from menu is possible now
+
+0.1.2 - February 24th 2014
+ * You can now set character sets with /charset
+ * View current set with /charset w/o parameters
+
 0.1.1 - February 21st 2014
  * Color picker works now.
  * All colors in iirc.ini are now in hex/html format.

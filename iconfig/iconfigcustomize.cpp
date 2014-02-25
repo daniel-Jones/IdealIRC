@@ -44,7 +44,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
 
     ui->chkShowOptions->setChecked( conf->showOptionsStartup );
     ui->chkShowWhois->setChecked( conf->showWhois );
-    ui->chkShowMotd->setCheckable( conf->showMotd );
+    ui->chkShowMotd->setChecked( conf->showMotd );
     ui->edQuit->setText( conf->quit );
 
     ui->chkUnderlineLinks->setChecked( conf->linkUnderline );

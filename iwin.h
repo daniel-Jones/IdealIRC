@@ -73,7 +73,7 @@ class IWin : public QWidget
       void removeMember(QString nickname, bool sort = true);
       bool memberExist(QString nickname);
       void memberSetNick(QString nickname, QString newnick);
-      void sortMemberList();
+      void sortMemberList(QString memberRemoved = "");
       void resetMemberlist();
       void MemberSetMode(QString nickname, char mode);
       void MemberUnsetMode(QString nickname, char mode);
@@ -159,6 +159,8 @@ class IWin : public QWidget
       void on_actionTake_voice_triggered();
       void on_nickmenu_Query_triggered();
       void on_nickmenu_Whois_triggered();
+
+      void on_actionKick_triggered();
 
 signals:
       void closed(int wid);

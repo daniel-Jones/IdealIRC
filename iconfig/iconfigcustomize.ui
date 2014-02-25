@@ -20,7 +20,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -394,6 +394,7 @@
   <tabstop>tabWidget</tabstop>
   <tabstop>chkShowOptions</tabstop>
   <tabstop>chkShowWhois</tabstop>
+  <tabstop>chkShowMotd</tabstop>
   <tabstop>edQuit</tabstop>
   <tabstop>rdDefault</tabstop>
   <tabstop>rdLocalInfo</tabstop>
@@ -404,8 +405,8 @@
   <tabstop>rdLinks</tabstop>
   <tabstop>rdOwn</tabstop>
   <tabstop>rdBackground</tabstop>
-  <tabstop>colorPick</tabstop>
   <tabstop>colorCode</tabstop>
+  <tabstop>colorPick</tabstop>
   <tabstop>chkUnderlineLinks</tabstop>
   <tabstop>chkModes</tabstop>
   <tabstop>chkTimestamp</tabstop>
