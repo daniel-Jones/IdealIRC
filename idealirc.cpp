@@ -130,7 +130,7 @@ void IdealIRC::recreateScriptManager()
     if (scriptManager != NULL)
         scriptManager->deleteLater();
 
-    scriptManager = new IScriptManager(this, &scriptParent);
+    scriptManager = new IScriptManager(this, &scriptParent, &conf);
 }
 
 

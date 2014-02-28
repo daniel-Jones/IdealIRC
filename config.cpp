@@ -215,6 +215,48 @@ void config::rehash()
   else
     colListboxBackground = c;
 
+  c = ini->ReadIni("Colors", "EditorLineHighlight");
+  if (c.length() == 0)
+    editorLineHighlight = "#CCFFFF"; // Default value
+  else
+    editorLineHighlight = c;
+
+  c = ini->ReadIni("Colors", "EditorFunctionDef");
+  if (c.length() == 0)
+    editorFunctionDef = Qt::darkCyan; // Default value
+  else
+    editorFunctionDef = c;
+
+  c = ini->ReadIni("Colors", "EditorMetaKeyword");
+  if (c.length() == 0)
+    editorMetaKeyword = Qt::darkGreen; // Default value
+  else
+    editorMetaKeyword = c;
+
+  c = ini->ReadIni("Colors", "EditorKeyword");
+  if (c.length() == 0)
+    editorKeyword = Qt::darkYellow; // Default value
+  else
+    editorKeyword = c;
+
+  c = ini->ReadIni("Colors", "EditorWindow");
+  if (c.length() == 0)
+    editorWindow = Qt::darkRed; // Default value
+  else
+    editorWindow = c;
+
+  c = ini->ReadIni("Colors", "EditorVariable");
+  if (c.length() == 0)
+    editorVariable = Qt::darkBlue; // Default value
+  else
+    editorVariable = c;
+
+  c = ini->ReadIni("Colors", "EditorComment");
+  if (c.length() == 0)
+    editorComment = Qt::gray; // Default value
+  else
+    editorComment = c;
+
 
   if (treeWidth < 25)
     treeWidth = 125;
@@ -294,6 +336,15 @@ void config::save()
   ini->WriteIni("Colors", "InputBackground", colInputBackground);
   ini->WriteIni("Colors", "Listbox", colListbox);
   ini->WriteIni("Colors", "ListboxBackground", colListboxBackground);
+
+  // Script colors
+  ini->WriteIni("Colors", "EditorLineHighlight", editorLineHighlight.name());
+  ini->WriteIni("Colors", "EditorFunctionDef", editorFunctionDef.name());
+  ini->WriteIni("Colors", "EditorMetaKeyword", editorMetaKeyword.name());
+  ini->WriteIni("Colors", "EditorKeyword", editorKeyword.name());
+  ini->WriteIni("Colors", "EditorWindow", editorWindow.name());
+  ini->WriteIni("Colors", "EditorVariable", editorVariable.name());
+  ini->WriteIni("Colors", "EditorComment", editorComment.name());
 }
 
 

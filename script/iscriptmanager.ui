@@ -14,45 +14,6 @@
    <string>Script manager</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" rowspan="4" colspan="3">
-    <widget class="QTableView" name="tableView">
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
-     </property>
-     <property name="dragDropMode">
-      <enum>QAbstractItemView::NoDragDrop</enum>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="showGrid">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QToolButton" name="btnLoad">
-     <property name="text">
-      <string>L</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../resources.qrc">
-       <normaloff>:/icons/gfx/open.png</normaloff>:/icons/gfx/open.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>24</width>
-       <height>24</height>
-      </size>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="3">
     <widget class="QToolButton" name="btnEdit">
      <property name="text">
@@ -70,14 +31,14 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="3">
-    <widget class="QToolButton" name="btnDelete">
+   <item row="0" column="3">
+    <widget class="QToolButton" name="btnLoad">
      <property name="text">
-      <string>D</string>
+      <string>L</string>
      </property>
      <property name="icon">
       <iconset resource="../resources.qrc">
-       <normaloff>:/icons/gfx/remove.png</normaloff>:/icons/gfx/remove.png</iconset>
+       <normaloff>:/icons/gfx/open.png</normaloff>:/icons/gfx/open.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -100,10 +61,16 @@
      </property>
     </spacer>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="reloadLabel">
+   <item row="4" column="2">
+    <widget class="QPushButton" name="btnClose">
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="text">
-      <string/>
+      <string>Close</string>
      </property>
     </widget>
    </item>
@@ -120,16 +87,49 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="2">
-    <widget class="QPushButton" name="btnClose">
-     <property name="maximumSize">
-      <size>
-       <width>80</width>
-       <height>16777215</height>
-      </size>
-     </property>
+   <item row="4" column="0">
+    <widget class="QLabel" name="reloadLabel">
      <property name="text">
-      <string>Close</string>
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="4" colspan="3">
+    <widget class="QTableView" name="tableView">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::NoDragDrop</enum>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="showGrid">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QToolButton" name="btnDelete">
+     <property name="text">
+      <string>D</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../resources.qrc">
+       <normaloff>:/icons/gfx/remove.png</normaloff>:/icons/gfx/remove.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>24</width>
+       <height>24</height>
+      </size>
      </property>
     </widget>
    </item>

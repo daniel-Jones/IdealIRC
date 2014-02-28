@@ -75,18 +75,18 @@ QString TScript::setRelativePath(QString folder, QString file)
   // If fnn is more than 1 it might be a full path.
   if (fnn.length() > 1) {
     // If the include file have folders defined, run full path if that's the case.
-#ifdef Q_WS_X11
-    if (file.at(0) == '/') {
-      // include is a full path.
-      dir.clear();
-      scriptFullpath = true;
-    }
-#else
+#ifdef Q_OS_WIN32
     if (file.mid(1,2) == ":/") {
       // include is a full path.
       dir.clear();
       scriptFullpath = true;
     }
+#else
+      if (file.at(0) == '/') {
+        // include is a full path.
+        dir.clear();
+        scriptFullpath = true;
+      }
 #endif
   }
 
@@ -103,7 +103,7 @@ QString TScript::setRelativePath(QString folder, QString file)
 e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 {
     QString fn = filename;
-    if (includeFile.length() == 0) {
+    if (includeFile.isEmpty()) {
         std::cout << "Running loadScript() on '" << filename.toStdString().c_str() << "'" << std::endl;
         scriptstr.clear();
         errorKeyword.clear();

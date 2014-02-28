@@ -23,14 +23,16 @@
 #include <QFileDialog>
 #include <QHashIterator>
 #include <QMessageBox>
+#include "editor/iscripteditor.h"
 #include "iscriptmanager.h"
 #include "ui_iscriptmanager.h"
 #include "constants.h"
 
-IScriptManager::IScriptManager(QWidget *parent, TScriptParent *sp) :
+IScriptManager::IScriptManager(QWidget *parent, TScriptParent *sp, config *cfg) :
     QDialog(parent),
     ui(new Ui::IScriptManager),
-    scriptParent(sp)
+    scriptParent(sp),
+    conf(cfg)
 {
     ui->setupUi(this);
 
@@ -127,7 +129,7 @@ void IScriptManager::on_btnDelete_clicked()
 
 void IScriptManager::on_btnLoad_clicked()
 {
-    QString file = QFileDialog::getOpenFileName(this, "Load script", CONF_PATH, "IdealIRC Scripts (*.iis);;Other files (*)");
+    QString file = QFileDialog::getOpenFileName(this, tr("Load script"), CONF_PATH, "IdealIRC Scripts (*.iis);;Other files (*)");
     if (file.isEmpty())
         return;
 
@@ -152,4 +154,17 @@ void IScriptManager::on_btnLoad_clicked()
     }
     else
         reloadLabel(tr("Unable to load \"%1\".").arg(file));
+}
+
+void IScriptManager::on_btnEdit_clicked()
+{
+    QModelIndex selected = selection->currentIndex();
+    if (! selected.isValid())
+        return;
+
+    QModelIndex index = model.index(selected.row(), 1);
+    QString file = index.data().toString();
+
+    IScriptEditor *editor = new IScriptEditor((QWidget*)this->parent(), file, conf);
+    editor->show();
 }

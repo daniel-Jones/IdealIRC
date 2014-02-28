@@ -28,6 +28,7 @@
 #include <QHash>
 #include <QTimer>
 #include "script/tscriptparent.h"
+#include "config.h"
 
 namespace Ui {
 class IScriptManager;
@@ -38,15 +39,15 @@ class IScriptManager : public QDialog
     Q_OBJECT
 
 public:
-    explicit IScriptManager(QWidget *parent, TScriptParent *sp);
+    explicit IScriptManager(QWidget *parent, TScriptParent *sp, config *cfg);
     ~IScriptManager();
 
 private slots:
     void on_btnReload_clicked();
-
     void on_btnDelete_clicked();
-
     void on_btnLoad_clicked();
+    void on_btnEdit_clicked();
+
 
 private:
     Ui::IScriptManager *ui;
@@ -55,6 +56,7 @@ private:
     QItemSelectionModel *selection;
     QHash<QString,QStandardItem*> scriptList;
     QTimer clearLabel;
+    config *conf;
     void addItem(QString name, QString path);
     void reloadLabel(QString text);
 };

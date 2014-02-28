@@ -93,6 +93,15 @@ class config : public QObject
     QString colListbox;
     QString colListboxBackground;
 
+    // Editor colors
+    QColor editorLineHighlight;
+    QColor editorFunctionDef;
+    QColor editorMetaKeyword;
+    QColor editorKeyword;
+    QColor editorWindow;
+    QColor editorVariable;
+    QColor editorComment;
+
     bool connectionActive;
 
     int bti(bool b); // bool to int, true=1, false=0

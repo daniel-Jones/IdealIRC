@@ -63,7 +63,10 @@ SOURCES += main.cpp\
     script/ttimer.cpp \
     script/tscriptcommand.cpp \
     script/tcustomscriptdialog.cpp \
-    script/iscriptmanager.cpp
+    script/iscriptmanager.cpp \
+    script/editor/iscripteditor.cpp \
+    script/editor/tscripteditorhighlighter.cpp \
+    script/editor/editorwidget.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -104,7 +107,10 @@ HEADERS  += idealirc.h \
     script/exprtk/exprtk.hpp \
     script/tscriptcommand.h \
     script/tcustomscriptdialog.h \
-    script/iscriptmanager.h
+    script/iscriptmanager.h \
+    script/editor/iscripteditor.h \
+    script/editor/tscripteditorhighlighter.h \
+    script/editor/editorwidget.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
@@ -119,7 +125,8 @@ FORMS    += idealirc.ui \
     ifavourites.ui \
     ichannellist.ui \
     imotdview.ui \
-    script/iscriptmanager.ui
+    script/iscriptmanager.ui \
+    script/editor/iscripteditor.ui
 
 RESOURCES += \
     resources.qrc

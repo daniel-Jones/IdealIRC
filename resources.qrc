@@ -6,6 +6,7 @@
         <file>gfx/open.png</file>
         <file>gfx/remove.png</file>
         <file>gfx/save.png</file>
+        <file>gfx/saveall.png</file>
     </qresource>
     <qresource prefix="/toolicons">
         <file>gfx/chanlist.png</file>
