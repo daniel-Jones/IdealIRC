@@ -72,6 +72,13 @@ IdealIRC::IdealIRC(QWidget *parent) :
 
     connect(&scriptParent, SIGNAL(RequestWindow(QString,int,int,bool)),
             this, SLOT(CreateSubWindow(QString,int,int,bool)));
+
+    trayicon.setIcon( QIcon(":/gfx/icon16x16.png") );
+    trayicon.setToolTip(QString("IdealIRC v%1").arg(VERSION_STRING));
+    trayicon.setVisible(true);
+
+    connect(&trayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+            this, SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
 }
 
 IdealIRC::~IdealIRC()
@@ -321,6 +328,8 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
                 this, SLOT(connectionClosed()));
         connect(connection, SIGNAL(connectedToIRC()),
                 this, SLOT(connectionEstablished()));
+        connect(connection, SIGNAL(RequestTrayMsg(QString,QString)),
+                this, SLOT(trayMessage(QString,QString)));
     }
 
     qDebug() << "Connection added, setting pointers";
@@ -740,7 +749,7 @@ void IdealIRC::on_actionChannel_favourites_triggered()
 {
     recreateFavouritesDlg();
     favourites->show();
-
+ trayMessage("Hi", "Hello world!!!!!11111");
     favouritesJoinEnabler();
 }
 
@@ -762,4 +771,41 @@ void IdealIRC::on_actionScript_Manager_triggered()
 {
     recreateScriptManager();
     scriptManager->show();
+}
+
+void IdealIRC::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    /*
+QSystemTrayIcon::Unknown	0	Unknown reason
+QSystemTrayIcon::Context	1	The context menu for the system tray entry was requested
+QSystemTrayIcon::DoubleClick	2	The system tray entry was double clicked
+QSystemTrayIcon::Trigger	3	The system tray entry was clicked
+QSystemTrayIcon::MiddleClick	4	The system tray entry was clicked with the middle mouse button
+*/
+    switch (reason) {
+        case QSystemTrayIcon::Unknown:
+            break;
+
+        case QSystemTrayIcon::Context:
+            break;
+
+        case QSystemTrayIcon::DoubleClick:
+            setVisible(!isVisible());
+            break;
+
+        case QSystemTrayIcon::Trigger:
+            break;
+
+        case QSystemTrayIcon::MiddleClick:
+            break;
+
+        default:
+            break;
+    }
+}
+
+void IdealIRC::trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon)
+{
+    if (conf.trayNotify)
+        trayicon.showMessage(title, message, icon, conf.trayNotifyDelay);
 }

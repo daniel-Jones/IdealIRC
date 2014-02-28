@@ -83,7 +83,10 @@ void config::rehash()
 
   treeWidth = ini->ReadIni("Options", "TreeWidth").toInt();
   listboxWidth = ini->ReadIni("Options", "ListBoxWidth").toInt();
-  trayNotifyDelay = ini->ReadIni("Options", "TrayNotifyDelay").toInt();
+  if (ini->ReadIni("Options", "TrayNotifyDelay").length() == 0)
+      trayNotifyDelay = 5000;
+  else
+      trayNotifyDelay = ini->ReadIni("Options", "TrayNotifyDelay").toInt()*1000;
   bgZoomLevel = ini->ReadIni("Options", "BgZoomLevel").toInt();
 
   timestamp = ini->ReadIni("Options", "TimeStamp");
@@ -312,7 +315,7 @@ void config::save()
   ini->WriteIni("Options", "ShowFavourites", QString::number(showFavourites));
   ini->WriteIni("Options", "ShowUsermodeMsg", QString::number(showUsermodeMsg));
   ini->WriteIni("Options", "TrayNotify", QString::number(trayNotify));
-  ini->WriteIni("Options", "TrayNotifyDelay", QString::number(trayNotifyDelay));
+  ini->WriteIni("Options", "TrayNotifyDelay", QString::number(trayNotifyDelay/1000));
   ini->WriteIni("Options", "ShowWhois", QString::number(showWhois));
   ini->WriteIni("Options", "CheckVersion", QString::number(checkVersion));
   ini->WriteIni("Options", "ShowMotd", QString::number(showMotd));

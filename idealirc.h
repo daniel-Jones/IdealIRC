@@ -28,6 +28,7 @@
 #include <QMoveEvent>
 #include <QMdiSubWindow>
 #include <QHash>
+#include <QSystemTrayIcon>
 
 #include "constants.h"
 #include "config.h"
@@ -75,6 +76,7 @@ class IdealIRC : public QMainWindow
       IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
       VersionChecker vc;
       TScriptParent scriptParent;
+      QSystemTrayIcon trayicon;
 
       void recreateConfDlg();
       void recreateFavouritesDlg();
@@ -110,6 +112,8 @@ class IdealIRC : public QMainWindow
       void connectionEstablished();
       void on_actionChannels_list_triggered();
       void on_actionScript_Manager_triggered();
+      void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
+      void trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information);
 };
 
 #endif // IDEALIRC_H

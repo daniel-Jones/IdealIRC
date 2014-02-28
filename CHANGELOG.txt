@@ -1,4 +1,8 @@
-0.2.0 - Febryary 25th 2014
+0.3.0 - March 1st 2014
+ * Added a script editor
+ * Added a tray icon with notification
+
+0.2.0 - February 25th 2014
  * Added the script engine.
  * Added autocomplete for nicknames in current channel and channels in current network.
  * Fixed MOTD in own window

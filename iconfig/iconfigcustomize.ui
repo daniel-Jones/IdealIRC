@@ -27,21 +27,21 @@
        <string>Common</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_7">
-       <item row="0" column="0">
+       <item row="0" column="0" colspan="2">
         <widget class="QCheckBox" name="chkShowOptions">
          <property name="text">
           <string>Show Options upon start</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="0" column="2">
         <widget class="QCheckBox" name="chkShowWhois">
          <property name="text">
           <string>Show /whois in active window</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="1" column="0" colspan="2">
         <widget class="QCheckBox" name="chkShowMotd">
          <property name="text">
           <string>Show MOTD in own dialog</string>
@@ -49,16 +49,49 @@
         </widget>
        </item>
        <item row="2" column="0">
+        <widget class="QCheckBox" name="chkTrayNotify">
+         <property name="text">
+          <string>Tray notify, delay:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="edTray">
+         <property name="suffix">
+          <string>s</string>
+         </property>
+         <property name="prefix">
+          <string/>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>371</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>Quit message</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
+       <item row="4" column="0" colspan="3">
         <widget class="QLineEdit" name="edQuit"/>
        </item>
-       <item row="4" column="1">
+       <item row="5" column="2">
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

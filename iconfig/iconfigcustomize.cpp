@@ -51,6 +51,8 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     ui->chkModes->setChecked( conf->showUsermodeMsg );
     ui->chkTimestamp->setChecked( conf->showTimestmap );
     ui->edTimeFormat->setText( conf->timestamp );
+    ui->chkTrayNotify->setChecked( conf->trayNotify );
+    ui->edTray->setValue( conf->trayNotifyDelay/1000 );
 
     connect(ui->rdActions,    SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdBackground, SIGNAL(clicked()), &colorSignals, SLOT(map()));
@@ -149,6 +151,8 @@ void IConfigCustomize::saveConfig()
     conf->showUsermodeMsg = ui->chkModes->isChecked();
     conf->showTimestmap = ui->chkTimestamp->isChecked();
     conf->timestamp = ui->edTimeFormat->text();
+    conf->trayNotify = ui->chkTrayNotify->isChecked();
+    conf->trayNotifyDelay = ui->edTray->value()*1000;
 }
 
 void IConfigCustomize::colorSelected(QString objName)
