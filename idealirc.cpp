@@ -187,7 +187,7 @@ void IdealIRC::closeEvent(QCloseEvent *e)
 
         if (hasActive) {
             int b = QMessageBox::question(this, tr("Confirm exit"),
-                                          tr("There are connections active.\r\nDo you want to exit IdealIRC?"),
+                                          tr("There's connections active.\r\nDo you want to exit IdealIRC?"),
                                           QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
             if (b == QMessageBox::No) {
                 e->ignore();

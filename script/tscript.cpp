@@ -270,8 +270,8 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 
           if (state == st_Dialog) {
             dialogs.insert( dialog->getName(), dialog );
-            connect(dialog, SIGNAL(runEvent(e_tircevent,QStringList)),
-                    this, SLOT(runEvent(e_tircevent,QStringList)));
+            connect(dialog, SIGNAL(runEvent(e_iircevent,QStringList)),
+                    this, SLOT(runEvent(e_iircevent,QStringList)));
             state = st_None;
           }
 

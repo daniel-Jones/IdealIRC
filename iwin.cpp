@@ -93,8 +93,8 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
 
     if (WindowType == WT_GRAPHIC) {
         picwin = new TPictureWindow(this);
-        connect(picwin, SIGNAL(mouseEvent(e_tircevent,int,int,int)),
-                this, SLOT(gwMouseEvent(e_tircevent,int,int,int)));
+        connect(picwin, SIGNAL(mouseEvent(e_iircevent,int,int,int)),
+                this, SLOT(gwMouseEvent(e_iircevent,int,int,int)));
         ui->gridLayout->addWidget(picwin, 0, 0);
 
         setWindowIcon( QIcon(":/window/gfx/custom.png") );
@@ -103,8 +103,8 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
 
     if (WindowType == WT_GWINPUT) {
       picwin = new TPictureWindow(this);
-      connect(picwin, SIGNAL(mouseEvent(e_tircevent,int,int,int)),
-              this, SLOT(gwMouseEvent(e_tircevent,int,int,int)));
+      connect(picwin, SIGNAL(mouseEvent(e_iircevent,int,int,int)),
+              this, SLOT(gwMouseEvent(e_iircevent,int,int,int)));
       ui->gridLayout->addWidget(picwin, 0, 0);
 
       target = wname;

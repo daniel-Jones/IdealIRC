@@ -38,6 +38,7 @@ IScriptEditor::IScriptEditor(QWidget *parent, QString script, config *cfg) :
     ignoreNextRowChange(false)
 {
     ui->setupUi(this);
+    setWindowFlags(Qt::Window);
 
     ui->splitter->addWidget(&editor);
 

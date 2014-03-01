@@ -39,8 +39,8 @@ void TSockFactory::socklisten(QString name, int port)
   }
 
   socket->setObjectName(name);
-  connect(socket, SIGNAL(eventAvailable(QString,e_tircevent,QStringList)),
-          this, SLOT(processSockEvent(QString,e_tircevent,QStringList)));
+  connect(socket, SIGNAL(eventAvailable(QString,e_iircevent,QStringList)),
+          this, SLOT(processSockEvent(QString,e_iircevent,QStringList)));
   slist.insert(name.toUpper(), socket); // No errors on opening, add to list.
 
 }
@@ -121,8 +121,8 @@ void TSockFactory::sockopen(QString name, QString host, int port)
   lastErr = socket->open(host, port); // Opening socket gives error to sockerror()
   if (lastErr == 0) {
     socket->setObjectName(name);
-    connect(socket, SIGNAL(eventAvailable(QString,e_tircevent,QStringList)),
-            this, SLOT(processSockEvent(QString,e_tircevent,QStringList)));
+    connect(socket, SIGNAL(eventAvailable(QString,e_iircevent,QStringList)),
+            this, SLOT(processSockEvent(QString,e_iircevent,QStringList)));
     slist.insert(name.toUpper(), socket); // No errors on opening, add to list.
 
   }
@@ -212,8 +212,8 @@ bool TSockFactory::sockAcceptNext(QString name, QString connected_name)
   TSock *new_socket = new TSock(incoming); // With a name available, create a new socket.
 
   new_socket->setObjectName(connected_name);
-  connect(new_socket, SIGNAL(eventAvailable(QString,e_tircevent,QStringList)),
-          this, SLOT(processSockEvent(QString,e_tircevent,QStringList)));
+  connect(new_socket, SIGNAL(eventAvailable(QString,e_iircevent,QStringList)),
+          this, SLOT(processSockEvent(QString,e_iircevent,QStringList)));
   slist.insert(connected_name.toUpper(), new_socket); // No errors on opening, add to list.
 
   return true;
