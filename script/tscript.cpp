@@ -26,6 +26,7 @@
 #include <iostream>
 #include <QHashIterator>
 #include <QVector>
+#include <QDebug>
 
 TScript::TScript(QObject *parent, QWidget *dialogParent, QString fname) :
     QObject(parent),
@@ -82,7 +83,7 @@ QString TScript::setRelativePath(QString folder, QString file)
       scriptFullpath = true;
     }
 #else
-      if (file.at(0) == '/') {
+      if (file[0] == '/') {
         // include is a full path.
         dir.clear();
         scriptFullpath = true;
@@ -104,7 +105,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 {
     QString fn = filename;
     if (includeFile.isEmpty()) {
-        std::cout << "Running loadScript() on '" << filename.toStdString().c_str() << "'" << std::endl;
+        qDebug() << "Running loadScript() on" << filename;
         scriptstr.clear();
         errorKeyword.clear();
         curLine = 1;
@@ -122,12 +123,12 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     }
     else {
       fn = setRelativePath(parent, includeFile);
-      std::cout << "Including '" << fn.toStdString().c_str() << "'" << std::endl;
+      qDebug() << "Including" << fn;
     }
 
 
 
-    std::cout << "attempt: " << fn.toStdString().c_str() << std::endl;
+    qDebug() << "attempt:" << fn;
 
     if (QFile::exists(fn) == false)
         return se_FileNotExist;
@@ -147,7 +148,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     bool isCommented = false;
 
     for (int i = 0; i <= ba.length()-1; i++) {
-        QChar c = ba.at(i);
+        QChar c = ba[i];
 
         if (c == '\n') { // newline
             delWhitespace(&tmp);
@@ -222,7 +223,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     TCustomScriptDialog *dialog = NULL;
 
     for (int i = 0; i <= scriptstr.length()-1; i++) {
-        QChar cc = scriptstr.at(i);
+        QChar cc = scriptstr[i];
 
         errorKeyword = keyword + cc;
 
@@ -233,10 +234,10 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
           if (cc == '\\') { // Escape, skip completely and add to keyword
             if (i == scriptstr.length()-1)
               return se_EscapeOnEndLine;
-            if (scriptstr.at(i+1) == '\n')
+            if (scriptstr[i+1] == '\n')
               return se_EscapeOnEndLine;
 
-            keyword += scriptstr.at(i+1);
+            keyword += scriptstr[i+1];
             i++;
             continue;
           }
@@ -309,7 +310,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
           }
 
           if (cc == ' ') {
-            QChar cc2 = scriptstr.at(i+1);
+            QChar cc2 = scriptstr[i+1];
             if (cc2 == '(')
               continue;
             else
@@ -517,7 +518,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 
               if (ex == ex_DialogTitle) {
                 for (; i <= scriptstr.length()-1; i++) {
-                  QChar c = scriptstr.at(i);
+                  QChar c = scriptstr[i];
                   if (c == '\n')
                     break;
                   keyword += c;
@@ -534,7 +535,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                 X = keyword.toInt();
                 keyword.clear();
                 for (i++; i <= scriptstr.length()-1; i++) {
-                  QChar c = scriptstr.at(i);
+                  QChar c = scriptstr[i];
 
                   if ((c == ' ') || (c == '\n')) {
                       if (param == 2)
@@ -573,7 +574,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                 QString arg;
                 keyword.clear();
                 for (i++; i <= scriptstr.length()-1; i++) {
-                  QChar c = scriptstr.at(i);
+                  QChar c = scriptstr[i];
 
                   if (param < 6) {
                       if ((c == ' ') || (c == '\n')) {
@@ -641,13 +642,13 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     if (n > 0)
       return se_UnexpectedFinish;
 
-    std::cout << "Script " << name.toStdString().c_str() << " (re)loaded with:" << std::endl;
-    std::cout << "- " << fnindex.count() << " functions." << std::endl;
-    std::cout << "- " << tevent.count() << " events." << std::endl;
-    std::cout << "- " << include.count() << " includes." << std::endl;
-    std::cout << "- " << command.count() << " commands." << std::endl;
-    std::cout << "- " << timers.count() << " timers." << std::endl;
-    std::cout << "---" << std::endl;
+    qDebug() << "Script" << name << "(re)loaded with:";
+    qDebug() << " -" << fnindex.count() << "functions.";
+    qDebug() << " -" << tevent.count() << "events.";
+    qDebug() << " -" << include.count() << "includes.";
+    qDebug() << " -" << command.count() << "commands.";
+    qDebug() << " -" << timers.count() << "timers.";
+    qDebug() << "---";
 
     return se_None;
 }
@@ -661,7 +662,7 @@ QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> *bin
   QByteArray tmp;
   QString var; // Var name
   for (int i = 0; i <= text.length()-1; i++) {
-    QChar c = text.at(i);
+    QChar c = text[i];
 
     if (getVarName == false) {
       if (c == '%') {
@@ -711,13 +712,13 @@ QString TScript::extractVars(QString &text, QStringList *varName, QStringList *v
     QString var;
     int nl = 0;
     for (int i = 0; i <= text.length()-1; i++) {
-        QChar c = text.at(i);
+        QChar c = text[i];
 
         if ((c == '\\') && (st != st_fnignore)) {
             if (i == text.length()-1)
                 break;
             i++;
-            c = text.at(i);
+            c = text[i];
             result += c;
             continue;
         }
@@ -801,7 +802,7 @@ QString TScript::extractFunction(QString &text, QStringList *varName, QStringLis
     QStringList params;
     QString fname;
     for (int i = 0; i <= text.length()-1; i++) {
-        QChar c = text.at(i);
+        QChar c = text[i];
 
         if (st == st_Add) {
             if (c == '$') {
@@ -865,7 +866,7 @@ QString TScript::extractFunction(QString &text, QStringList *varName, QStringLis
             if (c == '\\') {
                 if (i == text.length()-1)
                     break;
-                para += text.at(++i);
+                para += text[++i];
                 continue;
             }
 
@@ -873,12 +874,12 @@ QString TScript::extractFunction(QString &text, QStringList *varName, QStringLis
                 int nl = 0;
                 para += c;
                 for (i++; i <= text.length()-1; i++) {
-                    c = text.at(i);
+                    c = text[i];
                     QChar c1;
                     if (i == 0)
                         c1 = c;
                     else
-                        c1 = text.at(i-1);
+                        c1 = text[i-1];
 
                     if (nl == 0) {
                         if (c == ' ') {
@@ -960,7 +961,7 @@ bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varDat
   short op = NOOPERATOR;
 
   for (int i = 0; i <= data.length()-1; i++) {
-    QChar c = data.at(i);
+      QChar c = data[i];
 
     if (c == '%') {
       int vl = data.indexOf(' ', i);
@@ -979,25 +980,25 @@ bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varDat
       continue;
     }
 
-    if ((c == '=') && (data.at(i+1) == '=')) {
+    if ((c == '=') && (data[i+1] == '=')) {
       onQ2 = true;
       op = IS_EQ;
       i += 2;
       continue;
     }
-    if ((c == '!') && (data.at(i+1) == '=')) {
+    if ((c == '!') && (data[i+1] == '=')) {
       onQ2 = true;
       op = NOT_EQ;
       i += 2;
       continue;
     }
-    if ((c == '>') && (data.at(i+1) == '=')) {
+    if ((c == '>') && (data[i+1] == '=')) {
       onQ2 = true;
       op = GREATERTHANEQUAL;
       i += 2;
       continue;
     }
-    if ((c == '<') && (data.at(i+1) == '=')) {
+    if ((c == '<') && (data[i+1] == '=')) {
       onQ2 = true;
       op = LESSTHANEQUAL;
       i += 2;
@@ -1075,11 +1076,11 @@ bool TScript::solveLogic(QString &data, QStringList *varName, QStringList *varDa
   bool addLt = false;
 
   for (int i = 0; i <= tl-1; i++) {
-    QChar c = data.at(i); // Current character
+    QChar c = data[i]; // Current character
     QChar c1 = 0x00; // Next character
 
     if (i < tl-1) // Only get next character if we aren't on the end.
-      c1 = data.at(i+1);
+      c1 = data[i+1];
 
     if (c == '(') {
       nst++;
@@ -1164,8 +1165,8 @@ bool TScript::runEvent(e_iircevent evt, QStringList param)
 
 e_scriptresult TScript::runf(QString function, QStringList param, QString &result, bool ignoreParamCount)
 {
-#ifdef TIRC_DEBUG_SCRIPT
-  std::cout << "runf(" << function.toStdString().c_str() << "):" << std::endl;
+#ifdef IIRC_DEBUG_SCRIPT
+  qDebug() << "runf(" << function << "):";
 #endif
 
   /* Here we attempt to run a function. It does not have to exist.
@@ -1179,7 +1180,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
   if (function == "$")
     return se_InvalidFunction;
 
-  if (function.at(0) == '$')
+  if (function[0] == '$')
     function = function.mid(1); // Prevent any dollar signs (function identifier) at beginning
 
   // See if it's an internal function, if it is, run it, get true result and return true (sucess). Ignore parsing if the function is internal.
@@ -1199,7 +1200,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
 
   bool getParams = false;
   for (int i = pos; i <= scriptstr.length()-1; i++) {
-    QChar c = scriptstr.at(i);
+    QChar c = scriptstr[i];
 
     if (getParams == true) {
       if (c == ')')
@@ -1225,7 +1226,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
   QStringList scpar = par.split(","); // parameter names
 
   if (scpar.count() == 1)
-    if (scpar.at(0).length() == 0)
+    if (scpar[0].length() == 0)
       scpar.clear();
 
   if (scpar.count() == 0)
@@ -1267,15 +1268,19 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
      */
 
         QString endparam = param.last();
-        int i = scpar.count();
+        QString end;
+
         while (scpar.count() != param.count()) {
-          endparam += ' ';
-          endparam += param.at(i);
-          param.removeAt(i);
+            endparam.append(' ');
+            end.prepend(endparam);
+            param.pop_back();
+            endparam = param.last();
         }
-        // Set the last parameter with all tokens that exceed.
-        // Any parameters after this is garbage and *should* just be ignored.
-        param.replace(scpar.count()-1, endparam);
+        int idx = param.count()-1;
+        QString lastparam = param[idx];
+        lastparam.append(' ');
+        lastparam.append(end);
+        param.replace(idx, lastparam);
       }
     }
   }
@@ -1288,8 +1293,8 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
 
 e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *varName, QStringList *varData, QHash<QString, QByteArray> *binVar, QString &result)
 {
-#ifdef TIRC_DEBUG_SCRIPT
-  std::cout << "TScript::_runf_private2(" << pos << ", \"" << function.toStdString().c_str() << "\", ...);" << std::endl;
+#ifdef IIRC_DEBUG_SCRIPT
+    qDebug() << "TScript::_runf_private2(" << pos << "," << function << ", varName" << *varName << ", varData" << *varData << ", [binVar] , [&result]);";
 #endif
 
   /* Here we run functions we _know_ exist. Do not run this one directly.
@@ -1325,7 +1330,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
   curLine = 1; // Should be the current line, but will be wrong with included files.
   for (int i = 0; i <= pos-1; i++)
-    if (scriptstr.at(i) == '\n')
+    if (scriptstr[i] == '\n')
       curLine++;
 
 
@@ -1335,7 +1340,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
   // We loop through the script byte by byte.
   for (int i = pos; i <= scriptstr.length()-1; i++) {
-      QChar cc = scriptstr.at(i);
+      QChar cc = scriptstr[i];
 
       if (cc == '\n')
         curLine++;
@@ -1346,10 +1351,10 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
         i++;
 
-        if (scriptstr.at(i) == '\n')
+        if (scriptstr[i] == '\n')
           return se_EscapeOnEndLine;
 
-        keyword += scriptstr.at(i);
+        keyword += scriptstr[i];
         continue;
       }
 
@@ -1445,11 +1450,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
         }
 
         /// Run function
-        if (keyword.at(0) == '$') {
+        if (keyword[0] == '$') {
           for (; i <= scriptstr.length()-1; i++) {
-            if (scriptstr.at(i) == '\n')
+            if (scriptstr[i] == '\n')
               break;
-            keyword += scriptstr.at(i);
+            keyword += scriptstr[i];
           }
           extractFunction(keyword, varName, varData, binVar);
           keyword.clear();
@@ -1480,7 +1485,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
           bool wait = true; // Skip whitespace between RETURN ... start
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
             if (wait == true) {
               if ((c == ' ') || (c == '\t'))
                 continue;
@@ -1517,7 +1522,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           bool waitPB = true; // Wait for paranthesis at beginning
           QString logic = "(";
           for (; i <= scriptstr.length()-1; i++) {
-            cc = scriptstr.at(i);
+            cc = scriptstr[i];
             if (waitPB) {
               if ((cc == ' ') || (cc == '\t'))
                 continue;
@@ -1584,7 +1589,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           bool waitPB = true; // Wait for paranthesis at beginning
           QString logic = "(";
           for (; i <= scriptstr.length()-1; i++) {
-            cc = scriptstr.at(i);
+            cc = scriptstr[i];
             if (waitPB) {
               if ((cc == ' ') || (cc == '\t'))
                 continue;
@@ -1677,7 +1682,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
             QString data;
 
             for (; i <= scriptstr.length()-1; i++) {
-                QChar c = scriptstr.at(i);
+                QChar c = scriptstr[i];
 
                 if (st == st_VarPrefix) {
                     if ((c == ' ') || (c == '\t'))
@@ -1747,7 +1752,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
             QString value;
 
             for (; i <= scriptstr.length()-1; i++) {
-                QChar c = scriptstr.at(i);
+                QChar c = scriptstr[i];
 
                 if (st == st_VarPrefix) {
                     if ((c == ' ') || (c == '\t'))
@@ -1827,13 +1832,13 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
         if (keywup == "VARTABLE") {
             // vartable - DEBUGGING ONLY.
           emit warning("Printing vartable result in standard output stream.");
-          std::cout << "Following values MUST be identical: varNameCount: " << varName->count() << "  varDataCount: " << varData->count() << std::endl;
+          qDebug() << "Following values MUST be identical: varNameCount:" << varName->count() << " varDataCount:" << varData->count();
           for (int i = 0; i <= varName->count()-1; i++) {
-            std::cout << "'" << varName->at(i).toStdString().c_str() << "' :: '" << varData->at(i).toStdString().c_str() << "'" << std::endl;
+            qDebug() << varName->at(i) << "::" << varData->at(i);
           }
           if (varData->count() > varName->count()) {
             for (int i = varName->count(); i <= varData->count()-1; i++) {
-              std::cout << "'----' :: '" << varData->at(i).toStdString().c_str() << "'" << std::endl;
+              qDebug() << " \"----\" ::" << varData->at(i);
             }
           }
 
@@ -1860,7 +1865,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
           int st = st_Wait;
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (st == st_Wait) {
               if (c == ' ')
@@ -1906,7 +1911,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString id;
 
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (c == '\n')
               break;
@@ -1941,7 +1946,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString pattern = "*";
           int st = st_VarPrefix;
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (st == st_Wait) {
               if (c == ' ')
@@ -2061,7 +2066,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
           int st = st_Wait;
           for (; i <= scriptstr.count()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (st == st_Wait) {
               if (c == ' ')
@@ -2141,7 +2146,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
           int st = st_Wait;
           for (; i <= scriptstr.count()-1; i++) {
-            QChar c = scriptstr.at(i);
+              QChar c = scriptstr[i];
 
             if (st == st_Wait) {
               if (c == ' ')
@@ -2193,7 +2198,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           // stimer id
           QString id;
           for (; i <= scriptstr.count()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (c == ' ')
               continue;
@@ -2237,7 +2242,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString sockname;
           QString args;
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (st == st_Wait) {
               if (c == ' ')
@@ -2300,7 +2305,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           bool switchfail = false;
 
           for (int i = 0; i <=sw.length()-1; i++) {
-            QChar s = sw.at(i);
+            QChar s = sw[i];
 
             switch (s.toLatin1()) {
             case 'a': // Accept
@@ -2361,7 +2366,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
             if (argl.length() < 2)
               return se_InvalidParamCount;
 
-            sockets.sockopen(sockname, argl.at(0), argl.at(1).toInt());
+            sockets.sockopen(sockname, argl[0], argl[1].toInt());
             keyword.clear();
             continue;
           }
@@ -2386,13 +2391,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
               continue;
             }
 
-            args = extractFunction(args, varName, varData, binVar);
-
-            data.append( extractVars(args, varName, varData, binVar) );
+            data.append( argsEx );
 
             if (binary) {
-              QString d(data);
-              data = extractBinVars(d, binVar);
+              QString d(data); // This will have the binary variable in QString format
+              data = extractBinVars(d, binVar); // This parses the QString with binvar, out to a QByteArray.
             }
 
             if (newline)
@@ -2419,7 +2422,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
               data = sockets.sockread(sockname);
 
 
-            if (vname.at(0) != '%')
+            if (vname[0] != '%')
               return se_MissingVariable; // variables must begin wtih a percent %
 
             if (! binary) {
@@ -2524,7 +2527,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
             int st = st_Wait;
             for (; i <= scriptstr.length()-1; i++) {
-                QChar c = scriptstr.at(i);
+                QChar c = scriptstr[i];
 
                 if (st == st_Wait) {
                     if (c == '\n')
@@ -2639,7 +2642,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
             QString arg;
             int st = st_Wait;
             for (; i <= scriptstr.length()-1; i++) {
-                QChar c = scriptstr.at(i);
+                QChar c = scriptstr[i];
 
                 if (st == st_Wait) {
                     if (c == ' ')
@@ -2707,30 +2710,30 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 QStringList par = arg.split(' '); // dialog object text ...
                 if (par.count() < 3)
                   return se_UnexpectedNewline;
-                QString text = arg.mid(par.at(0).length() + par.at(1).length() + 2);
-                ok = customDialogSetLabel(par.at(0), par.at(1), text);
+                QString text = arg.mid(par[0].length() + par[1].length() + 2);
+                ok = customDialogSetLabel(par[0], par[1], text);
             }
 
             if (additem) {
                 QStringList par = arg.split(' '); // dialog object text ...
                 if (par.count() < 3)
                   return se_UnexpectedNewline;
-                QString text = arg.mid(par.at(0).length() + par.at(1).length() + 2);
-                ok = customDialogAddItem(par.at(0), par.at(1), text);
+                QString text = arg.mid(par[0].length() + par[1].length() + 2);
+                ok = customDialogAddItem(par[0], par[1], text);
             }
 
             if (delitem) {
                 QStringList par = arg.split(' '); // dialog object index ...
                 if (par.count() < 3)
                   return se_UnexpectedNewline;
-                ok = customDialogDelItem(par.at(0), par.at(1), par.at(2));
+                ok = customDialogDelItem(par[0], par[1], par[2]);
             }
 
             if (clear) {
               QStringList par = arg.split(' '); // dialog object
               if (par.count() < 2)
                 return se_UnexpectedNewline;
-              ok = customDialogClear(par.at(0), par.at(1));
+              ok = customDialogClear(par[0], par[1]);
             }
 
             if (! ok)
@@ -2765,7 +2768,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString var;
 
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
             if (st == st_ignore) {
               if (c == '\n')
                 return se_UnexpectedNewline;
@@ -2860,7 +2863,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString fds, datas;
           QByteArray data;
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
 
             if (st == st_ignore) {
               if (c == ' ')
@@ -2932,7 +2935,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString fds;
 
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
             if (st == st_ignore) {
               if (c == '\n')
                 return se_UnexpectedNewline;
@@ -2988,7 +2991,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
           QString fds;
           int fd;
           for (; i <= scriptstr.length()-1; i++) {
-            QChar c = scriptstr.at(i);
+            QChar c = scriptstr[i];
             if (c == '\n')
               break;
             if (c == ' ')
@@ -3020,9 +3023,9 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
         /// If we reach here, treat it as /command.
         for (; i <= scriptstr.length()-1; i++) {
-          if (scriptstr.at(i) == '\n')
+          if (scriptstr[i] == '\n')
             break;
-          keyword += scriptstr.at(i);
+          keyword += scriptstr[i];
         }
 
         QString c = extractFunction(keyword, varName, varData, binVar);
@@ -3049,7 +3052,7 @@ bool TScript::runCommand(QString cmd)
   if (cmd.left(1) == "/") // Remove a possible / at beginning
     cmd = cmd.mid(1);
 
-  QString c = cmd.split(' ').at(0); // contains the command
+  QString c = cmd.split(' ')[0]; // contains the command
 
   if (command.contains(c.toUpper()) == false) // checks if 'c' is an actual registered command
     return false;
@@ -3065,8 +3068,9 @@ bool TScript::runCommand(QString cmd)
   // It's safe to ignore param count when running from a command.
   QString r;
 
-#ifdef TIRC_DEBUG_SCRIPT
-  std::cout << "runCommand(" << cmd.toStdString().c_str() << ")" << std::endl;
+#ifdef IIRC_DEBUG_SCRIPT
+  qDebug() << "runCommand(" << cmd << ")";
+  qDebug() << " - params: " << param;
 #endif
 
   e_scriptresult res = runf(fn, param, r, true);
@@ -3081,12 +3085,12 @@ bool TScript::runCommand(QString cmd)
 
 bool TScript::hasCommand(QString cmd)
 {
-  QString c = cmd.split(' ').at(0);
+  QString c = cmd.split(' ')[0];
   if (c.left(1) == "/")
     c = c.mid(1);
 
-#ifdef TIRC_DEBUG_SCRIPT
-  std::cout << "hasCommand(" << cmd.toStdString().c_str() << ")" << std::endl;
+#ifdef IIRC_DEBUG_SCRIPT
+  qDebug() << "hasCommand(" << cmd << ")";
 #endif
 
   return command.contains(c);
