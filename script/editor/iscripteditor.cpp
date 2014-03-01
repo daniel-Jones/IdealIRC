@@ -408,3 +408,28 @@ void IScriptEditor::on_btnSaveAll_clicked()
     // save all
     saveAll();
 }
+
+void IScriptEditor::closeEvent(QCloseEvent *e)
+{
+    // See if we got any modified files...
+    QHashIterator<QString,file_t> i(files);
+    bool modified = false;
+    while (i.hasNext()) {
+        i.next();
+        if (i.value().modified)
+            modified = true;
+        if (modified)
+            break;
+    }
+
+    if (modified) {
+        int b = QMessageBox::question(this, tr("Unsaved changes"),
+                                      tr("Do you want to save the changes?"),
+                                      QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
+
+        if (b == QMessageBox::Yes)
+            saveAll();
+        if (b == QMessageBox::Cancel)
+            e->ignore();
+    }
+}

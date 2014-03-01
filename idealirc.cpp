@@ -172,6 +172,29 @@ void IdealIRC::closeEvent(QCloseEvent *e)
         return;
     }
 
+    if (connectionsRemaining == -1) {
+        // See if there is any connections active, if so, confirm on exit.
+        QHashIterator<int,IConnection*> i(conlist);
+        bool hasActive = false;
+        while (i.hasNext()) {
+            IConnection *c = i.next().value();
+            if (c != NULL)
+                if (c->isOnline())
+                    hasActive = true;
+            if (hasActive)
+                break;
+        }
+
+        if (hasActive) {
+            int b = QMessageBox::question(this, tr("Confirm exit"),
+                                          tr("There are connections active.\r\nDo you want to exit IdealIRC?"),
+                                          QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (b == QMessageBox::No) {
+                e->ignore();
+                return;
+            }
+        }
+    }
 
     conf.maximized = isMaximized();
     conf.save();

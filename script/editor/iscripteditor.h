@@ -26,6 +26,7 @@
 #include <QStandardItemModel>
 #include <QItemSelectionModel>
 #include <QHash>
+#include <QCloseEvent>
 
 #include "config.h"
 #include "editorwidget.h"
@@ -79,6 +80,9 @@ private slots:
     void textChanged();
     void on_btnSave_clicked();
     void on_btnSaveAll_clicked();
+
+protected:
+    void closeEvent(QCloseEvent *e);
 };
 
 

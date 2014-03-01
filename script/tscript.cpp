@@ -376,6 +376,8 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 
             if (ex == ex_DialogName) {
               dialog =  new TCustomScriptDialog(keyword, dlgParent, this);
+              connect(dialog, SIGNAL(runEvent(e_iircevent,QStringList)),
+                      this, SLOT(runEvent(e_iircevent,QStringList)));
               ex = ex_Brace;
               keyword.clear();
               continue;

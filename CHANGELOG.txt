@@ -1,3 +1,8 @@
+0.3.1 - March 1st 2014
+ * Implemented the custom dialog events
+ * Confirmation on exiting IdealIRC added
+ * Confirmation on closing script editor if there's unsaved changes added
+
 0.3.0 - March 1st 2014
  * Added a script editor
  * Added a tray icon with notification
