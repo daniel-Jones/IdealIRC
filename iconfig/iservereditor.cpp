@@ -77,10 +77,10 @@ void IServerEditor::on_btnDelete_clicked()
         // Either a server in NONE, or a network's default server
         if (smgr.hasNetwork(name)) {
             // Deleting a network
-            QString msg = tr("Are you sure you want to delete the network '%1'?")
-                    .arg(name);
 
-            int btn = QMessageBox::question(this, tr("Delete network"), msg);
+            int btn = QMessageBox::question(this, tr("Delete network"),
+                                            tr("Are you sure you want to delete the network '%1'?")
+                                                .arg(name));
 
             if (btn == QMessageBox::No)
                 return; // Stop
@@ -92,10 +92,10 @@ void IServerEditor::on_btnDelete_clicked()
         }
         else {
             // Deleting a NONE server
-            QString msg = tr("Are you sure you want to delete the server '%1'?")
-                    .arg(name);
 
-            int btn = QMessageBox::question(this, tr("Delete server"), msg);
+            int btn = QMessageBox::question(this, tr("Delete server"),
+                                            tr("Are you sure you want to delete the server '%1'?")
+                                                .arg(name));
 
             if (btn == QMessageBox::No)
                 return; // Stop
@@ -108,10 +108,10 @@ void IServerEditor::on_btnDelete_clicked()
     }
     else {
         // Server is under a network parent
-        QString msg = tr("Are you sure you want to delete the server '%1'?")
-                .arg(name);
 
-        int btn = QMessageBox::question(this, tr("Delete server"), msg);
+        int btn = QMessageBox::question(this, tr("Delete server"),
+                                        tr("Are you sure you want to delete the server '%1'?")
+                                            .arg(name));
 
         if (btn == QMessageBox::No)
             return; // Stop
@@ -143,7 +143,7 @@ void IServerEditor::on_actionNewNetwork_triggered()
     // ---
 
     if (! smgr.newNetwork(newname)) {
-        QMessageBox::warning(this, tr("Cannot add network"), tr("Network already exsist"));
+        QMessageBox::warning(this, tr("Cannot add network"), tr("Network already exist"));
         return;
     }
 
@@ -175,7 +175,7 @@ void IServerEditor::on_actionNewServerNetwork_triggered()
     // ---
 
     if (! smgr.addServer(newname, "host.name:6667", "", selNetwork)) {
-        QMessageBox::warning(this, tr("Cannot add server"), tr("Name already exsist"));
+        QMessageBox::warning(this, tr("Cannot add server"), tr("Name already exist"));
         return;
     }
     model.addServer(newname, "host.name:6667", selNetwork);
@@ -201,7 +201,7 @@ void IServerEditor::on_actionNewServerNoNetwork_triggered()
     // ---
 
     if (! smgr.addServer(newname, "host.name:6667", "")) {
-        QMessageBox::warning(this, tr("Cannot add server"), tr("Name already exsist"));
+        QMessageBox::warning(this, tr("Cannot add server"), tr("Name already exist"));
         return;
     }
     model.addServer(newname, "host.name:6667");
@@ -342,24 +342,18 @@ void IServerEditor::on_btnSave_clicked()
         else {
             // Editing a NONE server
             if (ui->edName->text() != name) {
-                qDebug() << "none: renaming model.";
                 model.renameServer(name, ui->edName->text());
-                qDebug() << "none: deleting from smgr.";
                 smgr.delServer(name);
-                qDebug() << "none: renamed internal name.";
                 name = ui->edName->text();
             }
 
             QString host = QString("%1:%2")
                             .arg( ui->edServer->text() )
                             .arg( QString::number(ui->edPort->value()) );
-            qDebug() << "none: name = " << name << " host =" << host;
 
             smgr.addServer(name, host, ui->edPassword->text());
-            qDebug() << "none: added to smgr, setting model...";
             model.setServer(name, host);
 
-            qDebug() << "none: done.";
             return; // Nothing more to do
         }
     }

@@ -30,6 +30,7 @@
 class ServerMgr : public QObject
 {
     Q_OBJECT
+
 public:
     explicit ServerMgr(QObject *parent = 0);
     // All networks in a string list (Also counts in the NONE network)

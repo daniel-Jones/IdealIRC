@@ -28,6 +28,7 @@
 class ServerModel : public QStandardItemModel
 {
     Q_OBJECT
+
 public:
     explicit ServerModel(QObject *parent = 0);
     QModelIndex indexFromHost(QString hostname); // Hostname:Port
@@ -41,9 +42,7 @@ public:
     void setServer(QString name, QString server, QString network = "NONE");
     void renameServer(QString name, QString newname, QString network = "NONE");
     void delServer(QString name, QString network = "NONE");
-
     void resetModel();
-
 
 private:
     ServerMgr smgr;

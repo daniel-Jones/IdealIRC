@@ -49,102 +49,97 @@ QString SectionName(int SectionPos) - Return name of section at position
 
 void IniFile::clearNewline(char *data)
 {
-  int i  = 0;
-  while (true) {
-    if (data[i] == '\0')
-      break;
+    int i = 0;
+    while (true) {
+        if (data[i] == '\0')
+            break;
 
-    if (data[i] == '\n') {
-      data[i] = '\0';
-      break;
+        if (data[i] == '\n') {
+            data[i] = '\0';
+            break;
+        }
+        i++;
     }
-    if (data[i] == '\r') {
-      data[i] = '\0';
-      break;
-    }
-    i++;
-  }
 }
 
 QString IniFile::ReadIni(QString Section, QString Item)
 {
-  if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+        return QString();
+
+    Section = QString("[%1]")
+                .arg(Section);
+
+    Item.append('=');
+
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    bool sectFound = false;
+
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+        clearNewline(buf);
+        QString line(buf);
+
+        if (line.isEmpty())
+            continue;
+
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
+        }
+        if ((sectFound) && (line.left(Item.length()).toUpper() == Item.toUpper())) {
+            file->close();
+            return line.mid(Item.length());
+        }
+    }
+
+    // Reaching here means data not found. Return an empty set.
+    file->close();
     return QString();
-
-  Section = QString("[%1]")
-            .arg(Section);
-
-  Item.append('=');
-
-  char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  bool sectFound = false;
-
-  while (file->readLine(buf, sizeof(buf)) != -1) {
-    clearNewline(buf);
-    QString line(buf);
-
-    if (line == "")
-      continue;
-
-    if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-      sectFound = true;
-      continue;
-    }
-    if ((sectFound) && (line.left(Item.length()).toUpper() == Item.toUpper())) {
-      file->close();
-      return line.mid(Item.length());
-    }
-  }
-
-  // Reaching here means data not found. Return an empty set.
-  file->close();
-  return "";
 }
 
 QString IniFile::ReadIni(QString Section, int ItemPos)
 {
-  // POSITION BEGINS AT 1.
+    // POSITION BEGINS AT 1.
 
-  if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-    return QString();
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+        return QString();
 
-  Section = QString("[%1]")
-            .arg(Section);
+    Section = QString("[%1]")
+                .arg(Section);
 
-  char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  bool sectFound = false;
-  int i = 1;
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    bool sectFound = false;
+    int i = 1;
 
-  while (file->readLine(buf, sizeof(buf)) != -1) {
-    clearNewline(buf);
-    QString line(buf);
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+        clearNewline(buf);
+        QString line(buf);
 
-    if (line == "")
-      continue;
+        if (line.isEmpty())
+            continue;
 
-    if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-      sectFound = true;
-      continue;
-    }
-    if (sectFound) {
-      if (line.contains(QChar('='))) {
-        if (i == ItemPos) {
-          // Read out value.
-          i = line.indexOf('=');
-          file->close();
-          return line.mid(i+1);
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
         }
-        i++;
-      }
+
+        if ((sectFound) && (line.contains(QChar('=')))) {
+            if (i == ItemPos) {
+                // Read out value.
+                i = line.indexOf('=');
+                file->close();
+                return line.mid(i+1);
+            }
+            i++;
+
+        }
     }
 
-  }
-
-  // Reaching here means data not found. Return an empty set.
-  file->close();
-  return "";
+    // Reaching here means data not found. Return an empty set.
+    file->close();
+    return QString();
 }
 
 QString IniFile::ReadIni(int SectionPos)
@@ -186,7 +181,7 @@ QString IniFile::ReadIniItem(QString Section, int ItemPos)
         return QString();
 
     Section = QString("[%1]")
-              .arg(Section);
+                .arg(Section);
 
     char buf[1024];
     memset(buf, 0, sizeof(buf));
@@ -194,28 +189,25 @@ QString IniFile::ReadIniItem(QString Section, int ItemPos)
     int i = 1;
 
     while (file->readLine(buf, sizeof(buf)) != -1) {
-      clearNewline(buf);
-      QString line(buf);
+        clearNewline(buf);
+        QString line(buf);
 
-      if (line == "")
-          continue;
+        if (line.isEmpty())
+            continue;
 
-      if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-        sectFound = true;
-        continue;
-      }
-      if (sectFound) {
-        if (line.contains(QChar('='))) {
-          if (i == ItemPos) {
-            // Read out item.
-            i = line.indexOf('=');
-            file->close();
-            return line.mid(0,i);
-          }
-          i++;
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
         }
-      }
-
+        if ((sectFound) && (line.contains(QChar('=')))) {
+            if (i == ItemPos) {
+                // Read out item.
+                i = line.indexOf('=');
+                file->close();
+                return line.mid(0,i);
+            }
+            i++;
+        }
     }
 
     // Reaching here means data not found. Return an empty set.
@@ -225,129 +217,120 @@ QString IniFile::ReadIniItem(QString Section, int ItemPos)
 
 bool IniFile::WriteIni(QString Section, QString Item, QString Value)
 {
-  Section = QString("[%1]")
-            .arg(Section);
+    Section = QString("[%1]")
+                .arg(Section);
 
-  Item.append('=');
+    Item.append('=');
 
-  QStringList sl;
-  char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  bool sectFound = false;
-  bool finished = false;
+    QStringList sl;
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    bool sectFound = false;
+    bool finished = false;
 
-  if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-    return false;
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
 
-  while (file->readLine(buf, sizeof(buf)) != -1) {
-    clearNewline(buf);
-    QString line(buf);
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+        clearNewline(buf);
+        QString line(buf);
 
-    if (line == "")
-      continue;
+        if (line.isEmpty())
+            continue;
 
-    sl.append(line);
+        sl.append(line);
 
-    if (finished)
-      continue;
+        if (finished)
+            continue;
 
-    if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-      sectFound = true;
-      continue;
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
+        }
+
+        // Found existing item, overwriting.
+        if ((sectFound) && (line.left(Item.length()).toUpper() == Item.toUpper())) {
+            sl.removeAt(sl.count()-1); // Remove the last insertion, we get a new one here...
+            sl.append(Item + Value);
+            finished = true;
+            continue;
+        }
+
+        if ((sectFound) && (! finished) && (line.left(1)) == "[") {
+            // We have found our section, but not the item, as we reached end of the section.
+            sl.removeAt(sl.count()-1); // Remove the last insertion, we get a new one here...
+            sl.append(Item + Value);
+            sl.append(line);
+            finished = true;
+            continue;
+        }
     }
 
-    // Found existing item, overwriting.
-    if ((sectFound) && (line.left(Item.length()).toUpper() == Item.toUpper())) {
-      sl.removeAt(sl.count()-1); // Remove the last insertion, we get a new one here...
-      sl.append(Item + Value);
-      finished = true;
-      continue;
+    if ((sectFound == true) && (finished == false))
+        sl.append(Item + Value); // We have found our section, but we reached EOF. Insert new item.
+
+    if (sectFound == false) {
+        // Section weren't found, we make a new one at the end, and our item there.
+        sl.append(Section);
+        sl.append(Item + Value);
     }
 
-    if ((sectFound) && (! finished) && (line.left(1)) == "[") {
-      // We have found our section, but not the item, as we reached end of the section.
-      sl.removeAt(sl.count()-1); // Remove the last insertion, we get a new one here...
-      sl.append(Item + Value);
-      sl.append(line);
-      finished = true;
-      continue;
+    file->close();
+    if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+        return false;
+
+    for (int i = 0; i <= sl.count()-1; i++) {
+        QByteArray out;
+        out.append(sl[i]);
+        out.append('\n');
+        file->write(out);
     }
-  }
-
-  if ((sectFound == true) && (finished == false)) {
-    // We have found our section, but we reached EOF. Insert new item.
-    sl.append(Item + Value);
-  }
-
-  if (sectFound == false) {
-    // Section weren't found, we make a new one at the end, and our item there.
-    sl.append(Section);
-    sl.append(Item + Value);
-  }
-
-
-
-  file->close();
-  if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-    return false;
-
-  for (int i = 0; i <= sl.count()-1; i++) {
-    QByteArray out;
-    out.append(sl.at(i));
-    #ifdef Q_WS_X11
-      out.append("\n");
-    #else
-      out.append("\r\n");
-    #endif
-    file->write(out);
-  }
-  file->close();
-  return true;
+    file->close();
+    return true;
 }
 
 int IniFile::CountItems(QString Section)
 {
-  if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-    return 0;
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+        return 0;
 
 
-  Section = QString("[%1]")
-            .arg(Section);
+    Section = QString("[%1]")
+                .arg(Section);
 
-  char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  bool sectFound = false;
-  int count = 0;
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    bool sectFound = false;
+    int count = 0;
 
-  while (file->readLine(buf, sizeof(buf)) != -1) {
-    clearNewline(buf);
-    QString line(buf);
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+        clearNewline(buf);
+        QString line(buf);
 
-    if (line == "")
-      continue;
+        if (line.isEmpty())
+            continue;
 
-    if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-      sectFound = true;
-      continue;
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
+        }
+
+        if (sectFound) {
+            if (line.left(1) == "[")
+                break;
+            if (line.contains('='))
+                count++;
+        }
     }
 
-    if (sectFound) {
-      if (line.left(1) == "[")
-        break;
-      if (line.contains('='))
-        count++;
-    }
-
-  }
-
-  file->close();
-  return count;
+    file->close();
+    return count;
 }
 
 int IniFile::CountSections()
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-      return 0;
+        return 0;
 
     char buf[1024];
     memset(buf, 0, sizeof(buf));
@@ -356,7 +339,7 @@ int IniFile::CountSections()
     while (file->readLine(buf, sizeof(buf)) != -1) {
         clearNewline(buf);
         QString line(buf);
-        if (line == "")
+        if (line.isEmpty())
             continue;
 
         if (line.startsWith('[') && line.endsWith(']'))
@@ -369,133 +352,129 @@ int IniFile::CountSections()
 
 bool IniFile::DelSection(QString Section)
 {
-  Section = QString("[%1]")
-            .arg(Section);
+    Section = QString("[%1]")
+                .arg(Section);
 
-  QStringList sl;
-  char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  bool sectFound = false;
+    QStringList sl;
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    bool sectFound = false;
 
-  if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-    return false;
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
 
-  while (file->readLine(buf, sizeof(buf)) != -1) {
-    clearNewline(buf);
-    QString line(buf);
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+        clearNewline(buf);
+        QString line(buf);
 
-    if (line == "")
-      continue;
+        if (line.isEmpty())
+            continue;
 
-    if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-      sectFound = true;
-      continue;
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
+        }
+
+        if (sectFound) {
+            if (line.left(1) == "[")
+            sectFound = false;
+        }
+
+        if (! sectFound)
+            sl.push_back(line);
     }
 
-    if (sectFound) {
-      if (line.left(1) == "[")
-        sectFound = false;
+    file->close();
+    if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+        return false;
+
+    for (int i = 0; i <= sl.count()-1; i++) {
+        QByteArray out;
+        out.append(sl[i]);
+        out.append('\n');
+        file->write(out);
     }
-
-    if (! sectFound) {
-      sl.push_back(line);
-    }
-
-  }
-
-  file->close();
-  if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-    return false;
-
-  for (int i = 0; i <= sl.count()-1; i++) {
-    QByteArray out;
-    out.append(sl.at(i));
-    out.append("\n");
-    file->write(out);
-  }
-  file->close();
-  return true;
+    file->close();
+    return true;
 }
 
 bool IniFile::DelIni(QString Section, QString Item)
 {
-  Section = QString("[%1]")
-          .arg(Section);
+    Section = QString("[%1]")
+                .arg(Section);
 
-  Item.append('=');
+    Item.append('=');
 
-  QStringList sl;
+    QStringList sl;
     char buf[1024];
-  memset(buf, 0, sizeof(buf));
-  bool sectFound = false;
-  bool finished = false;
+    memset(buf, 0, sizeof(buf));
+    bool sectFound = false;
+    bool finished = false;
 
-  if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-    return false;
+    if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
 
-  while (file->readLine(buf, sizeof(buf)) != -1) {
-    clearNewline(buf);
-    QString line(buf);
+    while (file->readLine(buf, sizeof(buf)) != -1) {
+        clearNewline(buf);
+        QString line(buf);
 
-    if (line == "")
-      continue;
+        if (line.isEmpty())
+        continue;
 
-    sl.append(line);
+        sl.append(line);
 
-    if (finished)
-      continue;
+        if (finished)
+            continue;
 
-    if (line.left(Section.length()).toUpper() == Section.toUpper()) {
-      sectFound = true;
-      continue;
+        if (line.left(Section.length()).toUpper() == Section.toUpper()) {
+            sectFound = true;
+            continue;
+        }
+
+        // Found item
+        if ((sectFound) && (line.left(Item.length()).toUpper() == Item.toUpper())) {
+            sl.removeAt(sl.count()-1); // Remove the last insertion
+            finished = true;
+            continue;
+        }
+
+        if ((sectFound) && (! finished) && (line.left(1)) == "[") {
+            // We have found our section, but not the item, as we reached end of the section.
+            // Just close file reading and do not touch the file at all.
+            file->close();
+            return false; // False because we didn't do anything
+        }
     }
 
-    // Found item
-    if ((sectFound) && (line.left(Item.length()).toUpper() == Item.toUpper())) {
-      sl.removeAt(sl.count()-1); // Remove the last insertion
-      finished = true;
-      continue;
+    if ((sectFound == true) && (finished == false)) {
+        // We have found our section, but we reached EOF. Don't do anything
+        file->close();
+        return false;
     }
 
-    if ((sectFound) && (! finished) && (line.left(1)) == "[") {
-      // We have found our section, but not the item, as we reached end of the section.
-      // Just close file reading and do not touch the file at all.
-      file->close();
-      return false; // False because we didn't do anything
+    if (sectFound == false) {
+        // Section weren't found, just stop.
+        file->close();
+        return false;
     }
-  }
 
-  if ((sectFound == true) && (finished == false)) {
-    // We have found our section, but we reached EOF. Don't do anything
     file->close();
-    return false;
-  }
+    if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+        return false;
 
-  if (sectFound == false) {
-    // Section weren't found, just stop.
+    for (int i = 0; i <= sl.count()-1; i++) {
+        QByteArray out;
+        out.append(sl[i]);
+        out.append('\n');
+        file->write(out);
+    }
     file->close();
-    return false;
-  }
-
-
-
-  file->close();
-  if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-    return false;
-
-  for (int i = 0; i <= sl.count()-1; i++) {
-    QByteArray out;
-    out.append(sl.at(i));
-    out.append("\n");
-    file->write(out);
-  }
-  file->close();
-  return true;
+    return true;
 }
 
 bool IniFile::SectionExists(QString section)
 {
-    QString s = QString("[%1]")
+    section = QString("[%1]")
                 .arg(section);
 
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
@@ -506,7 +485,7 @@ bool IniFile::SectionExists(QString section)
     while (file->readLine(d, 64) > -1) {
         clearNewline(d);
         QString ln(d);
-        if (s.toUpper() == ln.toUpper()) {
+        if (section.toUpper() == ln.toUpper()) {
             file->close();
             return true;
         }
@@ -522,23 +501,24 @@ bool IniFile::AppendSection(QString Section)
         return false;
 
     if (! file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
-      return false;
+        return false;
 
     QString out = QString("[%1]\n")
                    .arg(Section);
-    file->write(out.toLocal8Bit());
 
+    file->write(out.toLocal8Bit());
     file->close();
+
     return true;
 }
 
 bool IniFile::RenameSection(QString OldName, QString NewName)
 {
     OldName = QString("[%1]")
-            .arg(OldName);
+                .arg(OldName);
 
     NewName = QString("[%1]")
-            .arg(NewName);
+                .arg(NewName);
 
     QStringList sl;
 
@@ -547,45 +527,45 @@ bool IniFile::RenameSection(QString OldName, QString NewName)
     bool finished = false;
 
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
-      return false;
+        return false;
 
     while (file->readLine(buf, sizeof(buf)) != -1) {
-      clearNewline(buf);
-      QString line(buf);
+        clearNewline(buf);
+        QString line(buf);
 
-      if (line == "")
-        continue;
+        if (line.isEmpty())
+            continue;
 
-      sl.append(line);
+        sl.append(line);
 
-      if (finished)
-        continue;
+        if (finished)
+            continue;
 
-      if (line.toUpper() == OldName.toUpper()) {
-          sl.pop_back(); // The very last item inserted is actually OldName. Remove.
-          sl.append(NewName);
-          finished = true;
-      }
+        if (line.toUpper() == OldName.toUpper()) {
+            sl.pop_back(); // The very last item inserted is actually OldName. Remove.
+            sl.append(NewName);
+            finished = true;
+        }
 
     }
 
     if (finished == false) {
-      // Section weren't found, just stop.
-      file->close();
-      return false;
+        // Section weren't found, just stop.
+        file->close();
+        return false;
     }
 
 
 
     file->close();
     if (! file->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-      return false;
+        return false;
 
     for (int i = 0; i <= sl.count()-1; i++) {
-      QByteArray out;
-      out.append(sl.at(i));
-      out.append("\n");
-      file->write(out);
+        QByteArray out;
+        out.append(sl[i]);
+        out.append('\n');
+        file->write(out);
     }
     file->close();
     return true;

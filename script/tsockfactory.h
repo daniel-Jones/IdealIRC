@@ -29,7 +29,7 @@
 #include <iostream>
 
 /*
-    Er TSOCK_ERR >= 100 så benytt
+    If TSOCK_ERR >= 100 then refer to
       QAbstractSocket::SocketError
 */
 
@@ -37,7 +37,7 @@ class TSockFactory : public QObject
 {
   Q_OBJECT
 
-  public:
+public:
     explicit TSockFactory(QObject *parent = 0);
     void socklisten(QString name, int port);
     void sockwrite(QString name, QByteArray *data);
@@ -53,15 +53,15 @@ class TSockFactory : public QObject
     bool sockDeclineNext(QString name);
     bool hasName(QString name); // Does the factory have the given sockname?
 
-  private:
+private:
     QHash<QString,TSock*> slist;
     TSOCK_ERR pickSocket(QString name, TSock **socket);
     TSOCK_ERR lastErr;
 
-  private slots:
+private slots:
     void processSockEvent(QString name, e_iircevent event, QStringList para);
 
-  signals:
+signals:
     bool runEvent(e_iircevent evt, QStringList param);
 
 };

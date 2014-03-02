@@ -36,22 +36,23 @@
 
 
 typedef struct T_SFILE {
-  int fd;
-  bool read;
-  bool write;
-  bool binary;
-  QFile *file;
+    int fd;
+    bool read;
+    bool write;
+    bool binary;
+    QFile *file;
 } t_sfile;
 
 class TScriptInternalFunctions : public QObject
 {
     Q_OBJECT
-  public:
+
+public:
     explicit TScriptInternalFunctions(TSockFactory *sf, QHash<QString,int> *functionIndex, QHash<QString,TCustomScriptDialog*> *dlgs, QHash<int,t_sfile> *fl, QObject *parent = 0);
     bool runFunction(QString function, QStringList param, QString &result);
     QString calc(QString expr); // This one should go public since it also interprets string literals for calculation.
 
-  private: /// @note ALL functions, I mean -ALL-, even those with integer results, MUST return QString.
+private: /// @note ALL functions, I mean -ALL-, even those with integer results, MUST return QString.
     exprtk::symbol_table<double> st;
     exprtk::expression<double> ex;
     exprtk::parser<double> parser;

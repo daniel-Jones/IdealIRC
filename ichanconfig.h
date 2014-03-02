@@ -29,8 +29,8 @@
 
 typedef struct T_CS_DEFAULT
 {
-  bool enabled;
-  QString data; // only for limit (mode=l) and key (mode=k)
+    bool enabled;
+    QString data; // only for limit (mode=l) and key (mode=k)
 } t_csdefault;
 
 namespace Ui {
@@ -87,12 +87,12 @@ private:
     void btnEditMask(MaskType type);
     void setMode(char mode, bool enabled, QString data = ""); // Does NOT send the mode to server, used for internal storage.
 
-
 protected:
     void closeEvent(QCloseEvent *) { emit closed(); }
 
 signals:
     void closed();
+
 private slots:
     void on_banDel_clicked();
     void on_exceptionDel_clicked();

@@ -76,16 +76,6 @@ void ServerModel::delNetwork(QString name)
     int row = current.row();
 
     removeRow(row, invisibleRootItem()->index());
-/*
-    QModelIndex nameIndex = index(row, 0, current.parent());
-    QModelIndex serverIndex = index(row, 1, current.parent());
-
-    QStandardItem *nameItem = itemFromIndex(nameIndex);
-    QStandardItem *serverItem = itemFromIndex(serverIndex);
-
-    delete nameItem;
-    delete serverItem;
-*/
 }
 
 void ServerModel::addServer(QString name, QString server, QString network)
@@ -243,7 +233,7 @@ void ServerModel::resetModel()
 
     QStandardItem *i = new QStandardItem();
     QStringList l;
-    l << "Name" << "Host";
+    l << tr("Name") << tr("Host");
     setColumnCount(2);
     setHorizontalHeaderItem(0, i);
     setHorizontalHeaderLabels(l);

@@ -30,6 +30,7 @@ class IConnection;
 class ICommand : public QObject
 {
     Q_OBJECT
+
 public:
     explicit ICommand(IConnection *con, config *cfg, QObject *parent = 0);
     void setWinList(QHash<QString,subwindow_t> *wl) { winlist = wl; }
@@ -57,14 +58,12 @@ private:
     config *conf;
     IConnection *connection;
     QString activewin();
-    void fault(QString message);
+    void localMsg(QString message);
     void echo(QString message, int ptype = PT_NORMAL);
     void sockwrite(QString data);
     QString getCurrentTarget();
     QString getCurrentNickname();
-
-signals:
-
+    subwindow_t getCurrentSubwin();
 };
 
 #endif // ICOMMAND_H

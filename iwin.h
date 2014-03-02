@@ -61,8 +61,8 @@ typedef struct T_MEMBER {
 class IWin : public QWidget
 {
     Q_OBJECT
-    
-  public:
+
+public:
       explicit IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp);
       ~IWin();
       int getId() { return winid; }
@@ -91,7 +91,7 @@ class IWin : public QWidget
       void clear(); // Clear contents
       void doGfx(e_painting command, QStringList param);
 
-  private:
+private:
       Ui::IWin *ui;
       QString target;
       int WindowType; // See constants.h
@@ -132,14 +132,14 @@ class IWin : public QWidget
       void setModeViaList(char set, char mode);
       QString stripModeChar(QString nickname);
 
-  protected:
+protected:
       void closeEvent(QCloseEvent *e);
       void showEvent(QShowEvent *);
       void hideEvent(QHideEvent *);
       void resizeEvent(QResizeEvent *);
       void focusInEvent(QFocusEvent *);
 
-  private slots:
+private slots:
       void picwinMouseEvent(e_iircevent event, int x, int y, int delta = 0);
       void inputEnterPushed();
       void tabKeyPushed();

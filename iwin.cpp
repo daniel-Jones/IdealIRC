@@ -85,9 +85,9 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     std::cout << "Id for " << wname.toStdString().c_str() << ": " << winid << std::endl;
 
     if (WindowType == WT_NOTHING) {
-      QLabel *err = new QLabel();
-      err->setText("Internal error: No WindowType were defined! (WindowType = WT_NOTHING)");
-      ui->gridLayout->addWidget(err, 0, 0);
+        QLabel *err = new QLabel();
+        err->setText(tr("Internal error: No WindowType were defined! (WindowType = WT_NOTHING)"));
+        ui->gridLayout->addWidget(err, 0, 0);
     }
 
 
@@ -102,137 +102,136 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
 
 
     if (WindowType == WT_GWINPUT) {
-      picwin = new TPictureWindow(this);
-      connect(picwin, SIGNAL(mouseEvent(e_iircevent,int,int,int)),
-              this, SLOT(gwMouseEvent(e_iircevent,int,int,int)));
-      ui->gridLayout->addWidget(picwin, 0, 0);
+        picwin = new TPictureWindow(this);
+        connect(picwin, SIGNAL(mouseEvent(e_iircevent,int,int,int)),
+                this, SLOT(gwMouseEvent(e_iircevent,int,int,int)));
+        ui->gridLayout->addWidget(picwin, 0, 0);
 
-      target = wname;
+        target = wname;
 
-      input = new QMyLineEdit(this, conf);
-      ui->gridLayout->addWidget(picwin, 0, 0);
-      ui->gridLayout->addWidget(input, 1, 0);
-      setTabOrder(input, picwin);
+        input = new QMyLineEdit(this, conf);
+        ui->gridLayout->addWidget(picwin, 0, 0);
+        ui->gridLayout->addWidget(input, 1, 0);
+        setTabOrder(input, picwin);
     }
 
 
 
     if ((WindowType == WT_PRIVMSG) || (WindowType == WT_STATUS)) {
-      textdata = new TIRCView(conf);
+        textdata = new TIRCView(conf);
 
-      input = new QMyLineEdit(this, conf);
-      ui->gridLayout->addWidget(textdata, 0, 0);
-      ui->gridLayout->addWidget(input, 1, 0);
-      setTabOrder(input, textdata);
-      if (WindowType == WT_STATUS) {
-        target = "status";
-        statusCount++;
-      }
-      else {
-        target = wname;
-        if ((conf->logEnabled == true) && (conf->logPM == true)) {
-          writeToLog(" ");
-          writeToLog("QUERY WINDOW OPENED AT: " + QDateTime::currentDateTime().toString("ddd MMMM d yyyy"));
+        input = new QMyLineEdit(this, conf);
+        ui->gridLayout->addWidget(textdata, 0, 0);
+        ui->gridLayout->addWidget(input, 1, 0);
+        setTabOrder(input, textdata);
+        if (WindowType == WT_STATUS) {
+            target = "status";
+            statusCount++;
         }
-      }
+        else {
+            target = wname;
+            if ((conf->logEnabled == true) && (conf->logPM == true)) {
+                writeToLog(" ");
+                writeToLog("QUERY WINDOW OPENED AT: " + QDateTime::currentDateTime().toString("ddd MMMM d yyyy"));
+            }
+        }
     }
 
 
     if (WindowType == WT_CHANNEL) {
-      textdata = new TIRCView(conf);
+        textdata = new TIRCView(conf);
 
-      input = new QMyLineEdit(this, conf);
-      listbox = new QMyListWidget(this, conf);
-      listbox->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        input = new QMyLineEdit(this, conf);
+        listbox = new QMyListWidget(this, conf);
+        listbox->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-      split = new QSplitter(this);
-      ui->gridLayout->addWidget(split, 0, 0);
-      /* The width of listbox is determined at the event showEvent(); */
-      split->addWidget(textdata);
-      split->addWidget(listbox);
-      split->setCollapsible(1, false);
+        split = new QSplitter(this);
+        ui->gridLayout->addWidget(split, 0, 0);
+        /* The width of listbox is determined at the event showEvent(); */
+        split->addWidget(textdata);
+        split->addWidget(listbox);
+        split->setCollapsible(1, false);
 
-      connect(split, SIGNAL(splitterMoved(int,int)),
-              this, SLOT(splitterMoved(int,int)));
+        connect(split, SIGNAL(splitterMoved(int,int)),
+                this, SLOT(splitterMoved(int,int)));
 
-      ui->gridLayout->addWidget(input, 1, 0);
+        ui->gridLayout->addWidget(input, 1, 0);
 
-      setTabOrder(input, listbox);
-      setTabOrder(listbox, textdata);
-      target = wname;
+        setTabOrder(input, listbox);
+        setTabOrder(listbox, textdata);
+        target = wname;
 
-      ui->gridLayout->setContentsMargins(0, 0, 0, 0);
+        ui->gridLayout->setContentsMargins(0, 0, 0, 0);
 
-      connect(listbox, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-              this, SLOT(listboxDoubleClick(QListWidgetItem*)));
-
-
-      opMenu = new QMenu(this);
-      opMenu->setTitle("Operator menu");
-      opMenu->addAction(ui->actionGive_op);
-      opMenu->addAction(ui->actionTake_op);
-      opMenu->addSeparator();
-      opMenu->addAction(ui->actionGive_voice);
-      opMenu->addAction(ui->actionTake_voice);
-      opMenu->addSeparator();
-      opMenu->addAction(ui->actionKick);
-      opMenu->addAction(ui->actionKick_ban);
-
-      listboxMenu = new QMenu(this);
-      listboxMenu->addAction(ui->nickmenu_Query);
-      listboxMenu->addSeparator();
-      listboxMenu->addAction(ui->nickmenu_Whois);
-      listboxMenu->addMenu(opMenu);
-
-      connect(listbox, SIGNAL(MenuRequested(QPoint)),
-              this, SLOT(listboxMenuRequested(QPoint)));
+        connect(listbox, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+                this, SLOT(listboxDoubleClick(QListWidgetItem*)));
 
 
-      connect(textdata, SIGNAL(menuRequested(QPoint)),
-              this, SLOT(textboxMenuRequested(QPoint)));
+        opMenu = new QMenu(this);
+        opMenu->setTitle("Operator menu");
+        opMenu->addAction(ui->actionGive_op);
+        opMenu->addAction(ui->actionTake_op);
+        opMenu->addSeparator();
+        opMenu->addAction(ui->actionGive_voice);
+        opMenu->addAction(ui->actionTake_voice);
+        opMenu->addSeparator();
+        opMenu->addAction(ui->actionKick);
+        opMenu->addAction(ui->actionKick_ban);
+
+        listboxMenu = new QMenu(this);
+        listboxMenu->addAction(ui->nickmenu_Query);
+        listboxMenu->addSeparator();
+        listboxMenu->addAction(ui->nickmenu_Whois);
+        listboxMenu->addMenu(opMenu);
+
+        connect(listbox, SIGNAL(MenuRequested(QPoint)),
+                this, SLOT(listboxMenuRequested(QPoint)));
 
 
-      textboxMenu = new QMenu(this);
-      textboxMenu->addAction(ui->actionChannel_settings);
+        connect(textdata, SIGNAL(menuRequested(QPoint)),
+                this, SLOT(textboxMenuRequested(QPoint)));
 
 
-      if ((conf->logEnabled == true) && (conf->logChannel == true)) {
-        writeToLog(" ");
-        writeToLog("CHANNEL WINDOW OPENED AT: " + QDateTime::currentDateTime().toString("ddd MMMM d yyyy"));
-      }
+        textboxMenu = new QMenu(this);
+        textboxMenu->addAction(ui->actionChannel_settings);
+
+
+        if ((conf->logEnabled == true) && (conf->logChannel == true)) {
+            writeToLog(" ");
+            writeToLog("CHANNEL WINDOW OPENED AT: " + QDateTime::currentDateTime().toString("ddd MMMM d yyyy"));
+        }
     }
 
     if (WindowType == WT_TXTONLY) {
-      textdata = new TIRCView(conf);
-
-      ui->gridLayout->addWidget(textdata, 0, 0);
+        textdata = new TIRCView(conf);
+        ui->gridLayout->addWidget(textdata, 0, 0);
     }
 
 
     /// Bind our widgets if it's set up:
 
     if (input != 0) {
-      QObject::connect(input, SIGNAL(returnPressed()),
-                       this, SLOT(inputEnterPushed()));
+        QObject::connect(input, SIGNAL(returnPressed()),
+                         this, SLOT(inputEnterPushed()));
 
-      QObject::connect(input, SIGNAL(TabKeyPressed()),
-                       this, SLOT(tabKeyPushed()));
+        QObject::connect(input, SIGNAL(TabKeyPressed()),
+                         this, SLOT(tabKeyPushed()));
 
-      acIndex = -2;
-      input->acIndex = &acIndex; // Pass a pointer so the input box can reset it when neccessary
+        acIndex = -2;
+        input->acIndex = &acIndex; // Pass a pointer so the input box can reset it when neccessary
     }
 
     if (textdata != NULL) {
-      connect(textdata, SIGNAL(joinChannel(QString)),
-              this, SLOT(joinChannel(QString)));
+        connect(textdata, SIGNAL(joinChannel(QString)),
+                this, SLOT(joinChannel(QString)));
 
-      connect(textdata, SIGNAL(anchorClicked(const QUrl)),
-              this, SLOT(openURL(const QUrl)));
+        connect(textdata, SIGNAL(anchorClicked(const QUrl)),
+                this, SLOT(openURL(const QUrl)));
 
-      connect(textdata, SIGNAL(gotFocus()),
-              this, SLOT(GiveFocus()));
+        connect(textdata, SIGNAL(gotFocus()),
+                this, SLOT(GiveFocus()));
 
-      textdata->reloadCSS();
+        textdata->reloadCSS();
     }
 
     if (picwin != NULL) {
@@ -253,7 +252,6 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
 IWin::~IWin()
 {
     textdata = NULL;
-
     delete ui;
 }
 
@@ -332,7 +330,7 @@ void IWin::inputEnterPushed()
 
     std::cout << "ENTER PUSHED " << WindowType << "=\"" << text.toStdString().c_str() << "\"" << std::endl;
 
-    if (text.at(0) == '/') {
+    if (text[0] == '/') {
 
 
         bool commandOk = cmdhndl->parse(text);
@@ -347,7 +345,7 @@ void IWin::inputEnterPushed()
 
         if ((! commandOk) && (connection->isSocketOpen() == false)) {
             // We're disconnected and command wasn't found in ICommand nor as custom.
-            print("Not connected to server.", PT_LOCALINFO);
+            print(tr("Not connected to server."), PT_LOCALINFO);
         }
 
         // Do nothing if command wasn't found neither in ICommand or the server.
@@ -356,14 +354,30 @@ void IWin::inputEnterPushed()
     }
 
     if ((WindowType == WT_STATUS) && (text.at(0) != '/')) {
-        print("You're not in a chat window!", PT_LOCALINFO);
+        print(tr("You're not in a chat window!"), PT_LOCALINFO);
         return;
     }
 
     if ((WindowType == WT_CHANNEL) || (WindowType == WT_PRIVMSG)) {
         // Reaching here means we've eliminated status window and commands. Send text to chat.
-        sockwrite("PRIVMSG " + target + " :" + text);
-        print("<" + connection->getActiveNickname() + "> " + text, PT_OWNTEXT);
+        sockwrite( QString("PRIVMSG %1 :%2")
+                     .arg(target)
+                     .arg(text)
+                  );
+
+        QString mode;
+        if (WindowType == WT_CHANNEL) {
+            member_t m = ReadMember(connection->getActiveNickname());
+            if (m.mode.count() > 0)
+                mode += m.mode[0];
+        }
+
+        print( QString("<%1%2> %3")
+                 .arg(mode)
+                 .arg(connection->getActiveNickname())
+                 .arg(text),
+               PT_OWNTEXT
+              );
     }
 }
 
@@ -417,7 +431,7 @@ void IWin::tabKeyPushed()
 
 void IWin::joinChannel(QString channel)
 {
-    connection->sockwrite("JOIN :"+channel);
+    connection->sockwrite(QString("JOIN :%1").arg(channel));
 }
 
 void IWin::pmUser(QString nickname)
@@ -459,22 +473,22 @@ void IWin::listboxMenuRequested(QPoint p)
 
 void IWin::writeToLog(QString text)
 {
-  if (! conf->logEnabled)
-    return;
+    if (! conf->logEnabled)
+        return;
 
-  QString LogFile = QString("%1/%2.txt")
-                    .arg(conf->logPath)
-                    .arg(target);
+    QString LogFile = QString("%1/%2.txt")
+                        .arg(conf->logPath)
+                        .arg(target);
 
-  QFile f(LogFile);
+    QFile f(LogFile);
 
-  if (f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append) == false)
-    return;
+    if (! f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+        return;
 
-  QByteArray out;
-  out.append(text + "\r\n");
-  f.write(out);
-  f.close();
+    QByteArray out;
+    out.append(text + '\n');
+    f.write(out);
+    f.close();
 }
 
 void IWin::print(const QString &text, const int ptype)
@@ -512,8 +526,9 @@ void IWin::insertMember(QString nickname, member_t mt, bool sort)
 {
     QString item = nickname;
     if (mt.mode.length() > 0)
-        item.prepend(mt.mode.at(0));
-    memberlist.append(item);
+        item.prepend(mt.mode[0]);
+
+    memberlist << item;
     members.insert(nickname, mt);
 
     acList << nickname;
@@ -529,7 +544,7 @@ void IWin::removeMember(QString nickname,  bool sort)
     member_t m = members.value(nickname);
     members.remove(nickname);
     if (m.mode.length() > 0)
-        nickname.prepend(m.mode.at(0));
+        nickname.prepend(m.mode[0]);
 
     memberlist.removeAll(nickname);
     acList.removeAll(nickname);
@@ -563,12 +578,13 @@ void IWin::resetMemberlist()
 
 void IWin::sortMemberList(QString memberRemoved)
 {
+    // This sort uses the Insertion method.
     // Loop through the memberlist stringlist, sort it.
     for (int i = 0; i < memberlist.count(); i++) {
-        for (int pos = i; ((pos > 0) && sortLargerThan( memberlist.at(pos-1), memberlist.at(pos) )); pos--) {
+        for (int pos = i; ((pos > 0) && sortLargerThan( memberlist[pos-1], memberlist[pos] )); pos--) {
 
-            QString a = memberlist.at(pos);
-            QString b = memberlist.at(pos-1);
+            QString a = memberlist[pos];
+            QString b = memberlist[pos-1];
             memberlist.replace(pos,b);
             memberlist.replace(pos-1,a);
         }
@@ -583,7 +599,6 @@ void IWin::sortMemberList(QString memberRemoved)
 
     // Re-select from "si"
     for (int i = 0; i <= listbox->count()-1; i++) {
-        QString mr = memberRemoved;
         QString text = listbox->item(i)->text();
         QString stext = stripModeChar(text);
         if (stext == memberRemoved)
@@ -592,7 +607,6 @@ void IWin::sortMemberList(QString memberRemoved)
         for (int j = 0; j <= si.length()-1; j++)
             if (text == si[j]->text())
                 listbox->item(i)->setSelected(true);
-
     }
 }
 
@@ -602,8 +616,8 @@ void IWin::sortList(QList<char> *lst)
         for (int pos = i; ((pos > 0) && sortLargerThan(QString(lst->at(pos-1)), QString(lst->at(pos)))); pos--) {
             QString a = QString(lst->at(pos-1));
             QString b = QString(lst->at(pos));
-            lst->replace(pos-1, b.at(0).toLatin1());
-            lst->replace(pos, a.at(0).toLatin1());
+            lst->replace(pos-1, b[0].toLatin1());
+            lst->replace(pos, a[0].toLatin1());
         }
     }
 }
@@ -613,16 +627,16 @@ bool IWin::sortLargerThan(const QString s1, const QString s2)
     // Grab smallest length.
     int l = s1.length();
     if (s2.length() < l)
-      l = s2.length();
+        l = s2.length();
 
     for (int i = 0; i <= l-1; i++) {
-      int As = sortrule->indexOf(s1.at(i).toLatin1());
-      int Bs = sortrule->indexOf(s2.at(i).toLatin1());
+        int As = sortrule->indexOf(s1[i].toLatin1());
+        int Bs = sortrule->indexOf(s2[i].toLatin1());
 
-      if (As < Bs)
-        return false;
-      if (As > Bs)
-        return true;
+        if (As < Bs)
+            return false;
+        if (As > Bs)
+            return true;
     }
 
     // This returns when the texts are equal.
@@ -631,8 +645,6 @@ bool IWin::sortLargerThan(const QString s1, const QString s2)
 
 void IWin::MemberSetMode(QString nickname, char mode)
 {
-    qDebug() << "SET MEMBER MODE ON" << nickname << mode;
-
     member_t mem = ReadMember(nickname);
     if (mem.mode.contains(mode))
         return; // Got this mode alerady, stop. This is likely not to happen, though.
@@ -646,7 +658,6 @@ void IWin::MemberSetMode(QString nickname, char mode)
 
 void IWin::MemberUnsetMode(QString nickname, char mode)
 {
-    qDebug() << "UNSET MEMBER MODE ON" << nickname << mode;
     member_t mem = ReadMember(nickname);
     mem.mode.removeAll(mode);
     removeMember(nickname);
@@ -693,120 +704,120 @@ void IWin::clear()
 
 void IWin::doGfx(e_painting command, QStringList param)
 {
-  if (picwin == NULL)
-    return;
+    if (picwin == NULL)
+        return;
 
-  if (command == pc_clear) {
-    picwin->clear();
-    return;
-  }
+    if (command == pc_clear) {
+        picwin->clear();
+        return;
+    }
 
-  if (command == pc_paintdot) {
-    int X = floor(param[0].toFloat());
-    int Y = floor(param[1].toFloat());
-    int size = param[2].toInt();
-    QColor color(param[3]);
+    if (command == pc_paintdot) {
+        int X = floor(param[0].toFloat());
+        int Y = floor(param[1].toFloat());
+        int size = param[2].toInt();
+        QColor color(param[3]);
 
-    QBrush br(color, Qt::SolidPattern);
-    QPen pn(color);
-    pn.setWidth(size);
-    picwin->setBrush(br);
-    picwin->setPen(pn);
-    picwin->paintDot(X, Y);
-    return;
-  }
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(size);
+        picwin->setBrush(br);
+        picwin->setPen(pn);
+        picwin->paintDot(X, Y);
+        return;
+    }
 
-  if (command == pc_paintline) {
-    int X1 = floor(param[0].toFloat());
-    int Y1 = floor(param[1].toFloat());
-    int X2 = floor(param[2].toFloat());
-    int Y2 = floor(param[3].toFloat());
-    int size = param[4].toInt();
-    QColor color(param[5]);
+    if (command == pc_paintline) {
+        int X1 = floor(param[0].toFloat());
+        int Y1 = floor(param[1].toFloat());
+        int X2 = floor(param[2].toFloat());
+        int Y2 = floor(param[3].toFloat());
+        int size = param[4].toInt();
+        QColor color(param[5]);
 
-    QBrush br(color, Qt::SolidPattern);
-    QPen pn(color);
-    pn.setWidth(size);
-    picwin->setBrush(br);
-    picwin->setPen(pn);
-    picwin->paintLine(X1, Y1, X2, Y2);
-    return;
-  }
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(size);
+        picwin->setBrush(br);
+        picwin->setPen(pn);
+        picwin->paintLine(X1, Y1, X2, Y2);
+        return;
+    }
 
-  if (command == pc_paintrect) {
-    int X = floor(param[0].toFloat());
-    int Y = floor(param[1].toFloat());
-    int W = floor(param[2].toFloat());
-    int H = floor(param[3].toFloat());
-    int size = param[4].toInt();
-    QColor color(param[5]);
+    if (command == pc_paintrect) {
+        int X = floor(param[0].toFloat());
+        int Y = floor(param[1].toFloat());
+        int W = floor(param[2].toFloat());
+        int H = floor(param[3].toFloat());
+        int size = param[4].toInt();
+        QColor color(param[5]);
 
-    QBrush br(color, Qt::SolidPattern);
-    QPen pn(color);
-    pn.setWidth(size);
-    picwin->setBrush(br);
-    picwin->setPen(pn);
-    picwin->paintRect(X, Y, W, H);
-    return;
-  }
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(size);
+        picwin->setBrush(br);
+        picwin->setPen(pn);
+        picwin->paintRect(X, Y, W, H);
+        return;
+    }
 
-  if (command == pc_paintimage) {
-    int X = floor(param[0].toFloat());
-    int Y = floor(param[1].toFloat());
-    QString fn = param[2];
-    picwin->paintImage(fn, X, Y);
-    return;
-  }
+    if (command == pc_paintimage) {
+        int X = floor(param[0].toFloat());
+        int Y = floor(param[1].toFloat());
+        QString fn = param[2];
+        picwin->paintImage(fn, X, Y);
+        return;
+    }
 
-  if (command == pc_clearimagebuffer) {
-    picwin->clearImageBuffer();
-    return;
-  }
+    if (command == pc_clearimagebuffer) {
+        picwin->clearImageBuffer();
+        return;
+    }
 
-  if (command == pc_painttext) {
-      int X = floor(param[0].toFloat());
-      int Y = floor(param[1].toFloat());
-      int size = param[2].toInt();
-      QColor color(param[3]);
+    if (command == pc_painttext) {
+        int X = floor(param[0].toFloat());
+        int Y = floor(param[1].toFloat());
+        int size = param[2].toInt();
+        QColor color(param[3]);
 
-      QString font = param[4];
-      QString text = param[5];
+        QString font = param[4];
+        QString text = param[5];
 
-      QFont f(font);
-      f.setPixelSize(size);
-      QBrush br(color, Qt::SolidPattern);
-      QPen pn(color);
+        QFont f(font);
+        f.setPixelSize(size);
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
 
-      picwin->setBrush(br);
-      picwin->setPen(pn);
-      picwin->paintText(X, Y, f, text);
+        picwin->setBrush(br);
+        picwin->setPen(pn);
+        picwin->paintText(X, Y, f, text);
 
-      return;
-  }
+        return;
+    }
 
-  if (command == pc_paintfill) {
-      int X = floor(param[0].toFloat());
-      int Y = floor(param[1].toFloat());
-      int W = floor(param[2].toFloat());
-      int H = floor(param[3].toFloat());
-      QColor color(param[4]);
+    if (command == pc_paintfill) {
+        int X = floor(param[0].toFloat());
+        int Y = floor(param[1].toFloat());
+        int W = floor(param[2].toFloat());
+        int H = floor(param[3].toFloat());
+        QColor color(param[4]);
 
-      QBrush br(color, Qt::SolidPattern);
-      QPen pn(color);
-      pn.setWidth(0);
-      picwin->setBrush(br);
-      picwin->setPen(pn);
-      picwin->paintFill(X, Y, W, H);
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(0);
+        picwin->setBrush(br);
+        picwin->setPen(pn);
+        picwin->paintFill(X, Y, W, H);
 
-      return;
-  }
+        return;
+    }
 
-  if (command == pc_buffer) {
-    bool state = (bool*)param[0].toInt();
-    picwin->setViewBuffer(state);
+    if (command == pc_buffer) {
+        bool state = (bool*)param[0].toInt();
+        picwin->setViewBuffer(state);
 
-    return;
-  }
+        return;
+    }
 }
 
 void IWin::picwinMouseEvent(e_iircevent event, int x, int y, int delta)
@@ -844,7 +855,7 @@ void IWin::on_actionChannel_settings_triggered()
     connect(settings, SIGNAL(closed()),
             this, SLOT(settingsClosed()));
 
-    sockwrite("TOPIC " + target);
+    sockwrite(QString("TOPIC %1").arg(target));
 }
 
 void IWin::listboxDoubleClick(QListWidgetItem *item)
@@ -873,9 +884,9 @@ void IWin::setModeViaList(char set, char mode)
         ++count;
         if (count > connection->maxModes) {
             QString w = QString("MODE %1 %2 %3")
-                                    .arg(target)
-                                    .arg(modes)
-                                    .arg(nicks);
+                          .arg(target)
+                          .arg(modes)
+                          .arg(nicks);
             if (data.length() > 0)
                 data.append("\r\n");
 
@@ -889,9 +900,9 @@ void IWin::setModeViaList(char set, char mode)
 
     if (count > 1) {
         QString w = QString("MODE %1 %2 %3")
-                                .arg(target)
-                                .arg(modes)
-                                .arg(nicks);
+                      .arg(target)
+                      .arg(modes)
+                      .arg(nicks);
         if (data.length() > 0)
             data.append("\r\n");
 

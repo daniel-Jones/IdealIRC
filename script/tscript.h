@@ -34,44 +34,44 @@
 
 typedef struct T_SCRIPT
 {
-  QString name;
-  QString path;
+    QString name;
+    QString path;
 } script_t;
 
 typedef struct T_SCRIPTLINE {
-  int linenum;
-  QString text;
+    int linenum;
+    QString text;
 } t_scriptline;
 
 enum e_scriptresult {
-  se_None = 0,
-  se_Finished,
-  se_FileNotExist,
-  se_FileEmpty,
-  se_FileCannotOpen,
-  se_UnexpectedFinish = 5,
-  se_RunfDone,
-  se_BreakNoWhile,
-  se_ContinueNoWhile,
-  se_InvalidParamCount,
-  se_FunctionEmpty = 10,
-  se_InvalidFunction,
-  se_InvalidCommand,
-  se_InvalidMetaCommand,
-  se_InvalidSwitches,
-  se_InvalidIncludeFile = 15,
-  se_InvalidEvent,
-  se_InvalidBlockType,
-  se_InvalidTimer,
-  se_InvalidFileDescriptor,
-  se_MissingVariable = 20,
-  se_FunctionIdxOutOfBounds,
-  se_TimerAlreadyDefined,
-  se_UnexpectedToken,
-  se_EscapeOnEndLine,
-  se_UnexpectedNewline = 25,
-  se_NegativeNotAllowed,
-  se_FSeekFailed
+    se_None = 0,
+    se_Finished,
+    se_FileNotExist,
+    se_FileEmpty,
+    se_FileCannotOpen,
+    se_UnexpectedFinish = 5,
+    se_RunfDone,
+    se_BreakNoWhile,
+    se_ContinueNoWhile,
+    se_InvalidParamCount,
+    se_FunctionEmpty = 10,
+    se_InvalidFunction,
+    se_InvalidCommand,
+    se_InvalidMetaCommand,
+    se_InvalidSwitches,
+    se_InvalidIncludeFile = 15,
+    se_InvalidEvent,
+    se_InvalidBlockType,
+    se_InvalidTimer,
+    se_InvalidFileDescriptor,
+    se_MissingVariable = 20,
+    se_FunctionIdxOutOfBounds,
+    se_TimerAlreadyDefined,
+    se_UnexpectedToken,
+    se_EscapeOnEndLine,
+    se_UnexpectedNewline = 25,
+    se_NegativeNotAllowed,
+    se_FSeekFailed
 };
 
 class TScript : public QObject
@@ -79,13 +79,12 @@ class TScript : public QObject
 
   Q_OBJECT
 
-  public:
+public:
     TScript(QObject *parent, QWidget *dialogParent, QString fname);
     e_scriptresult loadScript2(QString includeFile = "", QString parent = "");
     e_scriptresult runf(QString function, QStringList param, QString &result, bool ignoreParamCount = false);
 
     bool runCommand(QString cmd);
-
     bool hasCommand(QString cmd);
 
     QString getName() { return name; }
@@ -93,7 +92,7 @@ class TScript : public QObject
     QString getErrorKeyword() { return errorKeyword; }
     int getCurrentLine() { return curLine; }
 
-  private:
+private:
     QWidget *dlgParent;
     TScriptInternalFunctions ifn;
     TSockFactory sockets;
@@ -137,11 +136,11 @@ class TScript : public QObject
     bool customDialogDelItem(QString dlg, QString oname, QString index);
     bool customDialogClear(QString dlg, QString oname);
 
-  public slots:
+public slots:
     void timerTimeout(QString fn);
     bool runEvent(e_iircevent evt, QStringList param);
 
-  signals:
+signals:
     void execCmdSignal(QString cmd); // command param param2 ...
     void error(QString text);
     void warning(QString text);

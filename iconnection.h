@@ -35,9 +35,9 @@ class TScriptParent;
 
 // for parseUserinfo();
 typedef struct T_USER {
-  QString nick;
-  QString user;
-  QString host;
+    QString nick;
+    QString user;
+    QString host;
 } user_t;
 
 
@@ -45,7 +45,7 @@ class IConnection : public QObject
 {
   Q_OBJECT
 
-  public:
+public:
       explicit IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg, TScriptParent *sp);
       bool isOnline() { return active; } // True when we're registered to server.
       bool isSocketOpen() { return socket.isOpen(); } // True when socket is connected.
@@ -81,7 +81,7 @@ class IConnection : public QObject
       QString getcmC() { return cmC; }
       QString getcmD() { return cmD; }
 
-  private:
+private:
       ICommand cmdhndl;
       config *conf;
       int cid; // Connection ID. Will never change. Equal to the ID of status window this belongs to.
@@ -106,9 +106,7 @@ class IConnection : public QObject
       QStringList acList; // Contains channel names we'd like to autocomplete.
       TScriptParent *scriptParent;
 
-
       /* For retreiving data, onSocketReadyRead() */
-      bool waitLF;
       QByteArray linedata;
 
       QList<char> chantype; // #&, etc
@@ -134,15 +132,15 @@ class IConnection : public QObject
       void resetSortRules();
       QString activewin();
 
-  public slots:
+public slots:
       bool sockwrite(QString data);
 
-  private slots:
+private slots:
       void onSocketConnected();
       void onSocketDisconnected();
       void onSocketReadyRead();
 
-  signals:
+signals:
       void RequestTrayMsg(QString title, QString message);
       void RequestWindow(QString wname, int wtype, int parent, bool activate = false);
       void refreshTitlebar();

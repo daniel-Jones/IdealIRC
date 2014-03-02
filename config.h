@@ -37,7 +37,7 @@ class config : public QObject
 {
   Q_OBJECT
 
-  public:
+public:
     explicit config(QObject *parent = 0);
     ~config();
     void rehash();

@@ -52,7 +52,6 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     connectionClosing(false),
     motd(cfg, (QWidget*)parent),
     scriptParent(sp),
-    waitLF(false),
     cmA("b"),
     cmB("k"),
     cmC("l"),
@@ -87,14 +86,20 @@ void IConnection::setServer(QString server, QString passwd)
     port = details.at(1).toInt();
     password = passwd;
 }
+
 void IConnection::tryConnect()
 {
     setServer();
     IWin *s = winlist.value("STATUS").widget;
 
-    s->print(tr("Connecting to %1:%2...").arg(host).arg(port), PT_LOCALINFO);
+    s->print( tr("Connecting to %1:%2...")
+                .arg(host)
+                .arg(port),
+                PT_LOCALINFO
+             );
+
     tryingConnect = true;
-    socket.connectToHost(host, port);
+    socket.connectToHost(host, port, QIODevice::ReadWrite | QIODevice::Text);
 
 }
 
@@ -104,6 +109,7 @@ void IConnection::addWindow(QString name, subwindow_t win)
     if (win.type == WT_CHANNEL)
         acList << name;
 }
+
 void IConnection::freeWindow(QString name)
 {
     winlist.remove(name.toUpper());
@@ -114,7 +120,7 @@ void IConnection::freeWindow(QString name)
 bool IConnection::sockwrite(QString data)
 {
     if (! socket.isOpen()) {
-        print("STATUS", "Not connected to server", PT_LOCALINFO);
+        print("STATUS", tr("Not connected to server"), PT_LOCALINFO);
         return false;
     }
 
@@ -122,8 +128,6 @@ bool IConnection::sockwrite(QString data)
       return false;
 
     /// @todo Erase any \0 \r and \n
-
-  std::cout << "[UT] " << data.toStdString().c_str();
 
     data.append("\r\n");
     socket.write(data.toUtf8());
@@ -138,14 +142,20 @@ void IConnection::onSocketConnected()
     if (conf->password.length() > 0)
         sockwrite("PASS :" + conf->password);
 
-    QString username;                                // Store our username to pass to IRC server here.
-    if (conf->username.at(0) == '@')                 // If our @ token is first, we'll just use the nickname.
-        username = conf->nickname;                   // This to prevent any errors on following:
+    QString username;                            // Store our username to pass to IRC server here.
+    if (conf->username.at(0) == '@')             // If our @ token is first, we'll just use the nickname.
+        username = conf->nickname;               // This to prevent any errors on following:
     else
-        username = conf->username.split('@').at(0);  // Pick username from email. May not contain a '@' though.
+        username = conf->username.split('@')[0]; // Pick username from email. May not contain a '@' though.
 
-    sockwrite("NICK " + conf->nickname);
-    sockwrite("USER " + username + " \"\" \"\" :" + conf->realname);
+    sockwrite( QString("NICK %1")
+                 .arg(conf->nickname)
+              );
+
+    sockwrite( QString("USER %1 \"\" \"\" :%2")
+                 .arg(username)
+                 .arg(conf->realname)
+              );
 }
 
 void IConnection::onSocketDisconnected()
@@ -191,7 +201,7 @@ void IConnection::onSocketDisconnected()
         i.next();
         subwindow_t win = i.value();
 
-        win.widget->print("Disconnected.", PT_LOCALINFO);
+        win.widget->print(tr("Disconnected."), PT_LOCALINFO);
         if (win.type == WT_CHANNEL) {
             win.widget->resetMemberlist();
         }
@@ -201,15 +211,16 @@ void IConnection::onSocketDisconnected()
     emit connectionClosed();
 
     QString hostinfo = QString("%1:%2")
-                      .arg(host)
-                      .arg(port);
+                        .arg(host)
+                        .arg(port);
+
     scriptParent->runevent(te_disconnect, QStringList()<<hostinfo);
 }
 
 void IConnection::closeConnection(bool cc)
 {
     if (tryingConnect == true) {
-        print("STATUS", "Disconnected.", PT_LOCALINFO);
+        print("STATUS", tr("Disconnected."), PT_LOCALINFO);
         socket.close();
         tryingConnect = false;
         return;
@@ -219,26 +230,19 @@ void IConnection::closeConnection(bool cc)
         connectionClosing = true;
         CloseChildren = cc;
         QString data = QString("QUIT :%1")
-                       .arg( conf->quit );
+                         .arg( conf->quit );
+
         sockwrite(data);
     }
 }
-
-
 
 void IConnection::onSocketReadyRead()
 {
     /*
       Define a global (class) variable (linedata) to read in each IRC line to parse.
-      Whenever encountering a \r we should wait (waitLF) for an LF to come as next byte.
-      If the next byte isn't an LF (\n), we should ignore the CR+LF and add the next byte after \n
-      to the buffer until a new CR comes by.
-      When an CR+LF is reached, send the line data to parse, unset linedata and continue
-      reading data until nothing is left in buffer.
-
-      Variables:
-        linedata
-        waitLF
+      Qt converts \r\n to \n since socket is opened in Text mode.
+      We insert our received data to "linedata", until we reach \n. Then we'll parse the "linedata"
+      and reset it and continue reading in until our buffer is empty.
     */
 
     QByteArray in = socket.readAll();
@@ -248,30 +252,15 @@ void IConnection::onSocketReadyRead()
 
     for (int i = 0; i <= in.length()-1; i++) {
 
-      if (in.at(i) == '\0') { // Reached end of data in buffer
-        //parse(QString::fromUtf8(linedata.toStdString().c_str()));
-        QString text = tc->toUnicode(linedata);
-        parse(text);
-        linedata.clear();
+      if (in[i] == '\n') {
+          // Newline, parse this.
+          QString text = tc->toUnicode(linedata);
+          std::cout << "[in] " << text.toStdString().c_str() << std::endl;
+          parse( text );
+          linedata.clear();
+          continue;
       }
 
-      if (in.at(i) == '\r') { // found CR
-        waitLF = true;
-        continue;
-      }
-
-      if ((waitLF == true) && (in.at(i) == '\n')) { // Expecting LF, found LF
-        waitLF = false;
-        //parse(QString::fromUtf8(linedata.toStdString().c_str()));
-        QString text = tc->toUnicode(linedata);
-        parse(text);
-        linedata.clear();
-        continue;
-      }
-      if ((waitLF == true) && (in.at(i) != '\n')) { // Expecting LF, found something else
-        waitLF = false;
-        continue;
-      }
       // By default, add data to linedata.
       linedata += in.at(i);
     }
@@ -305,7 +294,7 @@ bool IConnection::windowExist(QString name)
 
 bool IConnection::isValidChannel(QString channel)
 {
-    char prefix = channel.at(0).toLatin1();
+    char prefix = channel[0].toLatin1();
     return chantype.contains(prefix);
 }
 
@@ -337,15 +326,15 @@ QString IConnection::trimCtrlCodes(QString &text)
 
     QString result;
     for (int i = 0; i <= text.length()-1; i++) {
-        QChar c = text.at(i);
-        if (c == 0x02)
+        QChar c = text[i];
+        if (c == CTRL_BOLD)
             continue;
-        if (c == 0x1F)
+        if (c == CTRL_UNDERLINE)
             continue;
-        if (c == 0x03) {
+        if (c == CTRL_COLOR) {
 
             for (i++; i <= text.length()-1; i++) {
-                c = text.at(i);
+                c = text[i];
                 bool numok = false;
                 QString(c).toInt(&numok);
                 if ((numok == false) && (c == ','))
@@ -414,32 +403,33 @@ void IConnection::setActiveInfo(QString *wn, int *ac) {
     cmdhndl.setActiveInfo(wn, ac);
 }
 
-
 user_t IConnection::parseUserinfo(QString uinfo)
 {
-  if (uinfo.at(0) == ':')
+    if (uinfo[0] == ':')
     uinfo = uinfo.mid(1);
 
-  //         nick, user, host
-  user_t u = {uinfo, "", ""};
+    //         nick, user, host
+    user_t u = {uinfo, "", ""};
 
-  // nickname!ident@hostname
-  QStringList a = uinfo.split("!"); // 0 = nickname, 1 = ident@hostname
-  if (a.length() < 2)
+    if (! uinfo.contains('!')) // Nickname only
+        return u;
+
+    // nickname!ident@hostname
+    QStringList a = uinfo.split("!"); // 0 = nickname, 1 = ident@hostname
+    if (a.length() < 2)
+        return u;
+
+    QStringList b = a[1].split("@"); // 0 = ident, 1 = hostname
+    if (a.length() < 2)
+        return u;
+
+    //   nick,   user,    host
+    //u = {a[0], b[0], b[1]}; // not compatible with my current 'clang' version. GCC takes this code.
+    u.nick = a[0];
+    u.user = b[0];
+    u.host = b[1];
+
     return u;
-
-  QStringList b = a.at(1).split("@"); // 0 = ident, 1 = hostname
-  if (a.length() < 2)
-    return u;
-
-  //   nick,   user,    host
-  //u = {a.at(0), b.at(0), b.at(1)}; not compatible with my current 'clang' version. GCC takes this code.
-  u.nick = a.at(0);
-  u.user = b.at(0);
-  u.host = b.at(1);
-
-
-  return u;
 }
 
 IChanConfig* IConnection::getChanConfigPtr(QString channel)
@@ -450,15 +440,15 @@ IChanConfig* IConnection::getChanConfigPtr(QString channel)
 
 QString IConnection::getMsg(QString &data)
 {
-  /*
-    First, figure the length from beginning to first colon.
-    Use that length + 1, to skip over, in order to get our msg.
-  */
-  if (data.at(0) == ':')
-    data = data.mid(1);
+    /*
+        First, figure the length from beginning to first colon.
+        Use that length + 1, to skip over, in order to get our msg.
+    */
+    if (data.at(0) == ':')
+        data = data.mid(1);
 
-  int l = data.split(":").at(0).length()+1;
-  return data.mid(l);
+    int l = data.split(":").at(0).length()+1;
+    return data.mid(l);
 }
 
 void IConnection::parse(QString &data)
@@ -468,470 +458,568 @@ void IConnection::parse(QString &data)
   :nick!user@host num/cmd [target] :msg
 */
 
-std::cout << "[IN] " << data.toStdString().c_str() << std::endl;
-
-  QStringList token = data.split(" ");
-  QString token0up = token.at(0).toUpper();
-  QString token1up = token.at(1).toUpper();
+    QStringList token = data.split(" ");
+    QString token0up = token[0].toUpper();
+    QString token1up = token[1].toUpper();
 
 
-  if (token.size() < 2) // Rubbish, there should be at least two tokens separated by a space.
-    return;
+    if (token.size() < 2) // Rubbish, there should be at least two tokens separated by a space.
+        return;
 
-  int num = token.at(1).toInt();
+    int num = token[1].toInt();
 
-  if (num > 0) { // valid NUMERIC
-    parseNumeric(num, data);
-    return;
-  }
+    if (num > 0) { // valid NUMERIC
+        parseNumeric(num, data);
+        return;
+    }
 
-  else if (token0up == "NOTICE") {
-    QString from = token.at(1);
-    if (token1up == "AUTH")
-      from = conf->server.split(":").at(0);
+    else if (token0up == "NOTICE") {
+        QString from = token[1];
+        if (token1up == "AUTH")
+            from = conf->server.split(":")[0];
 
-    QString text = getMsg(data);
+        QString text = getMsg(data);
 
-    from.prepend("-");
-    from.append("- ");
-    print("STATUS", from+text, PT_NOTICE);
-    return;
-  }
+        from.prepend("-");
+        from.append("- ");
+        print("STATUS", from+text, PT_NOTICE);
+        return;
+    }
 
-  else if (token0up == "PING") {
-    sockwrite("PONG "+token.at(1));
-    return;
-  }
+    else if (token0up == "PING") {
+        sockwrite( QString("PONG %1")
+                     .arg(token[1])
+                  );
+        return;
+    }
 
 
-  else if (token1up == "PONG") {
-    bool ok = false;
-    qint64 ms_now = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qint64 ms_pong = getMsg(data).toULongLong(&ok);
-    if (! ok)
-      print(activewin(), "PONG from server: " + getMsg(data), PT_SERVINFO);
-    else
-      print(activewin(), "PONG from server: " + QString::number(ms_now-ms_pong) + "ms.", PT_SERVINFO);
-    return;
-  }
-
-/***********************************************************************************************
- *
- *
- *
- *
- *
- *
- *
- *
- **/
-
-  else if (token1up == "PRIVMSG") {
-    user_t u = parseUserinfo(token.at(0));
-    QString text = getMsg(data);
-
-    // CTCP check, ACTION check
-    if (text[0] != ' ') {
-      QString request;
-      QStringList tx = text.split(" ");
-
-      request.append(0x01);
-      request.append("ACTION");
-      if (tx.at(0).toUpper() == request) { /// NOT CTCP, ACTION
-        // ACTION
-        text.remove(0x01);
-        text = text.mid(7);
-        if (isValidChannel(token.at(2)))
-          emit RequestWindow(token.at(2), WT_CHANNEL, cid, false);
+    else if (token1up == "PONG") {
+        bool ok = false;
+        qint64 ms_now = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qint64 ms_pong = getMsg(data).toULongLong(&ok);
+        if (! ok)
+            print( activewin(), tr("PONG from server: %1")
+                                 .arg(getMsg(data)),
+                   PT_SERVINFO
+                  );
         else
-          emit RequestWindow(token.at(2), WT_PRIVMSG, cid, false);
-
-        print(token.at(2).toUpper(), u.nick + " " + text, PT_ACTION);
+            print( activewin(), tr("PONG from server: %1ms.")
+                                 .arg(ms_now-ms_pong),
+                   PT_SERVINFO
+                  );
         return;
-      }
-
-      if (tx.at(0).at(0) == 0x01) {
-        // CTCP indicator
-        QString ctcp = tx.at(0);
-        ctcp.remove(QChar(0x01));
-        print("STATUS", "CTCP " + ctcp + " from " + u.nick, PT_CTCP);
-      }
-      request.clear();
-
-      request.append(0x01);
-      request.append("VERSION");
-      request.append(0x01);
-      if (tx.at(0).toUpper() == request) { /// VERSION
-        // VERSION
-        QString reply;
-        reply.append(0x01);
-        reply.append("VERSION IdealIRC " + QString(VERSION_STRING) + " @ " + QString(SYSTEM_NAME) + " By Tomatix");
-        reply.append(0x01);
-        sockwrite("NOTICE " + u.nick + " :"+reply);
-        return;
-      }
-      request.clear();
-
-      request.append(0x01);
-      request.append("TIME");
-      request.append(0x01);
-      if (tx.at(0).toUpper() == request) { /// TIME
-        // TIME
-        QString reply;
-        QString clock = QDateTime::currentDateTime().time().toString("hh:mm:ss");
-        QString date = QDateTime::currentDateTime().date().toString("dddd MMMM d, yyyy");
-        reply.append(0x01);
-        reply.append("VERSION TIME " + clock + ", " + date);
-        reply.append(0x01);
-        sockwrite("NOTICE " + u.nick + " :"+reply);
-        return;
-      }
-      request.clear();
-
-      request.append(0x01);
-      request.append("PING");
-      if (tx.at(0).toUpper() == request) { /// PING
-        // PING
-        QString reply;
-        reply.append(0x01);
-        reply.append("PING " + tx.at(1));
-        sockwrite("NOTICE " + u.nick + " :"+reply); // pong
-        return;
-      }
-      request.clear();
-
     }
 
-    QString name = u.nick;
-    if (isValidChannel(token.at(2).toUpper()) == false) { // Privmsg
-      emit RequestWindow(name, WT_PRIVMSG, cid, false);
-      print(name.toUpper(), "<" + name + "> " + text);
-      subwindow_t w = winlist.value(token.at(2).toUpper());
-      emit HighlightWindow(w.wid, HL_MSG);
-      emit RequestTrayMsg("Private MSG from " + name, text);
+    else if (token1up == "PRIVMSG") {
+        user_t u = parseUserinfo(token.at(0));
+        QString text = getMsg(data);
 
-    }
-    else { // Channel
-      QString tx = "<" + name + "> " + text;
-      subwindow_t w = winlist.value(token.at(2).toUpper());
-      member_t m = w.widget->ReadMember(name);
-      if ((conf->showUsermodeMsg == true) && (m.mode.length() > 0)) {
-        tx = "<" + QString(m.mode.at(0)) + name + "> " + text;
-      }
-      emit RequestWindow(token.at(2), WT_CHANNEL, cid, false);
-      print(token.at(2).toUpper(), tx);
-      if (text.contains(activeNick, Qt::CaseInsensitive))
-          emit HighlightWindow(w.wid, HL_HIGHLIGHT);
-      else
-          emit HighlightWindow(w.wid, HL_MSG);
+        // CTCP check, ACTION check
+        if (text[0] != ' ') {
+            QString request;
+            QStringList tx = text.split(" ");
 
-      // Check if our nickname is in the text, if so, put up a tray notify
-      if (data.indexOf(activeNick, Qt::CaseInsensitive) > -1)
-        emit RequestTrayMsg(token.at(2), tx);
+            request.append(0x01);
+            request.append("ACTION");
+            if (tx.at(0).toUpper() == request) { /// NOT CTCP, ACTION
+                // ACTION
+                text.remove(0x01);
+                text = text.mid(7);
+                QString chan = token[2];
+                if (isValidChannel(chan))
+                    emit RequestWindow(chan, WT_CHANNEL, cid, false);
+                else
+                    emit RequestWindow(chan, WT_PRIVMSG, cid, false);
 
-    }
-    // privmsg script event
-    scriptParent->runevent(te_msg, QStringList()<<name<<token[2]<<text);
-    return;
-  }
-/** @todo readd ********//////////////////////////***************************************/
+                print( chan.toUpper(), QString("%1 %2")
+                                        .arg(u.nick)
+                                        .arg(text),
+                       PT_ACTION
+                      );
 
+                return;
+            }
 
-  else if (token1up == "NOTICE") {
-    user_t u = parseUserinfo(token.at(0)); // Get userinfo about who this is about
-    QString msg = getMsg(data);
+            if (tx.at(0)[0] == 0x01) {
+                // CTCP indicator
+                QString ctcp = tx.at(0);
+                ctcp.remove(QChar(0x01));
+                print( "STATUS", tr("CTCP %1 from %2")
+                                   .arg(ctcp)
+                                   .arg(u.nick),
+                       PT_CTCP
+                      );
+            }
+            request.clear();
 
-    if (msg.at(0) == 0x01) { // CTCP reply
+            request.append(0x01);
+            request.append("VERSION");
+            request.append(0x01);
+            if (tx[0].toUpper() == request) { /// VERSION
+                // VERSION
+                QString reply = QString("%1VERSION IdealIRC %2 @ %3 by Tomatix%1")
+                                  .arg(QChar(0x01))
+                                  .arg(VERSION_STRING)
+                                  .arg(SYSTEM_NAME);
 
-      QString ctcp = msg.split(" ").at(0).toUpper();
-      ctcp.remove(QChar(0x01));
-      msg = msg.mid(ctcp.length() + 1);
-      msg.remove(QChar(0x01));
-      if (ctcp.toUpper() == "PING") {
-        // Parse this.
-        if (msg.length() == 0) {
-          print("STATUS","* CTCP " + ctcp + " reply from " + u.nick + ": ? seconds", PT_CTCP);
-          return;
-        }
-        qint64 cct = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qint64 ct = msg.toULongLong();
-        float lag = (cct-ct) / 1000.0f;
-        char clag[16];
-        sprintf(clag, "%.2f", lag);
-        QString s_lag(clag);
-        print("STATUS","* CTCP " + ctcp + " reply from " + u.nick + ": " + s_lag + " seconds", PT_CTCP);
-        return;
-      }
-      if (msg.length() > 0)
-        print("STATUS","* CTCP " + ctcp + " reply from " + u.nick + ":" + msg, PT_CTCP);
-      if (msg.length() == 0)
-        print("STATUS","* CTCP " + ctcp + " reply from " + u.nick, PT_CTCP);
-      return;
-    }
+                sockwrite( QString("NOTICE %1 :%2")
+                             .arg(u.nick)
+                             .arg(reply)
+                          );
+                return;
+            }
+            request.clear();
 
-    if (u.nick == serverName)
-      print("STATUS", "-"+u.nick+"- " + msg, PT_NOTICE);
-    else
-      print(activewin().toUpper(), "-"+u.nick+"- " + msg, PT_NOTICE);
-    emit RequestTrayMsg("Notice from " + u.nick, msg);
-    return;
-  }
+            request.append(0x01);
+            request.append("TIME");
+            request.append(0x01);
+            if (tx.at(0).toUpper() == request) { /// TIME
+                // TIME
+                QString time = QDateTime::currentDateTime().time().toString("hh:mm:ss");
+                QString date = QDateTime::currentDateTime().date().toString("dddd MMMM d, yyyy");
 
-  else if (token1up == "JOIN") {
-    user_t u = parseUserinfo(token.at(0));
-    QString chan = token.at(2);
-    if (chan.at(0) == ':')
-      chan = chan.mid(1);
+                QString reply = QString("%1TIME %2, %3%1")
+                                  .arg(QChar(0x01))
+                                  .arg(time)
+                                  .arg(date);
 
-    if (u.nick == activeNick) { // I am joining a channel
-      emit RequestWindow(chan, WT_CHANNEL, cid, true);
-      print(chan.toUpper(), "Now talking in " + chan, PT_SERVINFO);
-    }
-    else { // Someone joined a channel I am on
-      print(chan.toUpper(), "Joins: " + u.nick + " (" + u.user + "@" + u.host + ")", PT_SERVINFO);
+                sockwrite( QString("NOTICE %1 :%2")
+                             .arg(u.nick)
+                             .arg(reply)
+                          );
+                return;
+            }
+            request.clear();
 
-      member_t mt;
-      mt.nickname = u.nick;
-      mt.host = u.host;
-      mt.ident = u.user;
+            request.append(0x01);
+            request.append("PING");
+            if (tx.at(0).toUpper() == request) { /// PING
+                // PING
+                QString reply = QString("%1PING %2%1")
+                                  .arg(QChar(0x01))
+                                  .arg(tx[1]);
 
-      IWin *w = getWinObj(chan);
-      if (w != NULL)
-          w->insertMember(u.nick, mt);
+                sockwrite( QString("NOTICE %1 :%2")
+                             .arg(u.nick)
+                             .arg(reply)
+                          );
 
-    }
-    // join script event.
-    scriptParent->runevent(te_join, QStringList()<<chan<<u.nick);
-    return;
-  }
-
-  else if (token1up == "PART") {
-    user_t u = parseUserinfo(token.at(0));
-    QString msg = getMsg(data);
-    QString chan = token.at(2);
-
-    if (chan.at(0) == ':') {
-      chan = msg;
-      msg = "";
-    }
-
-    if (windowExist(chan) == false)
-      return;
-
-    if (msg.length() > 0)
-      print(chan.toUpper(), "Parts: " + u.nick + " (" + u.user + "@" + u.host + ") (" + msg + ")", PT_SERVINFO);
-    else
-      print(chan.toUpper(), "Parts: " + u.nick + " (" + u.user + "@" + u.host + ")", PT_SERVINFO);
-
-    IWin *w = getWinObj(chan);
-    if (w != NULL)
-        w->removeMember(u.nick);
-
-    bool e = windowExist(chan);
-    if ((u.nick == activeNick) && (e == true)) {
-      // Us who left.
-      w->resetMemberlist();
-      print(chan.toUpper(), "You've left " + chan, PT_LOCALINFO);
-    }
-    // part script event.
-    scriptParent->runevent(te_part, QStringList()<<token[2]<<u.nick<<getMsg(data));
-    return;
-  }
-
-  else if (token1up == "KICK") {
-    user_t u = parseUserinfo(token.at(0));
-    QString msg = getMsg(data);
-    QString chan = token.at(2);
-    QString target = token.at(3);
-    print(chan.toUpper(), u.nick + " kicked " + target + " (" + msg + ")", PT_SERVINFO);
-
-    IWin *w = getWinObj(chan);
-    if (w != NULL)
-        w->removeMember(target);
-
-    if (target == activeNick) {
-      // This is us. :(
-      w->resetMemberlist();
-      emit RequestTrayMsg("Kicked from " + chan, "You were kicked by " + u.nick + ": " + msg);
-    }
-    return;
-  }
-
-  else if (token1up == "QUIT") {
-    user_t u = parseUserinfo(token.at(0)); // Get userinfo about who this is about
-    QString msg = getMsg(data); // Get quit msg.
-    QHashIterator<QString,subwindow_t> w(winlist); // Set up iterator for all open windows, to find this user
-    while (w.hasNext()) {
-      w.next();
-      if (w.value().widget->memberExist(u.nick) == true) { // Member is in here.
-        print(w.value().widget->objectName(), "Quit: " + u.nick + " (" + u.user + "@" + u.host + ") (" + msg + ")", PT_LOCALINFO);
-        w.value().widget->removeMember(u.nick);
-      }
-
-    }
-
-    // quit script event.
-    scriptParent->runevent(te_quit,QStringList()<<u.nick<<getMsg(data));
-    return;
-  }
-
-  else if (token0up == "ERROR") {
-    print("STATUS", "Error: " + getMsg(data), PT_SERVINFO);
-    return;
-  }
-
-  else if (token1up == "MODE") {
-    user_t u = parseUserinfo(token.at(0));
-    QString target = token.at(2);
-
-    if (isValidChannel(target)) {
-        // Channel mode!
-        // :tomatix!~tomatix@test.rigsofrods.org MODE #Test +v maan
-
-        QString mode;
-        for (int i = 3; i <= token.size()-1; i++) { mode += token.at(i) + " "; } // Modes to parse (e.g. +ov user user)
-
-        IWin *tg = getWinObj(target);
-        if (tg->settings)
-        tg->settings->setDefaultMode(mode); // it is safe; this will ignore user-based channel modes like op, voice, ban etc
-
-
-        print(target.toUpper(), u.nick + " sets mode " + mode, PT_SERVINFO);
-
-        mode = token.at(3);
-        int parapos = 4;
-        char p = '+'; // parsing a + or - mode
-
-        for (int c = 0; c <= mode.count()-1; c++) {
-        char m = mode.at(c).toLatin1();
-        if ((m == '+') || (m == '-')) {
-            p = m;
-            continue;
+                return;
+            }
+            request.clear();
         }
 
-        // Handle stuff if IChanConfig is running
-        IChanConfig *cc = getChanConfigPtr(target);
-        if (cc != NULL) {
-          MaskType mt;
+        QString name = u.nick;
+        if (isValidChannel(token.at(2).toUpper()) == false) { // Privmsg
+            emit RequestWindow(name, WT_PRIVMSG, cid, false);
+            print( name.toUpper(), QString("<%1> %2")
+                                     .arg(name)
+                                     .arg(text)
+                  );
+            subwindow_t w = winlist.value(token.at(2).toUpper());
+            emit HighlightWindow(w.wid, HL_MSG);
+            emit RequestTrayMsg(tr("Private MSG from %1").arg(name), text);
+        }
+        else { // Channel
+            QString tx = QString("<%1> %2")
+                           .arg(name)
+                           .arg(text);
+            QString chan = token[2];
 
-          if (m == 'b')
-            mt = MT_BAN;
-          if (m == 'e')
-            mt = MT_EXCEPT;
-          if (m == 'I')
-            mt = MT_INVITE;
+            subwindow_t w = winlist.value(chan.toUpper());
+            member_t m = w.widget->ReadMember(name);
 
-          if (p == '-')
-            cc->delMask( token.at(parapos), mt );
+            if ((conf->showUsermodeMsg == true) && (m.mode.length() > 0))
+                tx = QString("<%1%2> %3")
+                       .arg(m.mode[0])
+                       .arg(name)
+                       .arg(text);
 
-          if (p == '+') {
-            QString date = QDateTime::currentDateTime().toString("ddd d MMM yyyy, hh:mm");
-            cc->addMask( token.at(parapos), u.nick, date , mt);
-          }
+            emit RequestWindow(chan, WT_CHANNEL, cid, false);
+            print(chan.toUpper(), tx);
+
+            if (text.contains(activeNick, Qt::CaseInsensitive))
+                emit HighlightWindow(w.wid, HL_HIGHLIGHT);
+            else
+                emit HighlightWindow(w.wid, HL_MSG);
+
+            // Check if our nickname is in the text, if so, put up a tray notify
+            if (data.indexOf(activeNick, Qt::CaseInsensitive) > -1)
+                emit RequestTrayMsg(chan, tx);
+
+        }
+        // privmsg script event
+        scriptParent->runevent(te_msg, QStringList()<<name<<token[2]<<text);
+        return;
+    }
+
+    else if (token1up == "NOTICE") {
+        user_t u = parseUserinfo(token.at(0)); // Get userinfo about who this is about
+        QString msg = getMsg(data);
+
+        if (msg.at(0) == 0x01) { // CTCP reply
+            QString ctcp = msg.split(' ')[0].toUpper();
+            ctcp.remove(QChar(0x01));
+            msg = msg.mid(ctcp.length() + 1);
+            msg.remove(QChar(0x01));
+
+            if (ctcp.toUpper() == "PING") {
+                // Parse this.
+                if (msg.length() == 0) {
+                    print( "STATUS", tr("* CTCP %1 reply from %2: ? seconds")
+                                       .arg(ctcp)
+                                       .arg(u.nick),
+                           PT_CTCP
+                          );
+                    return;
+                }
+                qint64 cct = QDateTime::currentDateTime().toMSecsSinceEpoch();
+                qint64 ct = msg.toULongLong();
+                float lag = (cct-ct) / 1000.0f;
+                char clag[16];
+                sprintf(clag, "%.2f", lag);
+                QString s_lag(clag);
+                print( "STATUS", tr("* CTCP %1 reply from %2: %3 seconds")
+                                   .arg(ctcp)
+                                   .arg(u.nick)
+                                   .arg(s_lag),
+                       PT_CTCP
+                      );
+
+                return;
+            }
+
+            if (msg.length() > 0)
+                print( "STATUS", tr("* CTCP %1 reply from %2: %3")
+                                   .arg(ctcp)
+                                   .arg(u.nick)
+                                   .arg(msg),
+                       PT_CTCP
+                      );
+
+            if (msg.length() == 0)
+                print( "STATUS", tr("* CTCP %1 reply from %2")
+                                   .arg(ctcp)
+                                   .arg(u.nick),
+                       PT_CTCP
+                      );
+
+            return;
         }
 
-        // Check if we must increment parapos...
-        if ((cmA.contains(m) || cmB.contains(m)) || ((p == '+') && (cmC.contains(m))))
-            parapos++;
+        QString target = "STATUS";
+        if (u.nick != serverName)
+            target = activewin();
 
-        if (isValidCuMode(m)) {
-            // Mode is a valid "channel usermode", store it
-            QString param = token.at(parapos);
-            parapos++; // user modes to channel isn't in the cm* lists. increment.
-            IWin *w = getWinObj(target);
-            if (p == '+')
-                w->MemberSetMode(param, getCuLetter(m));
+        print( target, QString("-%1- %2")
+                         .arg(u.nick)
+                         .arg(msg),
+               PT_NOTICE
+              );
 
-            if (p == '-')
-                w->MemberUnsetMode(param, getCuLetter(m));
+        emit RequestTrayMsg(tr("Notice from %1").arg(u.nick), msg);
+        return;
+    }
+
+    else if (token1up == "JOIN") {
+        user_t u = parseUserinfo(token[0]);
+        QString chan = token[2];
+        if (chan[0] == ':')
+        chan = chan.mid(1);
+
+        if (u.nick == activeNick) { // I am joining a channel
+            emit RequestWindow(chan, WT_CHANNEL, cid, true);
+            print( chan, tr("Now talking in %1")
+                                     .arg(chan),
+                   PT_SERVINFO
+                  );
         }
-      }
-    }
-    if (target.toUpper() == u.nick.toUpper()) {
-      // Mode on self!
+        else { // Someone joined a channel I am on
+            print( chan, tr("Joins: %1 (%2@%3)")
+                                     .arg(u.nick)
+                                     .arg(u.user)
+                                     .arg(u.host),
+                   PT_SERVINFO
+                  );
 
-      print("STATUS", "Your usermode sets to: " + getMsg(data), PT_SERVINFO);
-    }
+            member_t mt = {u.nick, u.user, u.host};
+            IWin *w = getWinObj(chan);
+            if (w != NULL)
+              w->insertMember(u.nick, mt);
+        }
 
-    return;
-  }
-
-
-  else if (token1up == "NICK") {
-    user_t u = parseUserinfo(token.at(0));
-    QString newnick = token.at(2);
-    if (newnick.at(0) == ':') {
-      newnick = newnick.mid(1);
-    }
-
-    if (u.nick == activeNick) {
-      print("STATUS", "Your nickname is now " + newnick);
-      activeNick = newnick;
-      conf->nickname = newnick;
-      conf->save();
-      emit refreshTitlebar();
+        // join script event.
+        scriptParent->runevent(te_join, QStringList()<<chan<<u.nick);
+        return;
     }
 
-    QHashIterator<QString,subwindow_t> w(winlist); // Set up iterator for all open windows, to find this user
-    while (w.hasNext()) {
-      w.next();
-      if (w.value().widget->memberExist(u.nick) == true) { // Member is in here.
-        print(w.value().widget->objectName(), u.nick + " is now known as " + newnick, PT_SERVINFO);
-        w.value().widget->memberSetNick(u.nick, newnick);
-      }
+    else if (token1up == "PART") {
+        user_t u = parseUserinfo(token[0]);
+        QString msg = getMsg(data);
+        QString chan = token[2];
+
+        if (chan[0] == ':') {
+            chan = msg;
+            msg.clear();
+        }
+
+        if (windowExist(chan) == false)
+            return;
+
+        if (msg.length() > 0)
+            print( chan.toUpper(), tr("Parts: %1 (%2@%3) (%4)")
+                                     .arg(u.nick)
+                                     .arg(u.user)
+                                     .arg(u.host)
+                                     .arg(msg),
+                   PT_SERVINFO
+                  );
+        else
+            print( chan.toUpper(), tr("Parts: %1 (%2@%3)")
+                                     .arg(u.nick)
+                                     .arg(u.user)
+                                     .arg(u.host),
+                   PT_SERVINFO
+                  );
+
+        IWin *w = getWinObj(chan);
+        if (w != NULL)
+            w->removeMember(u.nick);
+
+        bool e = windowExist(chan);
+        if ((u.nick == activeNick) && (e == true)) {
+            // Us who left.
+            w->resetMemberlist();
+            print(chan.toUpper(), tr("You've left %1").arg(chan), PT_LOCALINFO);
+        }
+        // part script event.
+        scriptParent->runevent(te_part, QStringList()<<chan<<u.nick<<getMsg(data));
+        return;
     }
 
-    return;
-  }
+    else if (token1up == "KICK") {
+        user_t u = parseUserinfo(token[0]);
+        QString msg = getMsg(data);
+        QString chan = token[2];
+        QString target = token[3];
+        print( chan.toUpper(), tr("%1 kicked %2 (%3)")
+                                 .arg(u.nick)
+                                 .arg(target)
+                                 .arg(msg),
+               PT_SERVINFO
+              );
 
-  else if (token1up == "TOPIC") {
-    user_t u = parseUserinfo(token.at(0));
-    QString chan = token.at(2);
-    QString newTopic = getMsg(data);
+        IWin *w = getWinObj(chan);
+        if (w != NULL)
+            w->removeMember(target);
 
-    print(chan, u.nick + " set topic to '" + newTopic + "'", PT_SERVINFO);
+        if (target == activeNick) {
+            // This is us. :(
+            w->resetMemberlist();
+            emit RequestTrayMsg( tr("Kicked from %1").arg(chan), tr("You were kicked by %1: %2")
+                                                                   .arg(u.nick)
+                                                                   .arg(msg)
+                                );
+        }
+        return;
+    }
 
-    /*
-    TWin *tg = winlist->value(chan.toUpper()).window;
+    else if (token1up == "QUIT") {
+        user_t u = parseUserinfo(token[0]); // Get userinfo about who this is about
+        QString msg = getMsg(data); // Get quit msg.
+        QHashIterator<QString,subwindow_t> w(winlist); // Set up iterator for all open windows, to find this user
+        while (w.hasNext()) {
+            w.next();
+            if (w.value().widget->memberExist(u.nick) == true) { // Member is in here.
+                QString wName = w.value().widget->objectName();
+                print( wName, tr("Quit: %1 (%2@%3) (%4)")
+                                .arg(u.nick)
+                                .arg(u.user)
+                                .arg(u.host)
+                                .arg(msg),
+                       PT_LOCALINFO
+                      );
 
-    tg->setTopic(newTopic);
-    */
-    emit refreshTitlebar();
+                w.value().widget->removeMember(u.nick);
+            }
+        }
+        // quit script event.
+        scriptParent->runevent(te_quit, QStringList()<<u.nick<<msg);
+        return;
+    }
 
-    return;
-  }
+    else if (token0up == "ERROR") {
+        print("STATUS", tr("Error: %1").arg(getMsg(data)), PT_SERVINFO);
+        return;
+    }
 
-  else if (token1up == "INVITE") {
-      /** @todo */
-    if (token.at(2) != activeNick)
-      return; // Apparently, this wasn't to us...
+    else if (token1up == "MODE") {
+        user_t u = parseUserinfo(token[0]);
+        QString target = token[2];
 
-    user_t u = parseUserinfo(token.at(0));
-    print("$ACTIVE$", u.nick + " invited you to channel " + token.at(3), PT_SERVINFO);
-    return;
-  }
+        if (isValidChannel(target)) {
+            // Channel mode!
+            // :tomatix!~tomatix@test.rigsofrods.org MODE #Test +v maan
 
-  else if (token1up == "KILL") {
-    user_t s = parseUserinfo(token.at(0));
-    QString msg = getMsg(data);
+            QString mode;
+            for (int i = 3; i <= token.size()-1; i++) { mode += token[i] + ' '; } // Modes to parse (e.g. +ov user user)
 
-    print("STATUS", "Killed by " + s.nick + " (" + s.user + "@" + s.host + "): " + msg, PT_SERVINFO);
+            IWin *tg = getWinObj(target);
+            if (tg->settings)
+                tg->settings->setDefaultMode(mode); // it is safe; this will ignore user-based channel modes like op, voice, ban etc
 
-    return;
-  }
+            print( target.toUpper(), tr("%1 sets mode %2")
+                   .arg(u.nick)
+                   .arg(mode),
+                   PT_SERVINFO
+                  );
+
+            mode = token[3];
+            int parapos = 4;
+            char p = '+'; // parsing a + or - mode
+
+            for (int c = 0; c <= mode.count()-1; c++) {
+                char m = mode[c].toLatin1();
+                if ((m == '+') || (m == '-')) {
+                    p = m;
+                    continue;
+                }
+
+                // Handle stuff if IChanConfig is running
+                IChanConfig *cc = getChanConfigPtr(target);
+                if (cc != NULL) {
+                    MaskType mt;
+
+                    if (m == 'b')
+                        mt = MT_BAN;
+                    if (m == 'e')
+                        mt = MT_EXCEPT;
+                    if (m == 'I')
+                        mt = MT_INVITE;
+
+                    if (p == '-')
+                        cc->delMask( token.at(parapos), mt );
+
+                    if (p == '+') {
+                        QString date = QDateTime::currentDateTime().toString("ddd d MMM yyyy, hh:mm");
+                        cc->addMask( token.at(parapos), u.nick, date , mt);
+                    }
+                }
+
+                // Check if we must increment parapos...
+                if ((cmA.contains(m) || cmB.contains(m)) || ((p == '+') && (cmC.contains(m))))
+                parapos++;
+
+                if (isValidCuMode(m)) {
+                    // Mode is a valid "channel usermode", store it
+                    QString param = token[parapos];
+                    parapos++; // user modes to channel isn't in the cm* lists. increment.
+                    IWin *w = getWinObj(target);
+                    if (p == '+')
+                    w->MemberSetMode(param, getCuLetter(m));
+
+                    if (p == '-')
+                    w->MemberUnsetMode(param, getCuLetter(m));
+                }
+            }
+        }
+
+        if (target.toUpper() == u.nick.toUpper()) // Mode on self!
+            print("STATUS", tr("Your user mode sets to %1").arg(getMsg(data)), PT_SERVINFO);
+
+        return;
+    }
 
 
-  // :server num target interesting data goes here
-  int skip = token.at(0).length() + 1;
-  skip += token.at(1).length() + 1;
-  skip += token.at(2).length() + 1;
+    else if (token1up == "NICK") {
+        user_t u = parseUserinfo(token[0]);
+        QString newnick = token[2];
+        if (newnick[0] == ':')
+            newnick = newnick.mid(1);
 
-  QString text = data.mid(skip);
+        if (u.nick == activeNick) {
+            print("STATUS", tr("Your nickname is now %1").arg(newnick));
+            activeNick = newnick;
+            conf->nickname = newnick;
+            conf->save();
+            emit refreshTitlebar();
+        }
 
-  if (text.at(0) == ':')
-    text = text.mid(1);
+        QHashIterator<QString,subwindow_t> w(winlist); // Set up iterator for all open windows, to find this user
+        while (w.hasNext()) {
+            w.next();
+            QString wName = w.value().widget->objectName();
+            if (w.value().widget->memberExist(u.nick) == true) { // Member is in here.
+                print(wName, tr("%1 is now known as %2")
+                               .arg(u.nick)
+                               .arg(newnick),
+                       PT_SERVINFO
+                      );
+                w.value().widget->memberSetNick(u.nick, newnick);
+            }
+        }
+        return;
+    }
 
-  print("STATUS", text);
+    else if (token1up == "TOPIC") {
+        user_t u = parseUserinfo(token[0]);
+        QString chan = token[2];
+        QString newTopic = getMsg(data);
+        print( chan, tr("%1 set topic to '%2'")
+                       .arg(u.nick)
+                       .arg(newTopic),
+               PT_SERVINFO
+              );
+
+        /* TODO
+        TWin *tg = winlist->value(chan.toUpper()).window;
+
+        tg->setTopic(newTopic);
+        */
+        emit refreshTitlebar();
+
+        return;
+    }
+
+    else if (token1up == "INVITE") {
+        if (token[2] != activeNick)
+            return; // Apparently, this wasn't to us...
+
+        user_t u = parseUserinfo(token[0]);
+        print( "$ACTIVE$", tr("%1 invited you to channel %3")
+                             .arg(u.nick)
+                             .arg(token[3]),
+               PT_SERVINFO
+              );
+        return;
+    }
+
+    else if (token1up == "KILL") {
+        user_t s = parseUserinfo(token[0]);
+        QString msg = getMsg(data);
+        print("STATUS", tr("Killed by %1 (%1@%2) (%3)")
+                          .arg(s.nick)
+                          .arg(s.user)
+                          .arg(s.host)
+                          .arg(msg),
+               PT_SERVINFO
+              );
+        return;
+    }
+
+
+    // :server num target interesting data goes here
+    int skip = 0;
+    for (int i = 0; i <= 2; i++)
+        skip += token[i].length() + 1;
+
+    QString text = data.mid(skip);
+
+    if (text[0] == ':')
+        text = text.mid(1);
+
+    print("STATUS", text);
 }
 
 void IConnection::parseNumeric(int numeric, QString &data)
@@ -940,265 +1028,294 @@ void IConnection::parseNumeric(int numeric, QString &data)
   format
   :nick!user@host num/cmd [target] :msg
 */
-  QStringList token = data.split(" ");
+    QStringList token = data.split(' ');
 
 
-  /** ***********************
-   **        ERRORS        **
-   ** *******************  **/
+    /** ***********************
+    **        ERRORS        **
+    ** *******************  **/
 
-  if (numeric == ERR_NOSUCHNICK) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print(activewin(), text);
-    return;
-  }
-
-  else if (numeric == ERR_NOSUCHSERVER) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == ERR_NOSUCHCHANNEL) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-
-  else if (numeric == ERR_CANNOTSENDTOCHAN) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-
-    bool e = windowExist(token.at(3));
-    if (e == true)
-      print(token.at(3).toUpper(), text);
-    else
-      print("STATUS", text);
-
-    return;
-  }
-
-  else if (numeric == ERR_TOOMANYCHANNELS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == ERR_WASNOSUCHNICK) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == ERR_TOOMANYTARGETS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print(activewin(), text);
-    return;
-  }
-
-  else if (numeric == ERR_NOTOPLEVEL) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == ERR_WILDTOPLEVEL) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == ERR_ERRORNEUSNICKNAME) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print(activewin(), text);
-    return;
-  }
-
-  else if (numeric == ERR_UNKNOWNCOMMAND) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == ERR_NICKNAMEINUSE) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print(activewin(), text);
-    if (! registered) {
-      // Use alternative nickname
-        if ((token.at(3).toUpper() != conf->altnick.toUpper()) && (conf->altnick.length() > 0)) {
-          sockwrite("NICK :" + conf->altnick);
-          activeNick = conf->altnick;
-          emit refreshTitlebar();
-        }
-        else {
-          IWin *w = getWinObj("Status");
-          w->setInputText("/Nick ");
-          activeNick = "???";
-          emit refreshTitlebar();
-        }
+    if (numeric == ERR_NOSUCHNICK) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print(activewin(), text);
+        return;
     }
-    return;
-  }
 
-  else if (numeric == ERR_NICKCOLLISION) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == ERR_NOSUCHSERVER) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_USERNOTINCHANNEL) {
-    QString text = token.at(3);
-    QString chan = token.at(4);
-    text += ": "+ getMsg(data);
+    else if (numeric == ERR_NOSUCHCHANNEL) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-    bool e = windowExist(chan.toUpper());
-    if (e == true)
-      print(chan.toUpper(), text);
-    else
-      print("STATUS", text + " (" + chan + ")");
 
-    return;
-  }
+    else if (numeric == ERR_CANNOTSENDTOCHAN) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
 
-  else if (numeric == ERR_NOTONCHANNEL) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
+        bool e = windowExist(token.at(3));
+        if (e == true)
+            print(token[3].toUpper(), text);
+        else
+            print("STATUS", text);
 
-    bool e = windowExist(token.at(3).toUpper());
-    if (e == true)
-      print(token.at(3), text);
-    else
-      print("STATUS", text);
+        return;
+    }
 
-    return;
-  }
+    else if (numeric == ERR_TOOMANYCHANNELS) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_USERONCHANNEL) {
-    QString text = token.at(3);
-    QString chan = token.at(4);
-    text += ": "+ getMsg(data);
-    print(chan.toUpper(), text);
-    return;
-  }
+    else if (numeric == ERR_WASNOSUCHNICK) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_NOLOGIN) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == ERR_TOOMANYTARGETS) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print(activewin(), text);
+        return;
+    }
 
-  else if (numeric == ERR_NEEDMOREPARAMS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == ERR_NOTOPLEVEL) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_KEYSET) {
-    QString chan = token.at(3);
-    QString text = getMsg(data);
-    print(chan.toUpper(), text);
-    return;
-  }
+    else if (numeric == ERR_WILDTOPLEVEL) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_CHANNELISFULL) {
-    QString text, chan = token.at(3);
-    text += ": "+ getMsg(data);
+    else if (numeric == ERR_ERRORNEUSNICKNAME) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print(activewin(), text);
+        return;
+    }
 
-    bool e = windowExist(chan.toUpper());
-    if (e == true)
-      print(chan, text);
-    else
-      print("STATUS", text);
+    else if (numeric == ERR_UNKNOWNCOMMAND) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-    return;
-  }
+    else if (numeric == ERR_NICKNAMEINUSE) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print(activewin(), text);
+        if (! registered) {
+            // Use alternative nickname
+            if ((token[3].toUpper() != conf->altnick.toUpper()) && (conf->altnick.length() > 0)) {
+                sockwrite(QString("NICK :%1").arg(conf->altnick));
+                activeNick = conf->altnick;
+                emit refreshTitlebar();
+            }
+            else {
+                IWin *w = getWinObj("Status");
+                w->setInputText("/Nick ");
+                activeNick = "?";
+                emit refreshTitlebar();
+            }
+        }
+        return;
+    }
 
-  else if (numeric == ERR_UNKNOWNMODE) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == ERR_NICKCOLLISION) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_INVITEONLYCHAN) {
-    QString text = token.at(3);
-    QString chan = token.at(3);
-    text += ": "+ getMsg(data);
+    else if (numeric == ERR_USERNOTINCHANNEL) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
 
-    bool e = windowExist(chan.toUpper());
-    if (e == true)
-      print(chan, text);
-    else
-      print("STATUS", text);
+        bool e = windowExist(chan.toUpper());
+        if (e == true)
+            print(chan.toUpper(), text);
+        else
+            print( "STATUS", QString("%1 (%2)")
+                               .arg(text)
+                               .arg(chan)
+                  );
 
-    return;
-  }
+        return;
+    }
 
-  else if (numeric == ERR_INVITEONLYCHAN) {
-    QString text = token.at(3);
-    QString chan = token.at(3);
-    text += ": "+ getMsg(data);
+    else if (numeric == ERR_NOTONCHANNEL) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
 
-    bool e = windowExist(chan.toUpper());
-    if (e == true)
-      print(chan, text);
-    else
-      print("STATUS", text);
+        bool e = windowExist(token[3].toUpper());
+        if (e == true)
+            print(token[3], text);
+        else
+            print("STATUS", text);
 
-    return;
-  }
+        return;
+    }
 
-  else if (numeric == ERR_BANNEDFROMCHAN) {
-    QString text = token.at(3);
-    QString chan = token.at(3);
-    text += ": "+ getMsg(data);
+    else if (numeric == ERR_USERONCHANNEL) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
 
-    bool e = windowExist(chan.toUpper());
-    if (e == true)
-      print(chan, text);
-    else
-      print("STATUS", text);
+        print(chan.toUpper(), text);
+        return;
+    }
 
-    return;
-  }
+    else if (numeric == ERR_NOLOGIN) {
+        QString text = token.at(3);
+        text += ": "+ getMsg(data);
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == ERR_BADCHANNELKEY) {
-    QString text = token.at(3);
-    QString chan = token.at(3);
-    text += ": "+ getMsg(data);
+    else if (numeric == ERR_NEEDMOREPARAMS) {
+        QString text = token.at(3);
+        text += ": "+ getMsg(data);
+        print("STATUS", text);
+        return;
+    }
 
-    bool e = windowExist(chan.toUpper());
-    if (e == true)
-      print(chan, text);
-    else
-      print("STATUS", text);
+    else if (numeric == ERR_KEYSET) {
+        QString chan = token[3];
+        QString text = getMsg(data);
+        print(chan.toUpper(), text);
+        return;
+    }
 
-    return;
-  }
+    else if (numeric == ERR_CHANNELISFULL) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
 
-  else if (numeric == ERR_CHANOPRIVSNEEDED) {
-    /** @todo Use 'text' before its appended further, to print in channel. **/
-    QString text = token.at(3);
-    QString chan = token.at(3);
-    text += ": "+ getMsg(data);
-    print(chan, text);
-    return;
-  }
+        bool e = windowExist(chan.toUpper());
+        if (e == true)
+            print(chan, text);
+        else
+            print("STATUS", text);
+
+        return;
+    }
+
+    else if (numeric == ERR_UNKNOWNMODE) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == ERR_INVITEONLYCHAN) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
+
+        bool e = windowExist(chan.toUpper());
+        if (e == true)
+            print(chan, text);
+        else
+            print("STATUS", text);
+
+        return;
+    }
+
+    else if (numeric == ERR_INVITEONLYCHAN) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
+
+        bool e = windowExist(chan.toUpper());
+        if (e == true)
+            print(chan, text);
+        else
+            print("STATUS", text);
+
+        return;
+    }
+
+    else if (numeric == ERR_BANNEDFROMCHAN) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
+
+        bool e = windowExist(chan.toUpper());
+        if (e == true)
+            print(chan, text);
+        else
+            print("STATUS", text);
+
+        return;
+    }
+
+    else if (numeric == ERR_BADCHANNELKEY) {
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
+
+        bool e = windowExist(chan.toUpper());
+        if (e == true)
+            print(chan, text);
+        else
+            print("STATUS", text);
+
+        return;
+    }
+
+    else if (numeric == ERR_CHANOPRIVSNEEDED) {
+        /** @todo Use 'text' before its appended further, to print in channel. **/
+        QString chan = token[3];
+        QString text = QString("%1: %2")
+                         .arg(chan)
+                         .arg(getMsg(data));
+        print(chan, text);
+        return;
+    }
 
 
 
@@ -1206,764 +1323,845 @@ void IConnection::parseNumeric(int numeric, QString &data)
    **        REPLIES       **
    ** *******************  **/
 
-  else if (numeric == RPL_WELCOME) {
-    // See what nickname we _actually_ got.
-    // Not doing this will cause the client to act retarded.
-    activeNick = token.at(2);
-    active = true; // Connection is registered.
+    else if (numeric == RPL_WELCOME) {
+        // See what nickname we _actually_ got.
+        // Not doing this will cause the client to act retarded.
+        activeNick = token[2];
+        active = true; // Connection is registered.
 
-    // Perform on connect
-    QString fname = QString("%1/perform").arg(CONF_PATH);
-    QFile f(fname);
-    if (f.open(QIODevice::ReadOnly)) {
-        QByteArray data = f.readAll();
-        QString line;
-        int len = data.length();
-        data.append('\n');
-        for (int i = 0; i <= len-1; i++) {
-            QChar c = data.at(i);
+        // Perform on connect
+        QString fname = QString("%1/perform").arg(CONF_PATH);
+        QFile f(fname);
+        if (f.open(QIODevice::ReadOnly)) {
+            QByteArray data = f.readAll();
+            QString line;
+            int len = data.length();
+            data.append('\n');
+            for (int i = 0; i <= len-1; i++) {
+                QChar c = data.at(i);
 
-            if (c == '\n') {
-                if (line.length() == 0)
+                if (c == '\n') {
+                    if (line.length() == 0)
+                        continue;
+
+                    cmdhndl.parse(line);
+                    line.clear();
                     continue;
+                }
 
-                cmdhndl.parse(line);
-                line.clear();
-                continue;
+                line += c;
             }
+            f.close();
 
-            line += c;
-        }
-        f.close();
+            // Auotjoin favourites
+            fname = QString("%1/favourites.ini").arg(CONF_PATH);
+            IniFile ini(fname);
+            QString channel;
+            QString password;
+            int count = ini.CountSections();
+            for (int i = 1; i <= count; i++) {
+                QString channelItem = ini.ReadIni(i);
+                QString passwordItem = ini.ReadIni(channelItem, "Key");
+                bool autojoin = (bool)ini.ReadIni(channelItem, "AutoJoin").toInt();
 
-        // Auotjoin favourites
-        fname = QString("%1/favourites.ini").arg(CONF_PATH);
-        IniFile ini(fname);
-        QString channel;
-        QString password;
-        int count = ini.CountSections();
-        for (int i = 1; i <= count; i++) {
-            QString channelItem = ini.ReadIni(i);
-            QString passwordItem = ini.ReadIni(channelItem, "Key");
-            bool autojoin = (bool)ini.ReadIni(channelItem, "AutoJoin").toInt();
+                if (autojoin == true) {
+                    if (channel.length() > 0)
+                        channel.append(',');
+                    channel.append(channelItem);
 
-            if (autojoin == true) {
-                if (channel.length() > 0)
-                    channel.append(',');
-                channel.append(channelItem);
-
-                if (passwordItem.length() > 0) {
-                    if (password.length() > 0)
-                        password.append(',');
-                    else
-                        password.prepend(' ');
-                    password.append(passwordItem);
+                    if (passwordItem.length() > 0) {
+                        if (password.length() > 0)
+                            password.append(',');
+                        else
+                            password.prepend(' ');
+                        password.append(passwordItem);
+                    }
                 }
             }
+            if (channel.length() > 0) {
+                QString data = QString("JOIN %1%2")
+                                 .arg(channel)
+                                 .arg(password);
+                sockwrite(data);
+            }
         }
-        if (channel.length() > 0) {
-            QString data = QString("JOIN %1%2")
-                           .arg(channel)
-                           .arg(password);
-            sockwrite(data);
-        }
+        QString hostinfo = QString("%1:%2")
+                             .arg(host)
+                             .arg(port);
+
+        scriptParent->runevent(te_connect, QStringList()<<hostinfo);
     }
 
-    QString hostinfo = QString("%1:%2")
-                      .arg(host)
-                      .arg(port);
-    scriptParent->runevent(te_connect, QStringList()<<hostinfo);
+    else if (numeric == RPL_MYINFO) {
+        int c = 0;
+        for (int i = 0; i <= 2; i++)
+            c += token[i].length() + 1;
 
-  }
+        print("STATUS", data.mid(c));
+        return;
+    }
 
-  else if (numeric == RPL_MYINFO) {
-    int c = token.at(0).length()+1;
-    c += token.at(1).length()+1;
-    c += token.at(2).length()+1;
-    print("STATUS", data.mid(c));
-    return;
-  }
+    else if (numeric == RPL_ISUPPORT) {
 
-  else if (numeric == RPL_ISUPPORT) {
+        /*****
+         *[IN] :irc.3phasegaming.net 005 Tomatix_ CMDS=KNOCK,MAP,DCCALLOW,USERIP,STARTTLS UHNAMES NAMESX SAFELIST HCN MAXCHANNELS=25 CHANLIMIT=#:25 MAXLIST=b:60,e:60,I:60 NICKLEN=30 CHANNELLEN=32 TOPICLEN=307 KICKLEN=307 AWAYLEN=307 :are supported by this server
+         *[IN] :irc.3phasegaming.net 005 Tomatix_ MAXTARGETS=20 WALLCHOPS WATCH=128 WATCHOPTS=A SILENCE=15 MODES=12 CHANTYPES=# PREFIX=(ohv)@%+ CHANMODES=beIqa,kfL,lj,psmntirRcOAQKVCuzNSMTGZ NETWORK=3PhaseGaming CASEMAPPING=ascii EXTBAN=~,qjncrRa ELIST=MNUCT :are supported by this server
+         ********/
 
-/*
- *[IN] :irc.3phasegaming.net 005 Tomatix_ CMDS=KNOCK,MAP,DCCALLOW,USERIP,STARTTLS UHNAMES NAMESX SAFELIST HCN MAXCHANNELS=25 CHANLIMIT=#:25 MAXLIST=b:60,e:60,I:60 NICKLEN=30 CHANNELLEN=32 TOPICLEN=307 KICKLEN=307 AWAYLEN=307 :are supported by this server
-[IN] :irc.3phasegaming.net 005 Tomatix_ MAXTARGETS=20 WALLCHOPS WATCH=128 WATCHOPTS=A SILENCE=15 MODES=12 CHANTYPES=# PREFIX=(ohv)@%+ CHANMODES=beIqa,kfL,lj,psmntirRcOAQKVCuzNSMTGZ NETWORK=3PhaseGaming CASEMAPPING=ascii EXTBAN=~,qjncrRa ELIST=MNUCT :are supported by this server
- *
- *
- **/
+        isupport = true;
 
-    isupport = true;
-    int c = token.at(0).length()+1;
-    c += token.at(1).length()+1;
-    c += token.at(2).length()+1;
-    print("STATUS", data.mid(c));
+        int c = 0;
+        for (int i = 0; i <= 2; i++)
+            c += token[i].length() + 1;
+        print("STATUS", data.mid(c));
 
-    for (int i = 3; i <= token.count()-1; i++) {
-      QStringList lst = token.at(i).split('=');
+        for (int i = 3; i <= token.count()-1; i++) {
+            QStringList lst = token[i].split('=');
 
-      if (lst.at(0) == "CHANMODES") {
-          /*
-           * Unreal: CHANMODES=beIqa,kfL,lj,psmntirRcOAQKVCuzNSMTGZ
-           *   IRCu: CHANMODES=b,AkU,l,imnpstrDdR
-           *
-           * A = Mode that adds or removes a nick or address to a list. Always has a parameter.
-           * B = Mode that changes a setting and always has a parameter.
-           * C = Mode that changes a setting and only has a parameter when set.
-           * D = Mode that changes a setting and never has a parameter.
-           *
-           */
+            if (lst.at(0) == "CHANMODES") {
+                /*
+                * Unreal: CHANMODES=beIqa,kfL,lj,psmntirRcOAQKVCuzNSMTGZ
+                *   IRCu: CHANMODES=b,AkU,l,imnpstrDdR
+                *
+                * A = Mode that adds or removes a nick or address to a list. Always has a parameter.
+                * B = Mode that changes a setting and always has a parameter.
+                * C = Mode that changes a setting and only has a parameter when set.
+                * D = Mode that changes a setting and never has a parameter.
+                *
+                */
 
-          // Currently we only need to check list A.
-          QStringList ml = lst.at(1).split(',');
-          cmA = ml[0];
-          cmB = ml[1];
-          cmC = ml[2];
-          cmD = ml[3];
+                // Currently we only need to check list A.
+                QStringList ml = lst[1].split(',');
+                cmA = ml[0];
+                cmB = ml[1];
+                cmC = ml[2];
+                cmD = ml[3];
 
-          for (int j = 0; j <= cmA.length()-1; ++j) {
-              char c = cmA[j].toLatin1();
+                for (int j = 0; j <= cmA.length()-1; ++j) {
+                char c = cmA[j].toLatin1();
 
-              switch (c) {
+                switch (c) {
                     case 'e':
                         haveExceptionList = true;
                         continue;
                     case 'I':
                         haveInviteList = true;
                         continue;
-              }
-          }
+                    }
+                }
+            }
 
-      }
+            if (lst[0] == "MAXLIST") {
+                // Unreal: MAXLIST=b:60,e:60,I:60
+                // IRCu: See MAXBANS
+                // IRCnet: MAXLIST=beI:30
 
-      if (lst.at(0) == "MAXLIST") {
-          // Unreal: MAXLIST=b:60,e:60,I:60
-          // IRCu: See MAXBANS
-          // IRCnet: MAXLIST=beI:30
+                QStringList maxlist = lst[1].split(',');
 
-          QStringList maxlist = lst.at(1).split(',');
+                for (int l = 0; l <= maxlist.count()-1; ++l) {
+                    QString item = maxlist[l];
+                    QString len = maxlist[l].split(':')[1]; // ooh so ugly, ohh I don't care
+                    // item can be b:60 or beI:30 (examples)
+                    // len is always a number e.g. 60
+                    for (int j = 0; j <= item.length()-1; j++) {
+                        char c = item[j].toLatin1();
+                        switch (c) {
+                            case 'b':
+                                maxBanList = len.toInt();
+                                continue;
+                            case 'e':
+                                maxExceptList = len.toInt();
+                                continue;
+                            case 'I':
+                                maxInviteList = len.toInt();
+                                continue;
+                            case ':':
+                                break;
+                        }
+                    }
+                }
+            }
 
-          for (int l = 0; l <= maxlist.count()-1; ++l) {
-              QString item = maxlist[l];
-              QString len = maxlist[l].split(':')[1]; // ooh so ugly, ohh I don't care
-              // item can be b:60 or beI:30 (examples)
-              // len is always a number e.g. 60
-              for (int j = 0; j <= item.length()-1; j++) {
-                  char c = item[j].toLatin1();
-                  switch (c) {
-                      case 'b':
-                          maxBanList = len.toInt();
-                          continue;
-                      case 'e':
-                          maxExceptList = len.toInt();
-                          continue;
-                      case 'I':
-                          maxInviteList = len.toInt();
-                          continue;
-                      case ':':
-                          break;
-                  }
-              }
-          }
-      }
+            if (lst[0] == "MAXBANS") {
+                // Quite simple, really.
+                maxBanList = lst[1].toInt();
+                maxExceptList = lst[1].toInt();
+                maxInviteList = lst[1].toInt();
+            }
 
-      if (lst.at(0) == "MAXBANS") {
-          // Quite simple, really.
-          maxBanList = lst.at(1).toInt();
-          maxExceptList = lst.at(1).toInt();
-          maxInviteList = lst.at(1).toInt();
-      }
+            if (lst.at(0) == "MODES")
+                maxModes = lst[1].toInt();
 
-      if (lst.at(0) == "MODES") {
-          maxModes = lst.at(1).toInt();
-      }
 
-      if (lst.at(0) == "NETWORK") {
-        /// @todo set treeview of this Status to Status (Network) from lst.at(1)
-          subwindow_t sw = winlist.value("STATUS");
-          sw.treeitem->setText(0, "Status (" + lst.at(1) + ")");
-      }
+            if (lst.at(0) == "NETWORK") {
+                /// @todo set treeview of this Status to Status (Network) from lst.at(1)
+                subwindow_t sw = winlist.value("STATUS");
+                sw.treeitem->setText(0, tr("Status (%1)").arg(lst[1]));
+            }
 
-      /** @todo  sorting rules for channel nickname list, @, %, +, etc */
+            /** @todo  sorting rules for channel nickname list, @, %, +, etc */
 
-      if (lst.at(0) == "PREFIX") {
-          //  PREFIX=(ohv)@%+
-          // ohv is cumode, @%+ is culetter
-          cumode.clear();
-          culetter.clear();
+            if (lst.at(0) == "PREFIX") {
+                //  PREFIX=(ohv)@%+
+                // ohv is cumode, @%+ is culetter
+                cumode.clear();
+                culetter.clear();
 
-          QString parse = lst.at(1);
+                QString parse = lst[1];
 
-          enum pState { P_MODE, P_LETTER };
-          pState state = P_MODE;
-          for (int i = 0; i <= parse.length()-1; i++) {
-              char c = parse.at(i).toLatin1();
-              if (c == '(') {
-                  state = P_MODE;
-                  continue;
-              }
+                enum pState { P_MODE, P_LETTER };
+                pState state = P_MODE;
+                for (int i = 0; i <= parse.length()-1; i++) {
+                    char c = parse[i].toLatin1();
+                    if (c == '(') {
+                        state = P_MODE;
+                        continue;
+                    }
 
-              if (c == ')') {
-                  state = P_LETTER;
-                  continue;
-              }
+                    if (c == ')') {
+                        state = P_LETTER;
+                        continue;
+                    }
 
-              if (state == P_MODE)
-                  cumode << c;
+                    if (state == P_MODE)
+                        cumode << c;
 
-              if (state == P_LETTER)
-                  culetter << c;
-          }
+                    if (state == P_LETTER)
+                        culetter << c;
+                }
+                resetSortRules();
+            }
 
-          resetSortRules();
-      }
-
-      if (lst.at(0) == "CHANTYPES") {
-
-        QString types = lst.at(1);
-        for (int j = 0; j <= types.count()-1; j++)
-          chantype << types.at(j).toLatin1();
-
-      }
-
+            if (lst[0] == "CHANTYPES") {
+                QString types = lst[1];
+                for (int j = 0; j <= types.count()-1; j++)
+                chantype << types[j].toLatin1();
+            }
+        }
+        return;
     }
 
-    return;
-  }
 
+    else if (numeric == RPL_AWAY) {
+        QString nickname = token[3];
+        QString text = tr("%1 is away: %2")
+                         .arg(nickname)
+                         .arg(getMsg(data));
 
-  else if (numeric == RPL_AWAY) {
-    QString text = token.at(3);
-    text += " is away: "+ getMsg(data);
-    print("STATUS", text);
-    if (windowExist(token.at(3).toUpper()) == true)
-      print(token.at(3).toUpper(), text);
-    return;
-  }
-
-  else if (numeric == RPL_WHOISUSER) {
-    QString nick, userhost, name;
-    nick = token.at(3);
-    userhost = token.at(4);
-    userhost += "@" + token.at(5);
-    name = getMsg(data);
-
-    if (conf->showWhois)
-      print(activewin(), nick+": "+userhost+" : "+name);
-    else
-      print("STATUS", nick+": "+userhost+" : "+name);
-
-    return;
-  }
-
-  else if (numeric == RPL_WHOWASUSER) {
-    QString nick, userhost, name;
-    nick = token.at(3);
-    userhost = token.at(4);
-    userhost += "@" + token.at(5);
-    name = getMsg(data);
-    print("STATUS", nick+": "+userhost+" : "+name);
-    return;
-  }
-
-  else if (numeric == RPL_WHOISSERVER) {
-    QString nick, server, info;
-    nick = token.at(3);
-    server = token.at(4);
-    info = getMsg(data);
-
-
-    if (conf->showWhois)
-      print(activewin(), nick+": "+server+" : "+info);
-    else
-      print("STATUS", nick+": "+server+" : "+info);
-
-    return;
-  }
-
-  else if (numeric == RPL_WHOISOPERATOR) {
-    QString text = token.at(3);
-    text += " "+ getMsg(data);
-
-    if (conf->showWhois)
-      print(activewin(), text);
-    else
-      print("STATUS", text);
-
-    return;
-  }
-
-  else if (numeric == RPL_WHOISIDLE) {
-    QString nick, msg;
-    QString text[10];
-    QStringList textls;
-
-    nick = token.at(3);
-    textls = getMsg(data).split(",");
-
-    for (int i = 0; i <= textls.count()-1; i++) {
-      if (textls.at(i).at(0) == ' ')
-        text[i] = textls.at(i).mid(1);
-      else
-        text[i] = textls.at(i);
+        print("STATUS", text);
+        if (windowExist(nickname.toUpper()) == true)
+            print(nickname.toUpper(), text);
+        return;
     }
 
-    for (int i = 0; i <= textls.count()-1; i++) {
+    else if ((numeric == RPL_WHOISUSER) || (numeric == RPL_WHOWASUSER)) {
+        QString nick, userhost, name;
+        nick = token[3];
+        userhost = QString("%1@%2")
+                    .arg(token[4])
+                    .arg(token.at(5));
 
-      if (msg.length() != 0)
-        msg += ", ";
+        name = getMsg(data);
 
-      if (text[i].toUpper() == "SIGNON TIME") {
-        quint64 seconds = token.at(i+4).toUInt();
-        QString date = QDateTime::fromTime_t(seconds).toString("ddd d MMM yyyy, hh:mm");
-        msg += "Signed on: " + date;
-        continue;
-      }
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
 
-      if (text[i].toUpper() == "SECONDS IDLE") {
-        quint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
-        quint64 seconds = token.at(i+4).toUInt();
-        QString date = QDateTime::fromTime_t(now-seconds).toString("ddd d MMM yyyy, hh:mm");
-        msg += "Last active: " + date;
-        continue;
-      }
+        print( target, tr("%1: %2 : %3")
+                         .arg(nick)
+                         .arg(userhost)
+                         .arg(name)
+              );
 
-      msg += text[i] + ": " + token.at(i+4);
-
+        return;
     }
 
-    if (conf->showWhois)
-      print(activewin(), nick+": "+msg);
-    else
-      print("STATUS", nick+": "+msg);
-    return;
-  }
+    else if (numeric == RPL_WHOISSERVER) {
+        QString nick, server, info;
+        nick = token[3];
+        server = token[4];
+        info = getMsg(data);
 
-  else if (numeric == RPL_ENDOFWHOIS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
 
-    if (conf->showWhois)
-      print(activewin(), text);
-    else
-      print("STATUS", text);
-
-    return;
-  }
-
-  else if (numeric == RPL_WHOISCHANNELS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-
-    if (conf->showWhois)
-      print(activewin(), text);
-    else
-      print("STATUS", text);
-
-    return;
-  }
-
-  else if (numeric == RPL_ENDOFWHOWAS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == RPL_LISTSTART) {
-    IChannelList *cl = *chanlistPtr;
-    if (cl == NULL) {
-        listInDialog = false;
+        print( target, tr("%1: %2 : %3")
+                         .arg(nick)
+                         .arg(server)
+                         .arg(info)
+              );
+        return;
     }
-    else {
-        if (cl->isVisible())
-            listInDialog = true;
-        else
+
+    else if (numeric == RPL_WHOISOPERATOR) {
+        QString nickname = token[3];
+
+        QString text = QString("%1 %2")
+                         .arg(nickname)
+                         .arg(getMsg(data));
+
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_WHOISIDLE) {
+        QString nick, msg;
+        QString text[10];
+        QStringList textls;
+
+        nick = token[3];
+        textls = getMsg(data).split(',');
+
+        for (int i = 0; i <= textls.count()-1; i++) {
+            if (textls[i].at(0) == ' ')
+                text[i] = textls[i].mid(1);
+            else
+                text[i] = textls[i];
+        }
+
+
+        for (int i = 0; i <= textls.count()-1; i++) {
+            if (msg.length() != 0)
+                msg.append(", ");
+
+            if (text[i].toUpper() == "SIGNON TIME") {
+                quint64 seconds = token[i+4].toUInt();
+                QString date = QDateTime::fromTime_t(seconds).toString("ddd d MMM yyyy, hh:mm");
+                msg.append(QString("Signed on: %1").arg(date));
+                continue;
+            }
+
+            if (text[i].toUpper() == "SECONDS IDLE") {
+                quint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
+                quint64 seconds = token[i+4].toUInt();
+                QString date = QDateTime::fromTime_t(now-seconds).toString("ddd d MMM yyyy, hh:mm");
+                msg.append(QString("Last active: %1").arg(date));
+                continue;
+            }
+
+            msg.append( QString("%1: %2")
+                          .arg(text[i])
+                          .arg(token[i+4])
+                       );
+        }
+
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
+
+        print( target, QString("%1: %2")
+                         .arg(nick)
+                         .arg(msg)
+              );
+
+        return;
+    }
+
+    else if (numeric == RPL_ENDOFWHOIS) {
+        QString nickname = token[3];
+
+        QString text = QString("%1: %2")
+                         .arg(nickname)
+                         .arg(getMsg(data));
+
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
+
+        print(target, text);
+        return;
+    }
+
+    else if (numeric == RPL_WHOISCHANNELS) {
+        QString nickname = token[3];
+
+        QString text = QString("%1: %2")
+                         .arg(nickname)
+                         .arg(getMsg(data));
+
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
+
+        print(target, text);
+        return;
+    }
+
+    else if (numeric == RPL_ENDOFWHOWAS) {
+        QString nickname = token[3];
+
+        QString text = QString("%1: %2")
+                         .arg(nickname)
+                         .arg(getMsg(data));
+
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
+
+        print(target, text);
+        return;
+    }
+
+    else if (numeric == RPL_LISTSTART) {
+        IChannelList *cl = *chanlistPtr;
+        if (cl == NULL)
             listInDialog = false;
-    }
-    print("STATUS", tr("Downloading /LIST..."), PT_LOCALINFO);
-
-    return;
-  }
-  else if (numeric == RPL_LIST) {
-    //emit chanListItem(token.at(3), token.at(4), getMsg(data));
-      QString channel = token.at(3);
-      QString users = token.at(4);
-      QString topic = getMsg(data);
-
-      if (listInDialog) {
-          IChannelList *cl = *chanlistPtr;
-          cl->addItem(channel, users, trimCtrlCodes(topic));
-      }
-      else {
-          QString text = QString("%1 (%2 users): %3")
-                         .arg(channel)
-                         .arg(users)
-                         .arg(topic);
-          print("STATUS", text);
-      }
-      return;
-  }
-  else if (numeric == RPL_LISTEND) {
-    listInDialog = false;
-    print("STATUS", tr("End of /LIST"), PT_LOCALINFO);
-    return;
-  }
-  else if (numeric == RPL_CHANNELMODEIS) {
-    /** @todo Store these. **/
-    // :irc.rigsofrods.org 324 Tomatixx #Test +stnl 1234
-    QString chan = token.at(3);
-
-    QString mode;
-    for (int i = 4; i <= token.size()-1; i++) { mode += token.at(i) + " "; }
-
-    IWin *w = getWinObj(chan);
-    if (w == NULL) {
-      print("STATUS", "Modes for " + chan + ": " + mode);
-      return;
-    }
-
-    if (FillSettings == false) {
-        print(chan.toUpper(), "Modes: " + mode, PT_SERVINFO);
-    } else {
-        if (w->settings != NULL) {
-            w->settings->setDefaultMode(mode);
-            sockwrite("MODE "+chan+" +b");
+        else {
+            if (cl->isVisible())
+                listInDialog = true;
+            else
+                listInDialog = false;
         }
-        else
-            FillSettings = false;
+        print("STATUS", tr("Downloading /LIST..."), PT_LOCALINFO);
+
+        return;
     }
-    return;
-  }
 
-  else if (numeric == RPL_CREATION) {
-    /** @todo Give creation date in channel window. **/
-//    unsigned int cdate =
-  //  QDateTime()
-    QString chan = token.at(3);
-    return;
-  }
+    else if (numeric == RPL_LIST) {
+        QString channel = token[3];
+        QString users = token[4];
+        QString topic = getMsg(data);
 
-  else if (numeric == RPL_NOTOPIC) {
-    QString chan = token.at(3);
+        if (listInDialog) {
+            IChannelList *cl = *chanlistPtr;
+            cl->addItem(channel, users, trimCtrlCodes(topic));
+        }
+        else {
+            QString text = QString("%1 (%2 users): %3")
+                             .arg(channel)
+                             .arg(users)
+                             .arg(topic);
 
-    if (FillSettings == false) {
-        print(chan.toUpper(), "No topic is set.", PT_SERVINFO);
-    } else {
+            print("STATUS", text);
+        }
+        return;
+    }
+
+    else if (numeric == RPL_LISTEND) {
+        listInDialog = false;
+        print("STATUS", tr("End of /LIST"), PT_LOCALINFO);
+        return;
+    }
+
+    else if (numeric == RPL_CHANNELMODEIS) {
+        /** @todo Store these. **/
+        // :irc.rigsofrods.org 324 Tomatixx #Test +stnl 1234
+        QString chan = token[3];
+
+        QString mode;
+        for (int i = 4; i <= token.size()-1; i++) { mode += token[i] + ' '; }
+
         IWin *w = getWinObj(chan);
-        if (w->settings != NULL)
-            sockwrite("MODE "+chan);
-        else
-            FillSettings = false;
-    }
-    return;
-  }
-
-  else if (numeric == RPL_TOPIC) {
-    QString chan = token.at(3);
-    QString topic = getMsg(data);
-
-    IWin *w = getWinObj(chan);
-    if (w == NULL) {
-      print("STATUS", "Topic for " + chan + ": " + topic);
-      return;
-    }
-
-    if (FillSettings == false) {
-      print(chan.toUpper(), "Topic is: " + topic, PT_SERVINFO);
-    } else {
-        if (w->settings != NULL) {
-            w->settings->setDefaultTopic(topic);
-            sockwrite("MODE "+chan);
+        if (w == NULL) {
+            print("STATUS", tr("Modes for %1: %2")
+                              .arg(chan)
+                              .arg(mode)
+                  );
+            return;
         }
-        else
-            FillSettings = false;
-    }
-    w->setTopic(topic);
-    emit refreshTitlebar();
-    return;
-  }
 
-  else if (numeric == RPL_TOPICBY) {
-    QString chan = token.at(3);
-    QString nick = token.at(4);
-    int utime = token.at(5).toInt();
-    QString date = QDateTime::fromTime_t(utime).toString("ddd d MMM yyyy, hh:mm");
-
-    IWin *w = getWinObj(chan);
-    if (w == NULL) {
-      print("STATUS", chan + " Topic set by " + nick + ", " + date);
-      return;
-    }
-
-    if (w->settings == 0)
-      print(chan, "Topic set by " + nick + ", " + date, PT_SERVINFO);
-    return;
-  }
-
-  else if (numeric == RPL_INVITING) {
-    QString chan = token.at(3);
-    QString nick = token.at(4);
-    print(chan.toUpper(), "Invited " + nick, PT_SERVINFO);
-    return;
-  }
-
-  else if (numeric == RPL_SUMMONING) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == RPL_VERSION) {
-    QString text = token.at(3);
-    text += " " + token.at(4);
-    text += " : "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == RPL_WHOREPLY) {
-    int l = token.at(0).length()+1;
-    l += token.at(1).length()+1;
-    l += token.at(2).length()+1;
-    QString text = data.mid(l);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == RPL_ENDOFWHO) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == RPL_NAMREPLY) {
-    QString chan = token.at(4);
-    QString msg = getMsg(data);
-    QStringList nicks = msg.split(' ');
-
-    if (nicks.count() == 0) // If we, by some reason, get nothing to parse, ignore (or wait for a LONG, like, LOOONG loop to finish.)
-      return;
-
-    for (int i = 0; i <= nicks.count()-1; i++) {
-      QString item = nicks.at(i);
-      char mode = 0x00;
-
-      if (nicks.at(i).count() == 0)
-        continue; // DAFUQ
-
-      char l = item.at(0).toLatin1();
-      if (isValidCuLetter(l)) { // This user got a mode
-        mode = l; // Set mode
-        item = item.mid(1); // Set nickname without mode
-      }
-
-      member_t m;
-      m.nickname = item;
-      if (mode != 0x00)
-        m.mode << mode;
-      // Ident and host is unknown, for now. It's safe not to have it.
-
-      winlist.value(chan.toUpper()).widget->insertMember(item, m, false);
-    }
-  }
-
-
-  else if (numeric == RPL_ENDOFNAMES) {
-    QString chan = token.at(3);
-    winlist.value(chan.toUpper()).widget->sortMemberList();
-  }
-
-  else if (numeric == RPL_LINKS) {
-    int l = token.at(0).length()+1;
-    l += token.at(1).length()+1;
-    l += token.at(2).length()+1;
-    QString text = data.mid(l);
-    print("STATUS", text);
-    print("STATUS", text);
-    return;
-  }
-
-  else if (numeric == RPL_ENDOFLINKS) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
-
-  else if ((numeric == RPL_MOTDSTART) && (conf->showMotd)) {
-      print("STATUS", "Loading MOTD...", PT_LOCALINFO);
-      motd.reset();
-      return;
-  }
-
-  else if ((numeric == RPL_MOTD) && (conf->showMotd)) {
-      QString text = getMsg(data);
-      motd.print(text);
-      return;
-  }
-
-  else if (numeric == RPL_ENDOFMOTD) {
-    print("STATUS", getMsg(data));
-
-    if (conf->showMotd)
-      motd.show();
-
-    if (registered == true)
-      return; // Stop here
-
-    serverName = data.split(" ").at(0).mid(1);
-
-    // Show favourites if its chosed to do so.
-    if (conf->showFavourites)
-      emit RequestFavourites();
-    registered = true;
-
-    if (cumode.count() == 0) {
-      // We're just connected, but no ISUPPORT were received. Use the default ones.
-      cumode << 'o' << 'v';
-      culetter << '@' << '+';
-      resetSortRules();
-    }
-
-
-    if (conf->connectInvisible == true)
-      sockwrite("MODE " + activeNick + " +i");
-
-    emit RequestTrayMsg("Connected to server", "Successfully connected to " + conf->server);
-    emit connectedToIRC();
-
-    return;
-  }
-
-  else if ((numeric == RPL_BANLIST) || (numeric == RPL_EXCEPTLIST) || (numeric == RPL_INVITELIST)) {
-    QString chan = token.at(3);
-    int created = token.at(6).toInt();
-    QString date = QDateTime::fromTime_t(created).toString("ddd d MMM yyyy, hh:mm");
-
-    if (windowExist(chan) == false) {
-      print("STATUS", token.at(4) + " set by " + token.at(5) + ", " + date);
-    }
-
-    IWin *w = getWinObj(chan);
-
-    if ((FillSettings == true) && (w->settings != NULL))
-        w->settings->addMask(token[4], token[5], date);
-
-    if (FillSettings == false)
-        print(chan, token.at(4) + " set by " + token.at(5) + ", " + date);
-
-    return;
-  }
-
-  else if (numeric == RPL_ENDOFBANLIST) {
-    QString chan = token.at(3);
-    if (windowExist(chan.toUpper()) == false) {
-      print("STATUS", chan + ": " + getMsg(data));
-      return;
-    }
-
-    IWin *w = getWinObj(chan);
-
-    if (FillSettings == true) {
-        if (w->settings != NULL) {
-            w->settings->finishModel(MT_BAN);
-
-            if (haveExceptionList)
-                sockwrite("MODE "+chan+" +e");
-            else if (haveInviteList)
-                sockwrite("MODE "+chan+" +I");
+        if (FillSettings == false)
+            print(chan.toUpper(), tr("Modes: %1").arg(mode), PT_SERVINFO);
+        else {
+            if (w->settings != NULL) {
+                w->settings->setDefaultMode(mode);
+                sockwrite(QString("MODE %1 +b").arg(chan));
+            }
             else
                 FillSettings = false;
         }
-        else
-            FillSettings = false;
-    }
-    return;
-  }
-
-  else if (numeric == RPL_ENDOFEXCEPTLIST) {
-    QString chan = token.at(3);
-    if (windowExist(chan.toUpper()) == false) {
-      print("STATUS", chan + ": " + getMsg(data));
-      return;
+        return;
     }
 
-    IWin *w = getWinObj(chan);
+    else if (numeric == RPL_CREATION) {
+        /** @todo Give creation date in channel window. **/
+        //    unsigned int cdate =
+        //  QDateTime()
+        QString chan = token[3];
+        return;
+    }
 
-    if (FillSettings == true) {
-        if (w->settings != NULL) {
-            w->settings->finishModel(MT_EXCEPT);
+    else if (numeric == RPL_NOTOPIC) {
+        QString chan = token[3];
 
-             if (haveInviteList)
-                sockwrite("MODE "+chan+" +I");
-             else
-                 FillSettings = false;
+        if (FillSettings == false)
+            print(chan.toUpper(), tr("No topic is set."), PT_SERVINFO);
+        else {
+            IWin *w = getWinObj(chan);
+            if (w->settings != NULL)
+                sockwrite(QString("MODE %1").arg(chan));
+            else
+                FillSettings = false;
         }
-        else
-            FillSettings = false;
-    }
-    return;
-  }
-
-  else if (numeric == RPL_ENDOFINVITELIST) {
-    QString chan = token.at(3);
-    if (windowExist(chan.toUpper()) == false) {
-      print("STATUS", chan + ": " + getMsg(data));
-      return;
+        return;
     }
 
-    IWin *w = getWinObj(chan);
+    else if (numeric == RPL_TOPIC) {
+        QString chan = token[3];
+        QString topic = getMsg(data);
 
-    if (FillSettings == true) {
-        if (w->settings != NULL) {
-            w->settings->finishModel(MT_INVITE);
-            FillSettings = false;
+        IWin *w = getWinObj(chan);
+        if (w == NULL) {
+            print( "STATUS", tr("Topic for %1: %2")
+                               .arg(chan)
+                               .arg(topic)
+                  );
+            return;
+        }
+
+        if (FillSettings == false)
+            print(chan.toUpper(), tr("Topic is: %1").arg(topic), PT_SERVINFO);
+        else {
+            if (w->settings != NULL) {
+                w->settings->setDefaultTopic(topic);
+                sockwrite(QString("MODE %1").arg(chan));
+            }
+            else
+                FillSettings = false;
+        }
+        w->setTopic(topic);
+        emit refreshTitlebar();
+        return;
+    }
+
+    else if (numeric == RPL_TOPICBY) {
+        QString chan = token[3];
+        QString nick = token[4];
+        int utime = token[5].toInt();
+        QString date = QDateTime::fromTime_t(utime).toString("ddd d MMM yyyy, hh:mm");
+
+        IWin *w = getWinObj(chan);
+        if (w == NULL) {
+            print( "STATUS", tr("%1 Topic set by %2, %3")
+                               .arg(chan)
+                               .arg(nick)
+                               .arg(date)
+                  );
+            return;
+        }
+
+        if (w->settings == 0)
+            print(chan, tr("Topic set by %2, %3")
+                          .arg(nick)
+                          .arg(date),
+                   PT_SERVINFO
+                  );
+        return;
+    }
+
+    else if (numeric == RPL_INVITING) {
+        QString chan = token[3];
+        QString nick = token[4];
+
+        QString target = "STATUS";
+        if (windowExist(chan))
+            target = chan;
+
+        print(target, tr("Invited %1 to %2")
+                        .arg(nick)
+                        .arg(chan),
+               PT_SERVINFO
+              );
+        return;
+    }
+
+    else if (numeric == RPL_SUMMONING) {
+        QString user = token[3];
+        QString text = QString("%1: %2")
+                         .arg(user)
+                         .arg(getMsg(data));
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_VERSION) {
+        QString text = QString("%1 %2 : %3")
+                         .arg(token[3])
+                         .arg(token[4])
+                         .arg(getMsg(data));
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_WHOREPLY) {
+        int l = 0;
+        for (int i = 0; i <= 2; i++)
+            l += token[i].length() + 1;
+
+        QString text = data.mid(l);
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_ENDOFWHO) {
+        QString text = token.at(3);
+        text += ": "+ getMsg(data);
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_NAMREPLY) {
+        QString chan = token[4];
+        QString msg = getMsg(data);
+        QStringList nicks = msg.split(' ');
+
+        if (nicks.count() == 0) // Nothing do to, stop.
+            return;
+
+        for (int i = 0; i <= nicks.count()-1; i++) {
+            QString item = nicks[i];
+            char mode = 0x00;
+
+            if (nicks[i].count() == 0)
+                continue; // Empty nickname...
+
+            char l = item[0].toLatin1();
+            if (isValidCuLetter(l)) { // This user got a mode
+                mode = l; // Set mode
+                item = item.mid(1); // Set nickname without mode
+            }
+
+            member_t m;
+            m.nickname = item;
+            if (mode != 0x00)
+                m.mode << mode;
+            // Ident and host is unknown, for now. It's safe not to have it.
+            subwindow_t win = winlist.value(chan.toUpper());
+            win.widget->insertMember(item, m, false);
         }
     }
-    return;
-  }
 
-  else if (numeric == RPL_REHASHING) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
 
-  else if (numeric == RPL_TIME) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == RPL_ENDOFNAMES) {
+        QString chan = token[3];
+        winlist.value(chan.toUpper()).widget->sortMemberList();
+    }
 
-  else if ((numeric >= 200) && (numeric <= 244)) {
-    /// @note See RFC1459 for which numerics this is about.
-    int l = token.at(0).length()+1;
-    l += token.at(1).length()+1;
-    l += token.at(2).length()+1;
-    QString text = data.mid(l);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == RPL_LINKS) {        
+        int l = 0;
+        for (int i = 0; i <= 2; i++)
+            l += token[i].length() + 1;
 
-  else if ((numeric >= 252) && (numeric <= 254)) {
-    /// @note RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS
-    QString text = token.at(3);
-    text += " "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+        QString text = data.mid(l);
+        print("STATUS", text);
+        return;
+    }
 
-  else if (numeric == RPL_ADMINME) {
-    QString text = token.at(3);
-    text += ": "+ getMsg(data);
-    print("STATUS", text);
-    return;
-  }
+    else if (numeric == RPL_ENDOFLINKS) {
+        QString server = token[3];
+        QString text = QString("%1: %2")
+                .arg(server)
+                .arg(getMsg(data));
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if ((numeric == RPL_MOTDSTART) && (conf->showMotd)) {
+        print("STATUS", tr("Loading MOTD..."), PT_LOCALINFO);
+        motd.reset();
+        return;
+    }
+
+    else if ((numeric == RPL_MOTD) && (conf->showMotd)) {
+        QString text = getMsg(data);
+        motd.print(text);
+        return;
+    }
+
+    else if ((numeric == RPL_ENDOFMOTD) || (numeric == ERR_NOMOTD)) {
+        print("STATUS", getMsg(data));
+
+        std::cout << "connect ok" << std::endl;
+
+        if (conf->showMotd)
+            motd.show();
+
+        if (registered == true)
+            return; // Stop here
+
+        serverName = data.split(" ")[0].mid(1);
+
+        // Show favourites if its chosed to do so.
+        if (conf->showFavourites)
+            emit RequestFavourites();
+
+        registered = true;
+
+        if (cumode.count() == 0) {
+            // We're just connected, but no ISUPPORT were received. Use the default ones.
+            cumode << 'o' << 'v';
+            culetter << '@' << '+';
+            resetSortRules();
+        }
+
+
+        if (conf->connectInvisible == true)
+            sockwrite(QString("MODE %1 +i").arg(activeNick));
+
+        emit RequestTrayMsg(tr("Connected to server"), tr("Successfully connected to %1").arg(conf->server));
+        emit connectedToIRC();
+
+        return;
+    }
+
+    else if ((numeric == RPL_BANLIST) || (numeric == RPL_EXCEPTLIST) || (numeric == RPL_INVITELIST)) {
+        QString chan = token[3];
+        int created = token[6].toInt();
+        QString date = QDateTime::fromTime_t(created).toString("ddd d MMM yyyy, hh:mm");
+
+        if (windowExist(chan) == false)
+           // print("STATUS", token.at(4) + " set by " + token.at(5) + ", " + date);
+            print("STATUS", tr("%1 set by %2, %3")
+                              .arg(token[4])
+                              .arg(token[5])
+                              .arg(date)
+                  );
+        else {
+            IWin *w = getWinObj(chan);
+
+            if ((FillSettings == true) && (w->settings != NULL))
+                w->settings->addMask(token[4], token[5], date);
+
+            if (FillSettings == false)
+                print(chan, tr("%1 set by %2, %3")
+                                  .arg(token[4])
+                                  .arg(token[5])
+                                  .arg(date)
+                      );
+        }
+
+        return;
+    }
+
+    else if (numeric == RPL_ENDOFBANLIST) {
+        QString chan = token[3];
+        if (windowExist(chan.toUpper()) == false) {
+            print( "STATUS", QString("%1: %2")
+                               .arg(chan)
+                               .arg(getMsg(data))
+                  );
+            return;
+        }
+
+        IWin *w = getWinObj(chan);
+
+        if (FillSettings == true) {
+            if (w->settings != NULL) {
+                w->settings->finishModel(MT_BAN);
+
+                if (haveExceptionList)
+                    sockwrite(QString("MODE %1 +e").arg(chan));
+                else if (haveInviteList)
+                    sockwrite(QString("MODE %1 +I").arg(chan));
+                else
+                    FillSettings = false;
+            }
+            else
+                FillSettings = false;
+        }
+        return;
+    }
+
+    else if (numeric == RPL_ENDOFEXCEPTLIST) {
+        QString chan = token[3];
+        if (windowExist(chan.toUpper()) == false) {
+            print( "STATUS", QString("%1: %2")
+                               .arg(chan)
+                               .arg(getMsg(data))
+                  );
+            return;
+        }
+
+        IWin *w = getWinObj(chan);
+
+        if (FillSettings == true) {
+            if (w->settings != NULL) {
+                w->settings->finishModel(MT_EXCEPT);
+
+                if (haveInviteList)
+                    sockwrite(QString("MODE %1 +I").arg(chan));
+                else
+                    FillSettings = false;
+            }
+            else
+                FillSettings = false;
+        }
+        return;
+    }
+
+    else if (numeric == RPL_ENDOFINVITELIST) {
+        QString chan = token[3];
+        if (windowExist(chan.toUpper()) == false) {
+            print( "STATUS", QString("%1: %2")
+                               .arg(chan)
+                               .arg(getMsg(data))
+                  );
+            return;
+        }
+        IWin *w = getWinObj(chan);
+
+        if (FillSettings == true) {
+            if (w->settings != NULL) {
+                w->settings->finishModel(MT_INVITE);
+                FillSettings = false;
+            }
+        }
+        return;
+    }
+
+    else if (numeric == RPL_REHASHING) {
+
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_TIME) {
+        QString text = QString("%1: %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+
+        print("STATUS", text);
+        return;
+    }
+
+    else if ((numeric >= 200) && (numeric <= 244)) {
+        /// @note See RFC1459 for which numerics this is about.
+        int l = 0;
+        for (int i = 0; i <= 2; i++)
+            l += token[i].length() + 1;
+
+        QString text = data.mid(l);
+        print("STATUS", text);
+        return;
+    }
+
+    else if ((numeric >= 252) && (numeric <= 254)) {
+        /// @note RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS
+        QString text = token.at(3);
+        text += " "+ getMsg(data);
+        print("STATUS", text);
+        return;
+    }
+
+    else if (numeric == RPL_ADMINME) {
+        QString text = QString("%1 %2")
+                         .arg(token[3])
+                         .arg(getMsg(data));
+        print("STATUS", text);
+        return;
+    }
 
     /** @todo userhost, for banning members.
   else if (numeric == RPL_USERHOST) {
@@ -1988,77 +2186,48 @@ void IConnection::parseNumeric(int numeric, QString &data)
     }
   }
   */
-  else if (numeric == RPL_WHOISACTUALHOST) {
-    QString nick, text;
-    nick = token.at(3);
-    text = getMsg(data);
+    else if ((numeric == RPL_WHOISACTUALHOST) || (numeric == RPL_WHOISMODES) || (numeric == RPL_WHOISIDENTIFIED)) {
+        QString nick = token[3];
+        QString text = getMsg(data);
 
 
-    std::cout << "actualhost" << std::endl;
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
 
-    if (conf->showWhois)
-        print(activewin(), nick+": "+text);
-    else
-      print("STATUS", nick+": "+text);
+        print(target, QString("%1: %2")
+                        .arg(nick)
+                        .arg(text)
+              );
+        return;
+    }
 
-    return;
-  }
+    else if (numeric == RPL_WHOISLOGGEDIN) {
+        QString nick = token[3];
+        QString user = token[4];
+        QString text = getMsg(data);
 
-  else if (numeric == RPL_WHOISMODES) {
-    QString nick, text;
-    nick = token.at(3);
-    text = getMsg(data);
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
 
+        print(target, QString("%1: %2 %3")
+                        .arg(nick)
+                        .arg(text)
+                        .arg(user)
+              );
 
-    std::cout << "modes" << std::endl;
+        return;
+    }
+    // :server num interesting data goes here
+    int skip = 0;
+    for (int i = 0; i <= 2; i++)
+        skip += token[i].length() + 1;
 
-    if (conf->showWhois)
-      print(activewin(), nick+": "+text);
-    else
-      print("STATUS", nick+": "+text);
+    QString text = data.mid(skip);
 
-    return;
-  }
+    if (text[0] == ':')
+        text = text.mid(1);
 
-  else if (numeric == RPL_WHOISIDENTIFIED) {
-    QString nick, text;
-    nick = token.at(3);
-    text = getMsg(data);
-
-
-    std::cout << "identified" << std::endl;
-
-    if (conf->showWhois)
-      print(activewin(), nick+": "+text);
-    else
-      print("STATUS", nick+": "+text);
-
-    return;
-  }
-
-  else if (numeric == RPL_WHOISLOGGEDIN) {
-    QString nick, user, text;
-    nick = token.at(3);
-    user = token.at(4);
-    text = getMsg(data);
-
-    if (conf->showWhois)
-      print(activewin(), nick+": "+text+" "+user);
-    else
-      print("STATUS", nick+": "+text+" "+user);
-
-    return;
-  }
-
-  // :server num target interesting data goes here
-  int skip = token.at(0).length() + 1;
-  skip += token.at(1).length() + 1;
-  skip += token.at(2).length() + 1;
-
-  QString text = data.mid(skip);
-
-  if (text.at(0) == ':')
-    text = text.mid(1);
-
-  print("STATUS", text);
+    print("STATUS", text);
 }

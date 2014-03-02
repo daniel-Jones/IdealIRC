@@ -29,9 +29,9 @@
 #include "config.h"
 
 enum e_ScriptHLParse {
-  NoneParse = 0,
-  MetaParse = 1,
-  ScriptParse = 2
+    NoneParse = 0,
+    MetaParse = 1,
+    ScriptParse = 2
 };
 
 class TScriptEditorHighlighter : public QSyntaxHighlighter
@@ -45,7 +45,6 @@ class TScriptEditorHighlighter : public QSyntaxHighlighter
   protected:
     void highlightBlock(const QString &text);
   
-
   private:
     QSet<QString> blockKeywords; // script, meta, function, ++
     QSet<QString> metaKeywords; // include, event, command, timers, ++

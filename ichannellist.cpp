@@ -99,5 +99,5 @@ void IChannelList::on_btnJoin_clicked()
     QModelIndex index = selection->selectedRows(0)[0];
 
     connection->sockwrite(QString("JOIN %1")
-                          .arg(index.data().toString()));
+                            .arg(index.data().toString()));
 }

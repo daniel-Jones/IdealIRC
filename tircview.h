@@ -32,16 +32,17 @@
 #include "config.h"
 
 typedef struct T_LINE {
-  // This struct contains "raw text".
-  // Not HTML formatted.
-  int type;
-  QByteArray text;
+    // This struct contains "raw text".
+    // Not HTML formatted.
+    int type;
+    QByteArray text;
 } line_t;
 
 class TIRCView : public QTextBrowser
 {
   Q_OBJECT
-  public:
+
+public:
     explicit TIRCView(config *cfg, QWidget *parent = NULL);
     ~TIRCView();
     void addLine(QString line, int ptype = 0, bool rebuilding = false);
@@ -49,7 +50,7 @@ class TIRCView : public QTextBrowser
     void reloadCSS();
     void clear();
 
-  private:
+private:
     QColor getColorFromCode(int num);
     QString textHTML;
     QVector<line_t> text;
@@ -57,14 +58,14 @@ class TIRCView : public QTextBrowser
     QClipboard *clip;
     QString getCustomCSSColor(QString numeric);
 
-  protected:
+protected:
     void focusInEvent(QFocusEvent *e);
     void contextMenuEvent(QContextMenuEvent *e);
 
-  private slots:
+private slots:
     void textSelected();
 
-  signals:
+signals:
     void joinChannel(QString channel);
     void gotFocus();
     void menuRequested(QPoint point);

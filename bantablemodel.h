@@ -31,6 +31,7 @@
 class BanTableModel : public QStandardItemModel
 {
     Q_OBJECT
+
 public:
     explicit BanTableModel(QObject *parent = 0);
     void setBanList(QStringList m, QStringList d, QStringList a);

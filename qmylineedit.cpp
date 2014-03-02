@@ -28,130 +28,130 @@ QMyLineEdit::QMyLineEdit(QWidget *parent, config *cfg) :
     kc(-1),
     conf(cfg)
 {
-  connect(this, SIGNAL(returnPressed()),
-          this, SLOT(lnReturn()));
+    connect(this, SIGNAL(returnPressed()),
+           this, SLOT(lnReturn()));
 
-  updateCSS();
+    updateCSS();
 
-  QFont f(conf->fontName);
-  f.setPixelSize(conf->fontSize);
-  setFont(f);
+    QFont f(conf->fontName);
+    f.setPixelSize(conf->fontSize);
+    setFont(f);
 }
 
 void QMyLineEdit::focusOutEvent(QFocusEvent *e)
 {
-  switch (e->reason()) {
-    case Qt::TabFocusReason:
-      setFocus();
-      emit TabKeyPressed();
-      e->accept();
-      break;
-    default:
-      e->ignore();
-  }
+    switch (e->reason()) {
+        case Qt::TabFocusReason:
+            setFocus();
+            emit TabKeyPressed();
+            e->accept();
+            break;
+        default:
+            e->ignore();
+    }
 }
 
 void QMyLineEdit::lnReturn()
 {
-  if (text().length() == 0)
-    return;
+    if (text().length() == 0)
+        return;
 
-  if (history.size() > 0)
-    if (history.at(0) != text())
-      history.push_front(text());
+    if (history.size() > 0)
+        if (history[0] != text())
+            history.push_front(text());
 
-  if (history.size() == 0)
-    history.push_front(text());
+    if (history.size() == 0)
+        history.push_front(text());
 
-  if (history.size() > 50)
-    history.pop_back();
+    if (history.size() > 50)
+        history.pop_back();
 }
 
 void QMyLineEdit::keyPressEvent(QKeyEvent *e)
 {
 
-  if (e->key() == Qt::Key_Tab) {
-    // This one actually doesn't call, check focusOutEvent()
-  }
-
-  if (acIndex != NULL) {
-    *acIndex = -1; // Reset the autocomplete index.
-    //std::cout << "reset!" << std::endl;
-  }
-
-  if (e->key() == Qt::Key_Up) {
-
-    if (history.count() == 0) {
-      QLineEdit::keyPressEvent(e);
-      return;
+    if (e->key() == Qt::Key_Tab) {
+        // This one actually doesn't call, check focusOutEvent()
     }
 
-    kc++;
-    if (kc > history.count()-1)
-      kc = history.count()-1;
+    if (acIndex != NULL)
+        *acIndex = -1; // Reset the autocomplete index.
 
-    setText(history.at(kc));
-  }
+    if (e->key() == Qt::Key_Up) {
 
+        if (history.count() == 0) {
+            QLineEdit::keyPressEvent(e);
+            return;
+        }
 
-  else if (e->key() == Qt::Key_Down) {
+        kc++;
+        if (kc > history.count()-1)
+            kc = history.count()-1;
 
-    if (history.count() == 0) {
-      QLineEdit::keyPressEvent(e);
-      return;
+        setText(history[kc]);
     }
 
-    kc--;
-    if (kc <= -1) {
-      setText("");
-      kc = -1;
+
+    else if (e->key() == Qt::Key_Down) {
+
+        if (history.count() == 0) {
+            QLineEdit::keyPressEvent(e);
+            return;
+        }
+
+        kc--;
+        if (kc <= -1) {
+            clear();
+            kc = -1;
+        }
+        else
+            setText(history[kc]);
     }
+
     else {
-      setText(history.at(kc));
-    }
-  }
+        if ((e->key() == Qt::Key_Return) && (text().length() > 0)) /// Note: It is Key_Return and NOT Key_Enter !!
+            kc = -1;
 
-  else {
-    if ((e->key() == Qt::Key_Return) && (text().length() > 0)) { /// Note: It is Key_Return and NOT Key_Enter !!
-      kc = -1;
+        if (e->modifiers() == Qt::ControlModifier) {
+            QChar code = 0x00;
+            if (e->key() == Qt::Key_K)
+                code = 0x03;
+
+            if (e->key() == Qt::Key_B)
+                code = 0x02;
+
+            if ((e->key() == Qt::Key_U) || (e->key() == Qt::Key_L))
+                code = 0x1F;
+
+            if (code != 0x00) {
+                int cpos = cursorPosition();
+                QString tx = text().insert(cpos, code);
+                setText(tx);
+                setCursorPosition(cpos + 1); // Set back, +1 because we added a char, and we want the cursor to be on the right hand side.
+                return;
+            }
+        }
     }
 
-    if (e->modifiers() == Qt::ControlModifier) {
-      QChar code = 0x00;
-      if (e->key() == Qt::Key_K) {
-        code = 0x03;
-      }
-      if (e->key() == Qt::Key_B) {
-        code = 0x02;
-      }
-      if ((e->key() == Qt::Key_U) || (e->key() == Qt::Key_L)) {
-        code = 0x1F;
-      }
-      if (code != 0x00) {
-        int cpos = cursorPosition();
-        QString tx = text().insert(cpos, code);
-        setText(tx);
-        setCursorPosition(cpos + 1); // Set back, +1 because we added a char, and we want the cursor to be on the right hand side.
-        return;
-      }
-    }
-  }
-  QLineEdit::keyPressEvent(e);
+    QLineEdit::keyPressEvent(e);
 }
 
 void QMyLineEdit::updateCSS()
 {
-  QString bg = conf->colInputBackground;
-  QString fg = conf->colInput;
+    QString bg = conf->colInputBackground;
+    QString fg = conf->colInput;
 
-  setStyleSheet("background-color: " + bg + "; color: " + fg + ";");
+    setStyleSheet( QString("background-color: %1; color: %2;")
+                     .arg(bg)
+                     .arg(fg)
+                  );
 }
 
 QString QMyLineEdit::acPhrase()
 {
     QString phrase;
     for (int i = cursorPosition()-1; i >= 0; i--) {
-        QChar c = text().at(i);
+        QChar c = text()[i];
         if (c == ' ')
             break;
         phrase.prepend(c);
@@ -164,7 +164,7 @@ int QMyLineEdit::acBegin()
 {
     int i = cursorPosition()-1;
     for (; i >= 0; i--) {
-        QChar c = text().at(i);
+        QChar c = text()[i];
         if (c == ' ')
             break;
     }
@@ -175,56 +175,56 @@ int QMyLineEdit::acBegin()
 
 QColor QMyLineEdit::getColorFromCode(int num)
 {
-  switch(num) {
-    case 0:
-      return C_WHITE;
+    switch(num) {
+        case 0:
+            return C_WHITE;
 
-    case 1:
-      return C_BLACK;
+        case 1:
+            return C_BLACK;
 
-    case 2:
-      return C_BLUE;
+        case 2:
+            return C_BLUE;
 
-    case 3:
-      return C_GREEN;
+        case 3:
+            return C_GREEN;
 
-    case 4:
-      return C_BRIGHTRED;
+        case 4:
+            return C_BRIGHTRED;
 
-    case 5:
-      return C_RED;
+        case 5:
+            return C_RED;
 
-    case 6:
-      return C_MAGENTA;
+        case 6:
+            return C_MAGENTA;
 
-    case 7:
-      return C_BROWN;
+        case 7:
+            return C_BROWN;
 
-    case 8:
-      return C_YELLOW;
+        case 8:
+            return C_YELLOW;
 
-    case 9:
-      return C_BRIGHTGREEN;
+        case 9:
+            return C_BRIGHTGREEN;
 
-    case 10:
-      return C_CYAN;
+        case 10:
+            return C_CYAN;
 
-    case 11:
-      return C_BRIGHTCYAN;
+        case 11:
+            return C_BRIGHTCYAN;
 
-    case 12:
-      return C_BRIGHTBLUE;
+        case 12:
+            return C_BRIGHTBLUE;
 
-    case 13:
-      return C_BRIGHTMAGENTA;
+        case 13:
+            return C_BRIGHTMAGENTA;
 
-    case 14:
-      return C_DARKGRAY;
+        case 14:
+            return C_DARKGRAY;
 
-    case 15:
-      return C_LIGHTGRAY;
+        case 15:
+            return C_LIGHTGRAY;
 
-    default:
-      return C_BLACK;
-  }
+        default:
+            return C_BLACK;
+    }
 }

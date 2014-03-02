@@ -29,7 +29,8 @@
 class QMyLineEdit : public QLineEdit
 {
     Q_OBJECT
-  public:
+
+public:
     explicit QMyLineEdit(QWidget *parent, config *cfg);
     void updateCSS();
     QString acPhrase(); // Return a phrase to match, based on where the text cursor is.
@@ -38,20 +39,20 @@ class QMyLineEdit : public QLineEdit
                     // a key NOT being TAB_KEY, we must reset it to zero.
                     // Should not be unsafe to have it as public either.
 
-  private:
+private:
     int kc;
     QStringList history; // History of line inputs
     config *conf;
     QColor getColorFromCode(int num);
 
-  private slots:
+private slots:
     void lnReturn();
 
-  protected:
+protected:
     void keyPressEvent(QKeyEvent *e);
     void focusOutEvent(QFocusEvent *e);
 
-  signals:
+signals:
     void TabKeyPressed();
 
 };

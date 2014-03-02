@@ -57,7 +57,7 @@ class IniFile : public QObject
 {
   Q_OBJECT
 
-  public:
+public:
     explicit IniFile(QString filename, QObject *parent = 0);
     ~IniFile() { file->deleteLater(); }
     QString ReadIni(QString Section, QString Item);
@@ -73,7 +73,7 @@ class IniFile : public QObject
     bool AppendSection(QString Section);
     bool RenameSection(QString OldName, QString NewName);
 
-  private:
+private:
     void clearNewline(char *data);
     QFile *file;
 

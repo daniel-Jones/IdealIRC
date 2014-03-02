@@ -51,7 +51,6 @@ QHash<QString,QString> ServerMgr::serverList(QString network)
 
         // Insert multi in case someone adds a server with same name in the list (f.ex. via editing servers.ini)
         r.insertMulti(servername, serverdetails);
-
     }
 
     return r;
@@ -111,9 +110,10 @@ bool ServerMgr::addServer(QString name, QString host, QString pw, QString networ
 {
     if (pw.length() > 0)
         pw.prepend('|');
+
     QString detail = QString("%1%2")
-                     .arg(host)
-                     .arg(pw);
+                       .arg(host)
+                       .arg(pw);
 
     if ((! ini.SectionExists(network)) && (network != "NONE"))
         return false;
@@ -124,8 +124,6 @@ bool ServerMgr::addServer(QString name, QString host, QString pw, QString networ
 
 bool ServerMgr::delServer(QString name, QString network)
 {
-    std::cout << "deleting " << name.toStdString().c_str() << " from " << network.toStdString().c_str() << std::endl;
-
     return ini.DelIni(network, name);
 }
 

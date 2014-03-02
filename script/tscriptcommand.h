@@ -30,6 +30,7 @@ class IConnection;
 class TScriptCommand : public QObject
 {
     Q_OBJECT
+
 public:
     explicit TScriptCommand(QObject *parent, QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aConn, int *aWid);
     bool parse(QString &command);

@@ -27,6 +27,7 @@
 class TSDialog : public QDialog
 {
     Q_OBJECT
+
 public:
     explicit TSDialog(QWidget *parent = 0);
     

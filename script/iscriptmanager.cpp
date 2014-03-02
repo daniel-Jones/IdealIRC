@@ -42,7 +42,7 @@ IScriptManager::IScriptManager(QWidget *parent, TScriptParent *sp, config *cfg) 
     IniFile ini(CONF_FILE, this);
 
     QStringList labels;
-    labels << "Name" << "Path";
+    labels << tr("Name") << tr("Path");
     model.setHorizontalHeaderLabels(labels);
 
     int count = ini.CountItems("Script");

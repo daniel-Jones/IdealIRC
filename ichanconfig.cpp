@@ -35,8 +35,8 @@ IChanConfig::IChanConfig(IConnection *c, QString chan, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowTitle(  QString("Channel settings for %1")
-                     .arg(chan)
+    setWindowTitle(  tr("Channel settings for %1")
+                        .arg(chan)
                     );
 
     // Add default modes to our hash of modes, by default all modes is disabled,
@@ -270,7 +270,7 @@ void IChanConfig::deleteMasks(MaskType type)
 
         ++m;
         if (m > maxmode) {
-            connection->sockwrite(   QString("MODE %1 %2 %3")
+            connection->sockwrite( QString("MODE %1 %2 %3")
                                      .arg(channel)
                                      .arg(mode)
                                      .arg(param)
@@ -281,10 +281,10 @@ void IChanConfig::deleteMasks(MaskType type)
         }
     }
     if ((m <= maxmode) && (mode.count() > 1))
-        connection->sockwrite(  QString("MODE %1 %2 %3")
-                                .arg(channel)
-                                .arg(mode)
-                                .arg(param)
+        connection->sockwrite( QString("MODE %1 %2 %3")
+                                 .arg(channel)
+                                 .arg(mode)
+                                 .arg(param)
                               );
 }
 
@@ -312,7 +312,7 @@ void IChanConfig::on_btnSave_clicked()
                               );
 
     if ((ui->mode_k->isChecked()) && (ui->mode_k_val->text().length() == 0)) {
-        QMessageBox::warning(this, "Cannot set channel key", "Channel key is not filled out.");
+        QMessageBox::warning(this, tr("Cannot set channel key"), tr("Channel key is not filled out."));
         return;
     }
 
@@ -395,20 +395,20 @@ void IChanConfig::on_btnSave_clicked()
                 if (checked) {
                     addMode += m;
                     param += QString(" %1")
-                            .arg(ui->mode_k_val->text());
+                               .arg(ui->mode_k_val->text());
                 }
                 else
                     delMode += m;
                     param += QString(" %1")
-                            .arg(def.data);
+                               .arg(def.data);
             }
             else if ((ui->mode_k_val->text() != def.data) && (checked)) {
                 // The +k checkbox wasn't changed but the value was, update.
                 delMode += m;
                 addMode += m;
                 param += QString(" %1 %2")
-                        .arg(def.data)
-                        .arg(ui->mode_k_val->text());
+                           .arg(def.data)
+                           .arg(ui->mode_k_val->text());
             }
             continue;
 
@@ -418,7 +418,7 @@ void IChanConfig::on_btnSave_clicked()
                 if (checked) {
                     addMode += m;
                     param += QString(" %1")
-                            .arg(ui->mode_l_val->text());
+                               .arg(ui->mode_l_val->text());
                 }
                 else
                     delMode += m;
@@ -427,7 +427,7 @@ void IChanConfig::on_btnSave_clicked()
                 // The +i checkbox wasn't changed but the value was, update.
                 addMode += m;
                 param += QString(" %1")
-                        .arg(ui->mode_l_val->text());
+                           .arg(ui->mode_l_val->text());
             }
             continue;
 
@@ -441,14 +441,14 @@ void IChanConfig::on_btnSave_clicked()
     if (addMode.length() > 0)
         addMode.prepend('+');
     QString modedata = QString("%1%2%3")
-                       .arg(delMode)
-                       .arg(addMode)
-                       .arg(param); // Param will always begin with a space anyways.
+                         .arg(delMode)
+                         .arg(addMode)
+                         .arg(param); // Param will always begin with a space anyways.
 
     if (modedata.length() > 0)
-        connection->sockwrite(  QString("MODE %1 %2")
-                                .arg(channel)
-                                .arg(modedata)
+        connection->sockwrite( QString("MODE %1 %2")
+                                 .arg(channel)
+                                 .arg(modedata)
                               );
 
 }
@@ -479,9 +479,9 @@ void IChanConfig::btnAddMask(MaskType type)
         return;
 
     QString data = QString("MODE %1 +%2 %3")
-                   .arg(channel)
-                   .arg(modeset)
-                   .arg(text);
+                     .arg(channel)
+                     .arg(modeset)
+                     .arg(text);
 
     connection->sockwrite(data);
 }
@@ -530,11 +530,9 @@ void IChanConfig::btnEditMask(MaskType type)
 
     QModelIndex item = sel->selectedRows(0).at(0);
     QString mask = item.data().toString();
-    QString text = QInputDialog::getText(this,
-                                         title,
+    QString text = QInputDialog::getText(this, title,
                                          tr("Write the mask with following syntax: nick!ident@host.name\r\n*!*@host.name nickname!*@*"),
-                                         QLineEdit::Normal,
-                                         mask);
+                                         QLineEdit::Normal, mask);
     if (text.length() == 0)
         return;
 
@@ -542,10 +540,10 @@ void IChanConfig::btnEditMask(MaskType type)
         return;
 
     QString data = QString("MODE %1 %2 %3 %4")
-                   .arg(channel)
-                   .arg(mode)
-                   .arg(mask)
-                   .arg(text);
+                     .arg(channel)
+                     .arg(mode)
+                     .arg(mask)
+                     .arg(text);
 
     connection->sockwrite(data);
 }

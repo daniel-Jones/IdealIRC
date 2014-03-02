@@ -135,6 +135,16 @@
 #define HL_MSG        2
 #define HL_HIGHLIGHT  3
 
+/* Control codes */
+#define CTRL_BOLD           0x02
+#define CTRL_UNDERLINE      0x1F
+#define CTRL_COLOR          0x03
+// Some unused ones, but will be implemented sometime.
+#define CTRL_ITALIC         0x09
+#define CTRL_REVERSE        0x16
+#define CTRL_RESET          0x0F
+#define CTRL_STRIKETHROUGH  0x13
+
 /* Script painting commands */
 enum e_painting {
   pc_clear = 0, // clear the window, this can also be used in text windows.

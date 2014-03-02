@@ -41,6 +41,7 @@ class LineNumberArea;
 class EditorWidget : public QPlainTextEdit
 {
     Q_OBJECT
+
 public:
     explicit EditorWidget(QWidget *parent, config *cfg);
     void lineNumberAreaPaintEvent(QPaintEvent *event);

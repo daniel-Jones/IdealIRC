@@ -42,12 +42,12 @@ class IConfig : public QDialog
 {
     Q_OBJECT
     
-  public:
+public:
     explicit IConfig(config *cfg, IConnection *con, QWidget *parent = 0);
     ~IConfig();
     void setConnectionEnabled(bool enable); // Enable or disable Connect buttons
     
-  private:
+private:
     Ui::IConfig *ui;
     QSignalMapper buttonSignals;
     config *conf;
@@ -61,7 +61,7 @@ class IConfig : public QDialog
     void saveAll();
     void closeSubWidgets();
 
-  private slots:
+private slots:
     void buttonMapped(QWidget *btn);
     void on_btnSaveConnect_clicked();
     void on_btnSaveClose_clicked();
@@ -76,7 +76,7 @@ protected:
     void closeEvent(QCloseEvent *);
     void resizeEvent(QResizeEvent *);
 
-  signals:
+signals:
     void connectToServer(bool newWindow = false);
     void configSaved();
 

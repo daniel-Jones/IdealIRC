@@ -26,6 +26,7 @@
 class UnsupportedModel : public QAbstractTableModel
 {
     Q_OBJECT
+
 public:
     explicit UnsupportedModel(QString msg, QObject *parent = 0);
 

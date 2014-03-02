@@ -26,11 +26,11 @@ QMyListWidget::QMyListWidget(QWidget *parent, config *cfg) :
     QListWidget(parent),
     conf(cfg)
 {
-  updateCSS();
+    updateCSS();
 
-  QFont f(conf->fontName);
-  f.setPixelSize(conf->fontSize);
-  setFont(f);
+    QFont f(conf->fontName);
+    f.setPixelSize(conf->fontSize);
+    setFont(f);
 }
 
 void QMyListWidget::contextMenuEvent(QContextMenuEvent *e)
@@ -40,64 +40,67 @@ void QMyListWidget::contextMenuEvent(QContextMenuEvent *e)
 
 void QMyListWidget::updateCSS()
 {
-  QString bg = conf->colListboxBackground;
-  QString fg = conf->colListbox;
+    QString bg = conf->colListboxBackground;
+    QString fg = conf->colListbox;
 
-  setStyleSheet("background-color: " + bg + "; color: " + fg + ";");
+    setStyleSheet( QString("background-color: %1; color: %2;")
+                     .arg(bg)
+                     .arg(fg)
+                  );
 }
 
 QColor QMyListWidget::getColorFromCode(int num)
 {
-  switch(num) {
-    case 0:
-      return C_WHITE;
+    switch(num) {
+        case 0:
+            return C_WHITE;
 
-    case 1:
-      return C_BLACK;
+        case 1:
+            return C_BLACK;
 
-    case 2:
-      return C_BLUE;
+        case 2:
+            return C_BLUE;
 
-    case 3:
-      return C_GREEN;
+        case 3:
+            return C_GREEN;
 
-    case 4:
-      return C_BRIGHTRED;
+        case 4:
+            return C_BRIGHTRED;
 
-    case 5:
-      return C_RED;
+        case 5:
+            return C_RED;
 
-    case 6:
-      return C_MAGENTA;
+        case 6:
+            return C_MAGENTA;
 
-    case 7:
-      return C_BROWN;
+        case 7:
+            return C_BROWN;
 
-    case 8:
-      return C_YELLOW;
+        case 8:
+            return C_YELLOW;
 
-    case 9:
-      return C_BRIGHTGREEN;
+        case 9:
+            return C_BRIGHTGREEN;
 
-    case 10:
-      return C_CYAN;
+        case 10:
+            return C_CYAN;
 
-    case 11:
-      return C_BRIGHTCYAN;
+        case 11:
+            return C_BRIGHTCYAN;
 
-    case 12:
-      return C_BRIGHTBLUE;
+        case 12:
+            return C_BRIGHTBLUE;
 
-    case 13:
-      return C_BRIGHTMAGENTA;
+        case 13:
+            return C_BRIGHTMAGENTA;
 
-    case 14:
-      return C_DARKGRAY;
+        case 14:
+            return C_DARKGRAY;
 
-    case 15:
-      return C_LIGHTGRAY;
+        case 15:
+            return C_LIGHTGRAY;
 
-    default:
-      return C_BLACK;
-  }
+        default:
+            return C_BLACK;
+    }
 }

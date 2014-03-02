@@ -28,19 +28,19 @@ class TTimer : public QObject
 {
   Q_OBJECT
 
-  public:
+public:
     explicit TTimer(QString fn, QObject *parent = 0);
     void runTimer(int msec = 1000);
     void stopTimer();
 
-  private:
+private:
     QString fnct;
     QTimer timer;
 
-  signals:
+signals:
     void timeout(QString fn);
 
-  public slots:
+public slots:
     void internalTimeout();
   
 };

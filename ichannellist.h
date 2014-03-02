@@ -46,7 +46,6 @@ public:
 
 private slots:
     void on_btnDownload_clicked();
-
     void on_btnJoin_clicked();
 
 private:

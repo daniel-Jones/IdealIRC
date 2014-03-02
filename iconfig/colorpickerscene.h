@@ -29,6 +29,7 @@
 class ColorPickerScene : public QGraphicsScene
 {
     Q_OBJECT
+
 public:
     explicit ColorPickerScene(QObject *parent = 0);
 

@@ -30,17 +30,18 @@
 class QMyListWidget : public QListWidget
 {
     Q_OBJECT
-  public:
+
+public:
     explicit QMyListWidget(QWidget *parent, config *cfg);
     void updateCSS();
 
-  protected:
+protected:
     void contextMenuEvent(QContextMenuEvent *e);
 
-  signals:
+signals:
     void MenuRequested(QPoint p);
 
-  private:
+private:
     config *conf;
     QColor getColorFromCode(int num);
 };

@@ -29,16 +29,16 @@
 #include "constants.h"
 
 enum TSOCK_ERR {
-  TSE_NONE = 0, // No error
-  TSE_NOSUCHNAME, // No such socket name
-  TSE_NAMEINUSE, // Socket name in use
-  TSE_CANNOTWRITE, // Cannot write to socket
-  TSE_SOCKOBJNULL, // Socket (TSock) object is NULL.
-  TSE_NOTCONNECTED, // Socket not connected
-  TSE_UKWSWITCH, // Unknown sock switch
-  TSE_CANNOTBIND, // Cannot bind socket.
-  TSE_SOCKINUSE, // Cannot listen, socket in use
-  TSE_NOMORECONNECTIONS // No more (incoming) connections to accept
+    TSE_NONE = 0, // No error
+    TSE_NOSUCHNAME, // No such socket name
+    TSE_NAMEINUSE, // Socket name in use
+    TSE_CANNOTWRITE, // Cannot write to socket
+    TSE_SOCKOBJNULL, // Socket (TSock) object is NULL.
+    TSE_NOTCONNECTED, // Socket not connected
+    TSE_UKWSWITCH, // Unknown sock switch
+    TSE_CANNOTBIND, // Cannot bind socket.
+    TSE_SOCKINUSE, // Cannot listen, socket in use
+    TSE_NOMORECONNECTIONS // No more (incoming) connections to accept
 };
 
 class TSock : public QObject

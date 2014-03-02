@@ -26,21 +26,21 @@ TTimer::TTimer(QString fn, QObject *parent) :
     QObject(parent),
     fnct(fn)
 {
-  connect(&timer, SIGNAL(timeout()),
-          this, SLOT(internalTimeout()));
+    connect(&timer, SIGNAL(timeout()),
+            this, SLOT(internalTimeout()));
 }
 
 void TTimer::runTimer(int interval)
 {
-  timer.start(interval);
+    timer.start(interval);
 }
 
 void TTimer::stopTimer()
 {
-  timer.stop();
+    timer.stop();
 }
 
 void TTimer::internalTimeout()
 {
-  emit timeout(fnct.toUpper());
+    emit timeout(fnct.toUpper());
 }

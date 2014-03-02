@@ -26,6 +26,7 @@
 class VersionChecker : public QTcpSocket
 {
     Q_OBJECT
+
 public:
     explicit VersionChecker(QObject *parent = 0);
     QString getVersion() { return version; }

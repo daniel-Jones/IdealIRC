@@ -74,7 +74,6 @@ private:
     void setBold(QStandardItem *item);
     void unsetBold(QStandardItem *item);
 
-
 private slots:
     void currentRowChanged(const QModelIndex &current, const QModelIndex &previous);
     void textChanged();

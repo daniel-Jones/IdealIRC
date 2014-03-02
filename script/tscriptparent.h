@@ -34,16 +34,17 @@
 class IConnection;
 
 typedef struct T_CUSTOM_TOOLBAR {
-  QString scriptname;
-  QString tooltip;
-  QString function;
-  QString iconpath;
+    QString scriptname;
+    QString tooltip;
+    QString function;
+    QString iconpath;
 } toolbar_t;
 
 class TScriptParent : public QObject
 {
     Q_OBJECT
-  public:
+
+public:
     TScriptParent(QObject *parent, QWidget *dialogParent, config *cfg, QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn);
     bool command(QString cmd); // Exec any custom commands, returns false if command not found in loaded scripts.
     bool runevent(e_iircevent event, QStringList param);
@@ -57,14 +58,14 @@ class TScriptParent : public QObject
     void getToolbarPtr(QHash<QString,toolbar_t> **tb) { *tb = &toolbar; }
     void runScriptFunction(QString script, QString function);
 
-  signals:
+signals:
     void refreshToolbar();
     void RequestWindow(QString name, int type, int parent, bool activate);
 
-  public slots:
+public slots:
     void execCmdSlot(QString cmd);
 
-  private slots:
+private slots:
     void gotScriptError(QString text) { echo("Script error: " + text, PT_LOCALINFO); }
     void gotScriptWarning(QString text) { echo("Script warning: " + text, PT_LOCALINFO); }
     void echo(QString text) { cmdhndl.echo("STATUS", text); }
@@ -74,7 +75,6 @@ class TScriptParent : public QObject
     void toolbarDel(QString toolname);
     void toolbarSetIcon(QString toolname, QString path);
     void toolbarSetFunction(QString toolname, QString scriptname, QString function);
-
 
   private:
     config *conf;

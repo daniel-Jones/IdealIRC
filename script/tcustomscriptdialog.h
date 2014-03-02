@@ -46,7 +46,7 @@ class TCustomScriptDialog : public QObject
 {
   Q_OBJECT
 
-  public:
+public:
     explicit TCustomScriptDialog(QString oname, QWidget *dlgParent, QObject *parent = 0);
     void showDlg();
     void hideDlg();
@@ -70,7 +70,7 @@ class TCustomScriptDialog : public QObject
     bool clear(QString oname);
 
 
-  private:
+private:
     TSDialog dialog;
     QSignalMapper buttonmap;
     QSignalMapper listmap;
@@ -80,14 +80,14 @@ class TCustomScriptDialog : public QObject
     QHash<QString,QTextEdit*> textbox;
     QHash<QString,QListWidget*> listbox;
 
-  protected:
+protected:
     void dialogClosed();
 
-  private slots:
+private slots:
     void buttonClicked(QString oname);
     void listSelected(QString oname);
 
-  signals:
+signals:
     void runEvent(e_iircevent evt, QStringList param);
 };
 

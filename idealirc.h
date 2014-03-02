@@ -50,7 +50,7 @@ class IdealIRC : public QMainWindow
 {
   Q_OBJECT
     
-  public:
+public:
       explicit IdealIRC(QWidget *parent = 0);
       ~IdealIRC();
       QTreeWidgetItem* GetWidgetItem(int wid);
@@ -58,7 +58,7 @@ class IdealIRC : public QMainWindow
       bool WindowExists(QString name, int parent);
       int currentStatus();
     
-  private:
+private:
       Ui::IdealIRC *ui;
       bool firstShow; // True on startup. See showEvent();
       QHash<int,subwindow_t> winlist; // Windows list
@@ -85,18 +85,18 @@ class IdealIRC : public QMainWindow
       void recreateScriptManager();
       void chanlistEnabler();
 
-  protected:
+protected:
       void showEvent(QShowEvent *);
       void closeEvent(QCloseEvent *e);
       void resizeEvent(QResizeEvent *e);
       void moveEvent(QMoveEvent *);
 
-  public slots:
+public slots:
       int CreateSubWindow(QString name, int type, int parent, bool activate);
       void updateConnectionButton();
       void versionReceived(); // Released version from website received
 
-  private slots:
+private slots:
       void subWinClosed(int wid);
       void on_mdiArea_subWindowActivated(QMdiSubWindow *arg1);
       void on_treeWidget_itemSelectionChanged();

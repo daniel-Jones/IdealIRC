@@ -52,7 +52,11 @@ IdealIRC::IdealIRC(QWidget *parent) :
     ui->menuTools->addAction(ui->actionChannels_list);
     ui->menuTools->addAction(ui->actionScript_Manager);
 
-    setWindowTitle("IdealIRC " + QString(VERSION_STRING));
+    QString version = QString("IdealIRC %1").arg(VERSION_STRING);
+    setWindowTitle(version);
+    trayicon.setToolTip(version);
+    trayicon.setIcon( QIcon(":/gfx/icon16x16.png") );
+    trayicon.setVisible(true);
 
     conf.rehash();
 
@@ -73,10 +77,6 @@ IdealIRC::IdealIRC(QWidget *parent) :
     connect(&scriptParent, SIGNAL(RequestWindow(QString,int,int,bool)),
             this, SLOT(CreateSubWindow(QString,int,int,bool)));
 
-    trayicon.setIcon( QIcon(":/gfx/icon16x16.png") );
-    trayicon.setToolTip(QString("IdealIRC v%1").arg(VERSION_STRING));
-    trayicon.setVisible(true);
-
     connect(&trayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
 }
@@ -94,9 +94,7 @@ void IdealIRC::recreateConfDlg()
         delete confDlg;
     }
 
-    IConnection *c = conlist.value(activeConn);
-    if (activeConn == -1)
-        c = NULL;
+    IConnection *c = conlist.value(activeConn, NULL);
 
     confDlg = new IConfig(&conf, c, this);
     connect(confDlg, SIGNAL(connectToServer(bool)),
@@ -105,29 +103,24 @@ void IdealIRC::recreateConfDlg()
             this, SLOT(configSaved()));
 
     subwindow_t sw = winlist.value(activeWid);
-    if (sw.type >= WT_GRAPHIC) {
-        // Custom window
+    if (sw.type >= WT_GRAPHIC) // Custom window
         confDlg->setConnectionEnabled(false);
-    }
-    else {
+    else
         confDlg->setConnectionEnabled(true);
-    }
 }
 
 void IdealIRC::recreateFavouritesDlg()
 {
-    if (favourites != NULL) {
+    if (favourites != NULL)
         favourites->deleteLater();
-    }
 
     favourites = new IFavourites(&conf, this);
 }
 
 void IdealIRC::recreateChanlistDlg()
 {
-    if (chanlist != NULL) {
+    if (chanlist != NULL)
         chanlist->deleteLater();
-    }
 
     chanlist = new IChannelList(this);
 }
@@ -230,8 +223,8 @@ void IdealIRC::resizeEvent(QResizeEvent *e)
     conf.mainWinGeo = geometry();
 
     QList<int> sz;
-    sz.push_back(conf.treeWidth);
-    sz.push_back(ui->centralWidget->width() - conf.treeWidth);
+    sz << conf.treeWidth;
+    sz << ui->centralWidget->width() - conf.treeWidth;
     ui->splitter->setSizes(sz);
 }
 
@@ -479,7 +472,7 @@ QTreeWidgetItem* IdealIRC::GetWidgetItem(int wid)
     if (wid == 0)
         return NULL;
 
-    if (winlist.contains(wid) == false)
+    if (! winlist.contains(wid))
         return NULL;
 
     subwindow_t t = winlist.value(wid);
@@ -491,14 +484,11 @@ void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
 {
     QHashIterator<int,subwindow_t> i(winlist);
 
-    //QString wname;
-
     while (i.hasNext()) {
         i.next();
         subwindow_t sw = i.value();
 
         if (sw.subwin == arg1) {
-            //wname = sw.widget->objectName();
             activeWid = sw.wid;
             sw.treeitem->setForeground(0, QBrush(Qt::black));
             sw.highlight = HL_NONE;
@@ -549,8 +539,6 @@ void IdealIRC::on_actionOptions_triggered()
 
 void IdealIRC::extConnectServer(bool newWindow)
 {
-    std::cout << "Server: " << conf.server.toStdString().c_str() << " | pw: " << conf.password.toStdString().c_str() << std::endl;
-
     if (newWindow)
         activeWid = CreateSubWindow("Status", WT_STATUS, 0, true);
 
@@ -708,10 +696,10 @@ void IdealIRC::on_actionAbout_IdealIRC_triggered()
 void IdealIRC::versionReceived()
 {
     if (vc.getInternVersion() != VERSION_INTEGER) {
-        QString msg = QString("A new version is released (%1). It is recommended you upgrade!\r\nDownload via the website http://www.idealirc.org/")
+        QString msg = tr("A new version is released (%1). It is recommended you upgrade!\r\nDownload via the website http://www.idealirc.org/")
                         .arg(vc.getVersion());
 
-        QMessageBox::information(this, "New version!", msg);
+        QMessageBox::information(this, tr("New version!"), msg);
     }
 }
 
@@ -772,7 +760,6 @@ void IdealIRC::on_actionChannel_favourites_triggered()
 {
     recreateFavouritesDlg();
     favourites->show();
- trayMessage("Hi", "Hello world!!!!!11111");
     favouritesJoinEnabler();
 }
 

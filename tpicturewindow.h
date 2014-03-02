@@ -39,8 +39,9 @@
 class TPictureWindow : public QWidget
 {
   Q_OBJECT
+
 public:
-  explicit TPictureWindow(QWidget *parent = 0);
+    explicit TPictureWindow(QWidget *parent = 0);
     void clear();
     void setBrush(QBrush b) { brush = b; }
     void setPen(QPen p) { pen = p; }

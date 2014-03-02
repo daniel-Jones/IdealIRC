@@ -154,9 +154,9 @@ void IFavourites::on_toolButton_clicked()
     QStandardItem *item = chanmap.value(channel.toUpper(), NULL);
 
     if (item != NULL) {
-        QMessageBox::warning(this, tr("Channel exists"),
-                             tr("The channel '%1' is already in the list.")
-                               .arg(channel)
+        QMessageBox::warning( this, tr("Channel exists"),
+                              tr("The channel '%1' is already in the list.")
+                                .arg(channel)
                              );
         return;
     }
@@ -185,9 +185,9 @@ void IFavourites::on_btnDelete_clicked()
     if (item == NULL)
         return; // Weirdingly, item doesn't exist, stop anyways.
 
-    int button = QMessageBox::question(this, tr("Confirm delete"),
-                                       tr("Do you want to delete channel '%1'?")
-                                       .arg(channel)
+    int button = QMessageBox::question( this, tr("Confirm delete"),
+                                        tr("Do you want to delete channel '%1'?")
+                                          .arg(channel)
                                        );
     if (button == QMessageBox::No)
         return;
@@ -218,8 +218,8 @@ void IFavourites::on_btnJoin_clicked()
     if (pw.length() > 0)
         pw.prepend(' ');
 
-    current->sockwrite(QString("JOIN %1%2")
-                       .arg(channel)
-                       .arg(pw)
+    current->sockwrite( QString("JOIN %1%2")
+                          .arg(channel)
+                          .arg(pw)
                        );
 }
