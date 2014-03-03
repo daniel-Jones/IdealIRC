@@ -24,6 +24,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QList>
+#include <QTextCodec>
 
 #include "iwin.h"
 #include "config.h"

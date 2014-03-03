@@ -200,6 +200,7 @@ void IdealIRC::closeEvent(QCloseEvent *e)
     // Iterate through the connections and find the active ones and close them.
     // Remove and clean up their children too (windows and status)
     QHashIterator<int,IConnection*> ic(conlist);
+    QList<IConnection*> cl;
     while (ic.hasNext()) {
         ic.next();
         IConnection *con = ic.value();
@@ -207,10 +208,12 @@ void IdealIRC::closeEvent(QCloseEvent *e)
             if (connectionsRemaining == -1)
                 connectionsRemaining = 0;
             ++connectionsRemaining;
-            con->closeConnection(true);
+            cl.push_back(con);
         }
-
     }
+
+    for (int i = 0; i <= cl.count()-1; i++)
+        cl[i]->closeConnection(false);
 }
 
 void IdealIRC::resizeEvent(QResizeEvent *e)

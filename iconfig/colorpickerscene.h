@@ -25,6 +25,7 @@
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneMoveEvent>
+#include <QGraphicsSceneMouseEvent>
 
 class ColorPickerScene : public QGraphicsScene
 {
@@ -39,6 +40,7 @@ private:
 
 protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent *e) { mouseMoveEvent(e); }
 
 signals:
     void colorPicked(QColor color);

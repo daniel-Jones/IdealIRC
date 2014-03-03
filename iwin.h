@@ -31,6 +31,7 @@
 #include <QTreeWidgetItem>
 #include <QUrl>
 #include <QFocusEvent>
+#include <QTextCodec>
 
 #include "constants.h"
 #include "tpicturewindow.h"

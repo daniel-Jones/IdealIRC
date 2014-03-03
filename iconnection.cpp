@@ -22,7 +22,6 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QDebug>
-#include <QTextCodec>
 
 #include "constants.h"
 #include "iconnection.h"
@@ -127,11 +126,18 @@ bool IConnection::sockwrite(QString data)
     if (data.length() == 0)
       return false;
 
-    /// @todo Erase any \0 \r and \n
-
-    data.append("\r\n");
-    socket.write(data.toUtf8());
-
+    QTextCodec *tc = QTextCodec::codecForName(conf->charset.toStdString().c_str());
+    if (tc != 0) {
+        QByteArray encodedData = tc->fromUnicode(data);
+        encodedData.append("\r\n");
+        socket.write(encodedData);
+    }
+    else {
+        QByteArray outData;
+        outData.append(data);
+        outData.append("\r\n");
+        socket.write(outData);
+    }
     return true;
 }
 
@@ -143,7 +149,7 @@ void IConnection::onSocketConnected()
         sockwrite("PASS :" + conf->password);
 
     QString username;                            // Store our username to pass to IRC server here.
-    if (conf->username.at(0) == '@')             // If our @ token is first, we'll just use the nickname.
+    if (conf->username[0] == '@')                // If our @ token is first, we'll just use the nickname.
         username = conf->nickname;               // This to prevent any errors on following:
     else
         username = conf->username.split('@')[0]; // Pick username from email. May not contain a '@' though.

@@ -44,3 +44,4 @@ void ColorPickerScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
     emit colorPicked(QColor(rgb));
 }
+

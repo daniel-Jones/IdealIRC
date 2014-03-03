@@ -26,7 +26,9 @@
 IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::IConfigCustomize),
-    conf(cfg)
+    conf(cfg),
+    slidersMovingRGB(false),
+    slidersMovingHSV(false)
 {
     ui->setupUi(this);
 
@@ -76,6 +78,60 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
 
     connect(&colorSignals, SIGNAL(mapped(QString)), this, SLOT(colorSelected(QString)));
 
+    connect(ui->slideR, SIGNAL(sliderMoved(int)),
+            this, SLOT(colorSlidersMoveRGB(int)));
+    connect(ui->slideG, SIGNAL(sliderMoved(int)),
+            this, SLOT(colorSlidersMoveRGB(int)));
+    connect(ui->slideB, SIGNAL(sliderMoved(int)),
+            this, SLOT(colorSlidersMoveRGB(int)));
+    connect(ui->slideH, SIGNAL(sliderMoved(int)),
+            this, SLOT(colorSlidersMoveHSV(int)));
+    connect(ui->slideS, SIGNAL(sliderMoved(int)),
+            this, SLOT(colorSlidersMoveHSV(int)));
+    connect(ui->slideV, SIGNAL(sliderMoved(int)),
+            this, SLOT(colorSlidersMoveHSV(int)));
+
+    connect(ui->slideR, SIGNAL(sliderPressed()),
+            this, SLOT(colorSlidersRGBPressed()));
+    connect(ui->slideG, SIGNAL(sliderPressed()),
+            this, SLOT(colorSlidersRGBPressed()));
+    connect(ui->slideB, SIGNAL(sliderPressed()),
+            this, SLOT(colorSlidersRGBPressed()));
+    connect(ui->slideH, SIGNAL(sliderPressed()),
+            this, SLOT(colorSlidersHSVPressed()));
+    connect(ui->slideS, SIGNAL(sliderPressed()),
+            this, SLOT(colorSlidersHSVPressed()));
+    connect(ui->slideV, SIGNAL(sliderPressed()),
+            this, SLOT(colorSlidersHSVPressed()));
+
+    connect(ui->slideR, SIGNAL(sliderReleased()),
+            this, SLOT(colorSlidersRGBReleased()));
+    connect(ui->slideG, SIGNAL(sliderReleased()),
+            this, SLOT(colorSlidersRGBReleased()));
+    connect(ui->slideB, SIGNAL(sliderReleased()),
+            this, SLOT(colorSlidersRGBReleased()));
+    connect(ui->slideH, SIGNAL(sliderReleased()),
+            this, SLOT(colorSlidersHSVReleased()));
+    connect(ui->slideS, SIGNAL(sliderReleased()),
+            this, SLOT(colorSlidersHSVReleased()));
+    connect(ui->slideV, SIGNAL(sliderReleased()),
+            this, SLOT(colorSlidersHSVReleased()));
+
+    colDefault           = conf->colDefault;
+    colLocalInfo         = conf->colLocalInfo;
+    colServerInfo        = conf->colServerInfo;
+    colAction            = conf->colAction;
+    colCTCP              = conf->colCTCP;
+    colNotice            = conf->colNotice;
+    colOwntextBg         = conf->colOwntextBg;
+    colOwntext           = conf->colOwntext;
+    colLinks             = conf->colLinks;
+    colBackground        = conf->colBackground;
+    colInput             = conf->colInput;
+    colInputBackground   = conf->colInputBackground;
+    colListbox           = conf->colListbox;
+    colListboxBackground = conf->colListboxBackground;
+
     colorSelected("rdDefault");
 }
 
@@ -91,6 +147,24 @@ void IConfigCustomize::colorPicked(QColor color)
     pp.setColor(QPalette::Background, color);
     ui->colPreview->setAutoFillBackground(true);
     ui->colPreview->setPalette(pp);
+
+    if (! slidersMovingRGB) { // Do not set sliders programmatically when we're manually moving them
+        int r = color.red();
+        int g = color.green();
+        int b = color.blue();
+        ui->slideR->setValue(r);
+        ui->slideG->setValue(g);
+        ui->slideB->setValue(b);
+    }
+
+    if (! slidersMovingHSV) { // Do not set sliders programmatically when we're manually moving them
+        int hue = color.hslHue();
+        int sat = color.hslSaturation();
+        int val = color.value();
+        ui->slideH->setValue(hue);
+        ui->slideS->setValue(sat);
+        ui->slideV->setValue(val);
+    }
 }
 
 void IConfigCustomize::on_colorCode_textChanged(const QString &arg1)
@@ -101,31 +175,31 @@ void IConfigCustomize::on_colorCode_textChanged(const QString &arg1)
     ui->colPreview->setPalette(pp);
 
     if (ui->rdActions->isChecked())
-        conf->colAction = arg1;
+        colAction = arg1;
 
     if (ui->rdBackground->isChecked())
-        conf->colBackground = arg1;
+        colBackground = arg1;
 
     if (ui->rdCtcp->isChecked())
-        conf->colCTCP = arg1;
+        colCTCP = arg1;
 
     if (ui->rdDefault->isChecked())
-        conf->colDefault = arg1;
+        colDefault = arg1;
 
     if (ui->rdLinks->isChecked())
-        conf->colLinks = arg1;
+        colLinks = arg1;
 
     if (ui->rdLocalInfo->isChecked())
-        conf->colLocalInfo = arg1;
+        colLocalInfo = arg1;
 
     if (ui->rdNotice->isChecked())
-        conf->colNotice = arg1;
+        colNotice = arg1;
 
     if (ui->rdOwn->isChecked())
-        conf->colOwntext = arg1;
+        colOwntext = arg1;
 
     if (ui->rdServerInfo->isChecked())
-        conf->colServerInfo = arg1;
+        colServerInfo = arg1;
 }
 
 void IConfigCustomize::on_spinBox_valueChanged(int arg1)
@@ -153,37 +227,52 @@ void IConfigCustomize::saveConfig()
     conf->timestamp = ui->edTimeFormat->text();
     conf->trayNotify = ui->chkTrayNotify->isChecked();
     conf->trayNotifyDelay = ui->edTray->value()*1000;
+
+    conf->colDefault           = colDefault;
+    conf->colLocalInfo         = colLocalInfo;
+    conf->colServerInfo        = colServerInfo;
+    conf->colAction            = colAction;
+    conf->colCTCP              = colCTCP;
+    conf->colNotice            = colNotice;
+    conf->colOwntextBg         = colOwntextBg;
+    conf->colOwntext           = colOwntext;
+    conf->colLinks             = colLinks;
+    conf->colBackground        = colBackground;
+    conf->colInput             = colInput;
+    conf->colInputBackground   = colInputBackground;
+    conf->colListbox           = colListbox;
+    conf->colListboxBackground = colListboxBackground;
 }
 
 void IConfigCustomize::colorSelected(QString objName)
 {
     QString color;
     if (objName == "rdActions") {
-        color = conf->colAction;
+        color = colAction;
     }
     if (objName == "rdBackground") {
-        color = conf->colBackground;
+        color = colBackground;
     }
     if (objName == "rdCtcp") {
-        color = conf->colCTCP;
+        color = colCTCP;
     }
     if (objName == "rdDefault") {
-        color = conf->colDefault;
+        color = colDefault;
     }
     if (objName == "rdLinks") {
-        color = conf->colLinks;
+        color = colLinks;
     }
     if (objName == "rdLocalInfo") {
-        color = conf->colLocalInfo;
+        color = colLocalInfo;
     }
     if (objName == "rdNotice") {
-        color = conf->colNotice;
+        color = colNotice;
     }
     if (objName == "rdOwn") {
-        color = conf->colOwntext;
+        color = colOwntext;
     }
     if (objName == "rdServerInfo") {
-        color = conf->colServerInfo;
+        color = colServerInfo;
     }
 
     if (color.length() == 0)
@@ -191,4 +280,18 @@ void IConfigCustomize::colorSelected(QString objName)
 
     QColor c(color);
     colorPicked(c);
+}
+
+void IConfigCustomize::colorSlidersMoveRGB(int)
+{
+    QColor color;
+    color.setRgb(ui->slideR->value(), ui->slideG->value(), ui->slideB->value());
+    colorPicked(color);
+}
+
+void IConfigCustomize::colorSlidersMoveHSV(int)
+{
+    QColor color;
+    color.setHsv(ui->slideH->value(), ui->slideS->value(), ui->slideV->value());
+    colorPicked(color);
 }

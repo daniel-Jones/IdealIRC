@@ -1176,7 +1176,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     * If the function does not exist it'll produce a script error.
     */
 
-    if (function.length() == 0)
+    if (function.isEmpty())
         return se_FunctionEmpty; // Avoid crashes if function name is none.
 
     if (function == "$")
@@ -1196,7 +1196,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     QString par;
 
     if (pos < 0) {
-        error("Error in attempting to call an undefined function " + function);
+        error(tr("Error in attempting to call an undefined function %1").arg(function));
         return se_InvalidFunction;
     }
 
@@ -1225,7 +1225,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
         }
     }
 
-    QStringList scpar = par.split(","); // parameter names
+    QStringList scpar = par.split(','); // parameter names
 
     if (scpar.count() == 1)
         if (scpar[0].length() == 0)

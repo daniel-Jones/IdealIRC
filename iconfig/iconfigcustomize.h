@@ -46,6 +46,24 @@ private:
     ColorPickerScene scene;
     QPalette pp; // preview palette
     QSignalMapper colorSignals;
+    bool slidersMovingRGB;
+    bool slidersMovingHSV;
+
+    QString colDefault;
+    QString colLocalInfo;
+    QString colServerInfo;
+    QString colAction;
+    QString colCTCP;
+    QString colNotice;
+    QString colOwntextBg;
+    QString colOwntext;
+    QString colLinks;
+    QString colBackground;
+    QString colInput;
+    QString colInputBackground;
+    QString colListbox;
+    QString colListboxBackground;
+
 
 public slots:
     void colorPicked(QColor color);
@@ -54,6 +72,12 @@ private slots:
     void on_colorCode_textChanged(const QString &arg1);
     void on_spinBox_valueChanged(int arg1);
     void colorSelected(QString objName);
+    void colorSlidersMoveRGB(int);
+    void colorSlidersMoveHSV(int);
+    void colorSlidersRGBPressed() { slidersMovingRGB = true; }
+    void colorSlidersRGBReleased() { slidersMovingRGB = false; }
+    void colorSlidersHSVPressed() { slidersMovingHSV = true; }
+    void colorSlidersHSVReleased() { slidersMovingHSV = false; }
 };
 
 #endif // ICONFIGCUSTOMIZE_H
