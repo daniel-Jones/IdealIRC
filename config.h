@@ -92,6 +92,8 @@ public:
     QString colInputBackground;
     QString colListbox;
     QString colListboxBackground;
+    QString colWindowlist;
+    QString colWindowlistBackground;
 
     // Editor colors
     QColor editorLineHighlight;

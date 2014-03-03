@@ -216,6 +216,19 @@ void config::rehash()
     else
         colListbox = c;
 
+    c = ini->ReadIni("Colors", "WindowList");
+    if (c.length() == 0)
+        colWindowlist = C_BLACK.name(); // Default value
+    else
+        colWindowlist = c;
+
+    c = ini->ReadIni("Colors", "WindowListBackground");
+    if (c.length() == 0)
+        colWindowlistBackground = C_WHITE.name(); // Default value
+    else
+        colWindowlistBackground = c;
+
+
 
     /**************************
      *  SCRIPT EDITOR COLORS  *
@@ -348,6 +361,8 @@ void config::save()
     ini->WriteIni("Colors", "InputBackground", colInputBackground);
     ini->WriteIni("Colors", "Listbox", colListbox);
     ini->WriteIni("Colors", "ListboxBackground", colListboxBackground);
+    ini->WriteIni("Colors", "WindowList", colWindowlist);
+    ini->WriteIni("Colors", "WindowListBackground", colWindowlistBackground);
 
     // Script editor colors
     ini->WriteIni("Colors", "EditorLineHighlight", editorLineHighlight.name());

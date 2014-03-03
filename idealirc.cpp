@@ -74,6 +74,8 @@ IdealIRC::IdealIRC(QWidget *parent) :
     f.setPixelSize(conf.fontSize);
     ui->treeWidget->setFont(f);
 
+    updateTreeViewColor();
+
     connect(&scriptParent, SIGNAL(RequestWindow(QString,int,int,bool)),
             this, SLOT(CreateSubWindow(QString,int,int,bool)));
 
@@ -493,7 +495,7 @@ void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
 
         if (sw.subwin == arg1) {
             activeWid = sw.wid;
-            sw.treeitem->setForeground(0, QBrush(Qt::black));
+            sw.treeitem->setForeground(0, QBrush(QColor(conf.colWindowlist)));
             sw.highlight = HL_NONE;
             ui->treeWidget->setCurrentItem(sw.treeitem);
             updateConnectionButton();
@@ -721,6 +723,7 @@ void IdealIRC::configSaved()
     }
 
     ui->treeWidget->setFont(f);
+    updateTreeViewColor();
 }
 
 void IdealIRC::favouritesJoinEnabler()
@@ -757,6 +760,32 @@ void IdealIRC::chanlistEnabler()
         chanlist->disable();
 
     chanlist->setConnection(current);
+}
+
+void IdealIRC::updateTreeViewColor()
+{
+    QPalette treePal = ui->treeWidget->palette();
+    treePal.setColor(QPalette::Active, QPalette::Base, conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Active, QPalette::AlternateBase, conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Inactive, QPalette::Base, conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Inactive, QPalette::AlternateBase, conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Disabled, QPalette::Base, conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Disabled, QPalette::AlternateBase, conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Active, QPalette::Text, conf.colWindowlist);
+    treePal.setColor(QPalette::Active, QPalette::WindowText, conf.colWindowlist);
+    treePal.setColor(QPalette::Inactive, QPalette::Text, conf.colWindowlist);
+    treePal.setColor(QPalette::Inactive, QPalette::WindowText, conf.colWindowlist);
+    treePal.setColor(QPalette::Disabled, QPalette::Text, conf.colWindowlist);
+    treePal.setColor(QPalette::Disabled, QPalette::WindowText, conf.colWindowlist);
+    ui->treeWidget->setPalette(treePal);
+
+    QHashIterator<int,subwindow_t> i(winlist);
+    while (i.hasNext()) {
+        subwindow_t sw = i.next().value();
+        if (sw.highlight != HL_NONE)
+            continue;
+        sw.treeitem->setForeground(0, QBrush(QColor(conf.colWindowlist)));
+    }
 }
 
 void IdealIRC::on_actionChannel_favourites_triggered()

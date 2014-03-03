@@ -56,25 +56,36 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     ui->chkTrayNotify->setChecked( conf->trayNotify );
     ui->edTray->setValue( conf->trayNotifyDelay/1000 );
 
-    connect(ui->rdActions,    SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdBackground, SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdCtcp,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdDefault,    SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdLinks,      SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdLocalInfo,  SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdNotice,     SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdOwn,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
-    connect(ui->rdServerInfo, SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdActions,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdBackground,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdCtcp,             SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdDefault,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdLinks,            SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdLocalInfo,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdNotice,           SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdOwn,              SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdInputBg,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdInputText,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdNicklistBg,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdNicklistText,     SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdWindowTreeBg,     SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdWindowTreeText,   SIGNAL(clicked()), &colorSignals, SLOT(map()));
 
-    colorSignals.setMapping(ui->rdActions,    ui->rdActions->objectName());
-    colorSignals.setMapping(ui->rdBackground, ui->rdBackground->objectName());
-    colorSignals.setMapping(ui->rdCtcp,       ui->rdCtcp->objectName());
-    colorSignals.setMapping(ui->rdDefault,    ui->rdDefault->objectName());
-    colorSignals.setMapping(ui->rdLinks,      ui->rdLinks->objectName());
-    colorSignals.setMapping(ui->rdLocalInfo,  ui->rdLocalInfo->objectName());
-    colorSignals.setMapping(ui->rdNotice,     ui->rdNotice->objectName());
-    colorSignals.setMapping(ui->rdOwn,        ui->rdOwn->objectName());
-    colorSignals.setMapping(ui->rdServerInfo, ui->rdServerInfo->objectName());
+    colorSignals.setMapping(ui->rdActions,        ui->rdActions->objectName());
+    colorSignals.setMapping(ui->rdBackground,     ui->rdBackground->objectName());
+    colorSignals.setMapping(ui->rdCtcp,           ui->rdCtcp->objectName());
+    colorSignals.setMapping(ui->rdDefault,        ui->rdDefault->objectName());
+    colorSignals.setMapping(ui->rdLinks,          ui->rdLinks->objectName());
+    colorSignals.setMapping(ui->rdLocalInfo,      ui->rdLocalInfo->objectName());
+    colorSignals.setMapping(ui->rdNotice,         ui->rdNotice->objectName());
+    colorSignals.setMapping(ui->rdOwn,            ui->rdOwn->objectName());
+    colorSignals.setMapping(ui->rdServerInfo,     ui->rdServerInfo->objectName());
+    colorSignals.setMapping(ui->rdInputText,      ui->rdInputText->objectName());
+    colorSignals.setMapping(ui->rdInputBg,        ui->rdInputBg->objectName());
+    colorSignals.setMapping(ui->rdNicklistText,   ui->rdNicklistText->objectName());
+    colorSignals.setMapping(ui->rdNicklistBg,     ui->rdNicklistBg->objectName());
+    colorSignals.setMapping(ui->rdWindowTreeText, ui->rdWindowTreeText->objectName());
+    colorSignals.setMapping(ui->rdWindowTreeBg,   ui->rdWindowTreeBg->objectName());
 
     connect(&colorSignals, SIGNAL(mapped(QString)), this, SLOT(colorSelected(QString)));
 
@@ -117,20 +128,22 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     connect(ui->slideV, SIGNAL(sliderReleased()),
             this, SLOT(colorSlidersHSVReleased()));
 
-    colDefault           = conf->colDefault;
-    colLocalInfo         = conf->colLocalInfo;
-    colServerInfo        = conf->colServerInfo;
-    colAction            = conf->colAction;
-    colCTCP              = conf->colCTCP;
-    colNotice            = conf->colNotice;
-    colOwntextBg         = conf->colOwntextBg;
-    colOwntext           = conf->colOwntext;
-    colLinks             = conf->colLinks;
-    colBackground        = conf->colBackground;
-    colInput             = conf->colInput;
-    colInputBackground   = conf->colInputBackground;
-    colListbox           = conf->colListbox;
-    colListboxBackground = conf->colListboxBackground;
+    colDefault              = conf->colDefault;
+    colLocalInfo            = conf->colLocalInfo;
+    colServerInfo           = conf->colServerInfo;
+    colAction               = conf->colAction;
+    colCTCP                 = conf->colCTCP;
+    colNotice               = conf->colNotice;
+    colOwntextBg            = conf->colOwntextBg;
+    colOwntext              = conf->colOwntext;
+    colLinks                = conf->colLinks;
+    colBackground           = conf->colBackground;
+    colInput                = conf->colInput;
+    colInputBackground      = conf->colInputBackground;
+    colListbox              = conf->colListbox;
+    colListboxBackground    = conf->colListboxBackground;
+    colWindowlist           = conf->colWindowlist;
+    colWindowlistBackground = conf->colWindowlistBackground;
 
     colorSelected("rdDefault");
 }
@@ -200,6 +213,25 @@ void IConfigCustomize::on_colorCode_textChanged(const QString &arg1)
 
     if (ui->rdServerInfo->isChecked())
         colServerInfo = arg1;
+
+    if (ui->rdNicklistText->isChecked())
+        colListbox = arg1;
+
+    if (ui->rdNicklistBg->isChecked())
+        colListboxBackground = arg1;
+
+    if (ui->rdInputText->isChecked())
+        colInput = arg1;
+
+    if (ui->rdInputBg->isChecked())
+        colInputBackground = arg1;
+
+    if (ui->rdWindowTreeText->isChecked())
+        colWindowlist = arg1;
+
+    if (ui->rdWindowTreeBg->isChecked())
+        colWindowlistBackground = arg1;
+
 }
 
 void IConfigCustomize::on_spinBox_valueChanged(int arg1)
@@ -228,52 +260,71 @@ void IConfigCustomize::saveConfig()
     conf->trayNotify = ui->chkTrayNotify->isChecked();
     conf->trayNotifyDelay = ui->edTray->value()*1000;
 
-    conf->colDefault           = colDefault;
-    conf->colLocalInfo         = colLocalInfo;
-    conf->colServerInfo        = colServerInfo;
-    conf->colAction            = colAction;
-    conf->colCTCP              = colCTCP;
-    conf->colNotice            = colNotice;
-    conf->colOwntextBg         = colOwntextBg;
-    conf->colOwntext           = colOwntext;
-    conf->colLinks             = colLinks;
-    conf->colBackground        = colBackground;
-    conf->colInput             = colInput;
-    conf->colInputBackground   = colInputBackground;
-    conf->colListbox           = colListbox;
-    conf->colListboxBackground = colListboxBackground;
+    conf->colDefault                = colDefault;
+    conf->colLocalInfo              = colLocalInfo;
+    conf->colServerInfo             = colServerInfo;
+    conf->colAction                 = colAction;
+    conf->colCTCP                   = colCTCP;
+    conf->colNotice                 = colNotice;
+    conf->colOwntextBg              = colOwntextBg;
+    conf->colOwntext                = colOwntext;
+    conf->colLinks                  = colLinks;
+    conf->colBackground             = colBackground;
+    conf->colInput                  = colInput;
+    conf->colInputBackground        = colInputBackground;
+    conf->colListbox                = colListbox;
+    conf->colListboxBackground      = colListboxBackground;
+    conf->colWindowlist             = colWindowlist;
+    conf->colWindowlistBackground   = colWindowlistBackground;
 }
 
 void IConfigCustomize::colorSelected(QString objName)
 {
     QString color;
-    if (objName == "rdActions") {
+    if (objName == "rdActions")
         color = colAction;
-    }
-    if (objName == "rdBackground") {
+
+    if (objName == "rdBackground")
         color = colBackground;
-    }
-    if (objName == "rdCtcp") {
+
+    if (objName == "rdCtcp")
         color = colCTCP;
-    }
-    if (objName == "rdDefault") {
+
+    if (objName == "rdDefault")
         color = colDefault;
-    }
-    if (objName == "rdLinks") {
+
+    if (objName == "rdLinks")
         color = colLinks;
-    }
-    if (objName == "rdLocalInfo") {
+
+    if (objName == "rdLocalInfo")
         color = colLocalInfo;
-    }
-    if (objName == "rdNotice") {
+
+    if (objName == "rdNotice")
         color = colNotice;
-    }
-    if (objName == "rdOwn") {
+
+    if (objName == "rdOwn")
         color = colOwntext;
-    }
-    if (objName == "rdServerInfo") {
+
+    if (objName == "rdServerInfo")
         color = colServerInfo;
-    }
+
+    if (objName == "rdInputBg")
+        color = colInputBackground;
+
+    if (objName == "rdInputText")
+        color = colInput;
+
+    if (objName == "rdNicklistBg")
+        color = colListboxBackground;
+
+    if (objName == "rdNicklistText")
+        color = colListbox;
+
+    if (objName == "rdWindowTreeBg")
+        color = colWindowlistBackground;
+
+    if (objName == "rdWindowTreeText")
+        color = colWindowlist;
 
     if (color.length() == 0)
         return;

@@ -40,13 +40,20 @@ void QMyListWidget::contextMenuEvent(QContextMenuEvent *e)
 
 void QMyListWidget::updateCSS()
 {
-    QString bg = conf->colListboxBackground;
-    QString fg = conf->colListbox;
-
-    setStyleSheet( QString("background-color: %1; color: %2;")
-                     .arg(bg)
-                     .arg(fg)
-                  );
+    QPalette pal = palette();
+    pal.setColor(QPalette::Active, QPalette::Base, conf->colListboxBackground);
+    pal.setColor(QPalette::Active, QPalette::AlternateBase, conf->colListboxBackground);
+    pal.setColor(QPalette::Inactive, QPalette::Base, conf->colListboxBackground);
+    pal.setColor(QPalette::Inactive, QPalette::AlternateBase, conf->colListboxBackground);
+    pal.setColor(QPalette::Disabled, QPalette::Base, conf->colListboxBackground);
+    pal.setColor(QPalette::Disabled, QPalette::AlternateBase, conf->colListboxBackground);
+    pal.setColor(QPalette::Active, QPalette::Text, conf->colListbox);
+    pal.setColor(QPalette::Active, QPalette::WindowText, conf->colListbox);
+    pal.setColor(QPalette::Inactive, QPalette::Text, conf->colListbox);
+    pal.setColor(QPalette::Inactive, QPalette::WindowText, conf->colListbox);
+    pal.setColor(QPalette::Disabled, QPalette::Text, conf->colListbox);
+    pal.setColor(QPalette::Disabled, QPalette::WindowText, conf->colListbox);
+    setPalette(pal);
 }
 
 QColor QMyListWidget::getColorFromCode(int num)

@@ -688,10 +688,14 @@ void IWin::setFont(const QFont &font)
 
 void IWin::reloadCSS()
 {
-    if (textdata == NULL)
-        return;
+    if (textdata != NULL)
+        textdata->reloadCSS();
 
-    textdata->reloadCSS();
+    if (input != NULL)
+        input->updateCSS();
+
+    if (listbox != NULL)
+        listbox->updateCSS();
 }
 
 void IWin::clear()

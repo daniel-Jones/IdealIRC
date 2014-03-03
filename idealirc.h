@@ -84,6 +84,7 @@ private:
       void recreateChanlistDlg();
       void recreateScriptManager();
       void chanlistEnabler();
+      void updateTreeViewColor();
 
 protected:
       void showEvent(QShowEvent *);

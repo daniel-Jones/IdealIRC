@@ -63,7 +63,8 @@ private:
     QString colInputBackground;
     QString colListbox;
     QString colListboxBackground;
-
+    QString colWindowlist;
+    QString colWindowlistBackground;
 
 public slots:
     void colorPicked(QColor color);
