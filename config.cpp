@@ -114,6 +114,11 @@ void config::rehash()
     else
         showMotd = stb(ini->ReadIni("Options", "ShowMotd"));
 
+    if (ini->ReadIni("Options", "ShowToolBar").length() == 0)
+        showToolBar = true;
+    else
+        showToolBar = stb(ini->ReadIni("Options", "ShowMotd"));
+
 
     trayNotify = stb(ini->ReadIni("Options", "TrayNotify"));
 
@@ -185,6 +190,12 @@ void config::rehash()
         colOwntext = C_CYAN.name(); // Default value
     else
         colOwntext = c;
+
+    c = ini->ReadIni("Colors", "Highlight");
+    if (c.length() == 0)
+        colHighlight = C_BROWN.name(); // Default value
+    else
+        colHighlight = c;
 
     c = ini->ReadIni("Colors", "Links");
     if (c.length() == 0)
@@ -341,6 +352,7 @@ void config::save()
     ini->WriteIni("Options", "ShowWhois", QString::number(showWhois));
     ini->WriteIni("Options", "CheckVersion", QString::number(checkVersion));
     ini->WriteIni("Options", "ShowMotd", QString::number(showMotd));
+    ini->WriteIni("Options", "ShowToolBar", QString::number(showToolBar));
     ini->WriteIni("Options", "Log", QString::number(logEnabled));
     ini->WriteIni("Options", "LogPath", logPath);
     ini->WriteIni("Options", "LogChan", QString::number(logChannel));
@@ -356,6 +368,7 @@ void config::save()
     ini->WriteIni("Colors", "Background", colBackground);
     ini->WriteIni("Colors", "OwnTextBackground", colOwntextBg);
     ini->WriteIni("Colors", "OwnText", colOwntext);
+    ini->WriteIni("Colors", "Highlight", colHighlight);
     ini->WriteIni("Colors", "Links", colLinks);
     ini->WriteIni("Colors", "Input", colInput);
     ini->WriteIni("Colors", "InputBackground", colInputBackground);

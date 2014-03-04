@@ -128,6 +128,7 @@
 #define PT_ACTION     4  // ACTION style message (/me is afk)
 #define PT_CTCP       5  // CTCP request / reply
 #define PT_OWNTEXT    7  // Messages sent from me
+#define PT_HIGHLIGHT  8  // Messages marked as highlighted
 
 /* Window highlight type */
 #define HL_NONE       0

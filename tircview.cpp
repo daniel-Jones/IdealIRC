@@ -66,50 +66,43 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
     setTextCursor(c);
 
     QString buildLine;
-    QString mainClass = "PT_NORMAL";
+    QString mainClass;
 
     switch (ptype) {
         case PT_NORMAL:
-            buildLine.append("<span class=\"PT_NORMAL\">");
             mainClass = "PT_NORMAL";
             break;
 
         case PT_LOCALINFO:
-            buildLine.append("<span class=\"PT_LOCALINFO\">");
             mainClass = "PT_LOCALINFO";
             break;
 
         case PT_SERVINFO:
-            buildLine.append("<span class=\"PT_SERVINFO\">");
             mainClass = "PT_SERVINFO";
             break;
 
         case PT_NOTICE:
-            buildLine.append("<span class=\"PT_NOTICE\">");
             mainClass = "PT_NOTICE";
             break;
 
         case PT_ACTION:
-            buildLine.append("<span class=\"PT_ACTION\">");
             mainClass = "PT_ACTION";
             break;
 
         case PT_CTCP:
-            buildLine.append("<span class=\"PT_CTCP\">");
             mainClass = "PT_CTCP";
             break;
 
-        case PT_OWNTEXT:
-            buildLine.append("<span class=\"PT_OWNTEXT\">");
-            mainClass = "PT_OWNTEXT";
+        case PT_HIGHLIGHT:
+            mainClass = "PT_HIGHLIGHT";
             break;
 
         default:
-            buildLine.append("<span class=\"PT_NORMAL\">");
             mainClass = "PT_NORMAL";
             break;
-
     }
+
+    buildLine.append( QString("<span class=\"%1\">").arg(mainClass) );
 
     bool bold = false;
     bool underline = false;
@@ -151,137 +144,24 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
             rebuild = false; // done.
         }
 
-        if (cc == 0x02) { // Bold
+        if (cc == CTRL_BOLD) { // Bold
             bold = ! bold;
             rebuild = true;
             continue;
         }
 
 
-        if (cc == 0x03) { // Colors
-            if (i == line.length()-1)
-                break; // At end, just break. nothing more to do. ever.
-
-            bool bgParse = false;
-            QString fgColNum, bgColNum;
-            for (i++; i <= line.length()-1; i++) {
-                // This loop also skips the color codes.
-                // Begin the loop with skipping the ctrl-char.
-
-                cc = line[i];
-
-                if (bgParse)
-                    goto ParseBackground;
-                else
-                    goto ParseForeground;
-
-                ParseForeground:
-                switch (cc.toLatin1()) {
-                    case '0':
-                        fgColNum += cc;
-                        continue;
-                    case '1':
-                        fgColNum += cc;
-                        continue;
-                    case '2':
-                        fgColNum += cc;
-                        continue;
-                    case '3':
-                        fgColNum += cc;
-                        continue;
-                    case '4':
-                        fgColNum += cc;
-                        continue;
-                    case '5':
-                        fgColNum += cc;
-                        continue;
-                    case '6':
-                        fgColNum += cc;
-                        continue;
-                    case '7':
-                        fgColNum += cc;
-                        continue;
-                    case '8':
-                        fgColNum += cc;
-                        continue;
-                    case '9':
-                        fgColNum += cc;
-                        continue;
-
-                    case ',':
-                        bgParse = true;
-                        continue;
-
-                    default:
-                        goto ParseEnd;
-                }
-
-                ParseBackground:
-                switch (cc.toLatin1()) {
-                    case '0':
-                        bgColNum += cc;
-                        continue;
-                    case '1':
-                        bgColNum += cc;
-                        continue;
-                    case '2':
-                        bgColNum += cc;
-                        continue;
-                    case '3':
-                        bgColNum += cc;
-                        continue;
-                    case '4':
-                        bgColNum += cc;
-                        continue;
-                    case '5':
-                        bgColNum += cc;
-                        continue;
-                    case '6':
-                        bgColNum += cc;
-                        continue;
-                    case '7':
-                        bgColNum += cc;
-                        continue;
-                    case '8':
-                        bgColNum += cc;
-                        continue;
-                    case '9':
-                        bgColNum += cc;
-                        continue;
-
-                    default:
-                        goto ParseEnd;
-                }
-
-                ParseEnd:
-                // Reaching here means we got no more numbers to parse.
-                i--;
-                break;
-            }
-            // At this point of code, fgCol and bgCol contains numbers of what colors to use.
-
-            if (fgColNum.length() > 0)
-                fgCol = "cf" + getCustomCSSColor(fgColNum);
-            if (bgColNum.length() > 0)
-                bgCol = "cb" + getCustomCSSColor(bgColNum);
-
-            if (fgCol == "cf")
-                fgCol.clear();
-            if (bgCol == "cb")
-                bgCol.clear();
-
-            if ((fgCol.length() == 0) && (bgCol.length() == 0))
+        if (cc == CTRL_COLOR) { // Colors
+            if (i == line.length()-1) {
                 buildLine.append("</span>");
-
-            colorClasses = QString("%1 %2 ")
-                             .arg(fgCol)
-                             .arg(bgCol);
+                break; // At end, just break. nothing more to do. ever.
+            }
 
             rebuild = true;
-            continue; // i++ will be run at  beginning at for() loop; skipping the ctrl-code for colors will be done here.
+            continue;
         }
 
-        if (cc == 0x1F) { // Underline
+        if (cc == CTRL_UNDERLINE) { // Underline
             underline = ! underline;
             rebuild = true;
             continue;
@@ -489,44 +369,31 @@ void TIRCView::reloadCSS()
     QString css = f->readAll();
     f->close();
 
-    QString ptnormal = conf->colDefault;
-    QString ptlocalinfo = conf->colLocalInfo;
-    QString ptservinfo = conf->colServerInfo;
-    QString ptnotice = conf->colNotice;
-    QString ptaction = conf->colAction;
-    QString ptctcp = conf->colCTCP;
-    QString ptowntextbg = "none";
-    QString ptowntext = conf->colOwntext;
-
     /* not in use.
     if (conf->colOwntextBg > -1)
       ptowntextbg = conf->colOwntextBg;
     */
 
-    QString bgColor = conf->colBackground;
-    QString bgImagePath = conf->bgImagePath;
-
-    QString linkColor = conf->colLinks;
     QString linkUnderline;
 
     if (conf->linkUnderline == false)
         linkUnderline = "text-decoration: none;";
 
-    css.replace("%PT_NORMAL",              ptnormal);
-    css.replace("%PT_LOCALINFO",           ptlocalinfo);
-    css.replace("%PT_SERVINFO",            ptservinfo);
-    css.replace("%PT_NOTICE",              ptnotice);
-    css.replace("%PT_ACTION",              ptaction);
-    css.replace("%PT_CTCP",                ptctcp);
-    css.replace("%PT_OWNTEXT_BACKGROUND",  ptowntextbg);
-    css.replace("%PT_OWNTEXT",             ptowntext);
+    css.replace("%PT_NORMAL",              conf->colDefault);
+    css.replace("%PT_LOCALINFO",           conf->colLocalInfo);
+    css.replace("%PT_SERVINFO",            conf->colServerInfo);
+    css.replace("%PT_NOTICE",              conf->colNotice);
+    css.replace("%PT_ACTION",              conf->colAction);
+    css.replace("%PT_CTCP",                conf->colCTCP);
+    css.replace("%PT_OWNTEXT_BACKGROUND",  "none");
+    css.replace("%PT_OWNTEXT",             conf->colOwntext);
+    css.replace("%PT_HIGHLIGHT",           conf->colHighlight);
 
-    css.replace("%bgColor",                bgColor);
-    css.replace("%bgImage",                bgImagePath);
+    css.replace("%bgColor",                conf->colBackground);
+    css.replace("%bgImage",                conf->bgImagePath);
 
-    css.replace("%linkColor",              linkColor);
+    css.replace("%linkColor",              conf->colLinks);
     css.replace("%linkUnderline",          linkUnderline);
-
 
     document()->setDefaultStyleSheet(css);
     setHtml(textHTML);

@@ -76,6 +76,7 @@ public:
     bool showWhois;
     bool checkVersion;
     bool showMotd;
+    bool showToolBar;
 
     // Colors
     QString colDefault;
@@ -86,6 +87,7 @@ public:
     QString colNotice;
     QString colOwntextBg;
     QString colOwntext;
+    QString colHighlight;
     QString colLinks;
     QString colBackground;
     QString colInput;

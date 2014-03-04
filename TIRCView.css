@@ -72,6 +72,11 @@ a {
   background-color: %PT_OWNTEXT_BACKGROUND;
 }
 
+.PT_HIGHLIGHT
+{
+  color: %PT_HIGHLIGHT;
+}
+
 .PT_OWNTEXT
 {
   color: %PT_OWNTEXT;

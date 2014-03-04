@@ -64,6 +64,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     connect(ui->rdLocalInfo,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdNotice,           SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdOwn,              SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdHighlight,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdInputBg,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdInputText,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdNicklistBg,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
@@ -79,6 +80,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     colorSignals.setMapping(ui->rdLocalInfo,      ui->rdLocalInfo->objectName());
     colorSignals.setMapping(ui->rdNotice,         ui->rdNotice->objectName());
     colorSignals.setMapping(ui->rdOwn,            ui->rdOwn->objectName());
+    colorSignals.setMapping(ui->rdHighlight,      ui->rdHighlight->objectName());
     colorSignals.setMapping(ui->rdServerInfo,     ui->rdServerInfo->objectName());
     colorSignals.setMapping(ui->rdInputText,      ui->rdInputText->objectName());
     colorSignals.setMapping(ui->rdInputBg,        ui->rdInputBg->objectName());
@@ -136,6 +138,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     colNotice               = conf->colNotice;
     colOwntextBg            = conf->colOwntextBg;
     colOwntext              = conf->colOwntext;
+    colHighlight            = conf->colHighlight;
     colLinks                = conf->colLinks;
     colBackground           = conf->colBackground;
     colInput                = conf->colInput;
@@ -211,6 +214,9 @@ void IConfigCustomize::on_colorCode_textChanged(const QString &arg1)
     if (ui->rdOwn->isChecked())
         colOwntext = arg1;
 
+    if (ui->rdHighlight->isChecked())
+        colHighlight = arg1;
+
     if (ui->rdServerInfo->isChecked())
         colServerInfo = arg1;
 
@@ -268,6 +274,7 @@ void IConfigCustomize::saveConfig()
     conf->colNotice                 = colNotice;
     conf->colOwntextBg              = colOwntextBg;
     conf->colOwntext                = colOwntext;
+    conf->colHighlight              = colHighlight;
     conf->colLinks                  = colLinks;
     conf->colBackground             = colBackground;
     conf->colInput                  = colInput;
@@ -304,6 +311,9 @@ void IConfigCustomize::colorSelected(QString objName)
 
     if (objName == "rdOwn")
         color = colOwntext;
+
+    if (objName == "rdHighlight")
+        color = colHighlight;
 
     if (objName == "rdServerInfo")
         color = colServerInfo;

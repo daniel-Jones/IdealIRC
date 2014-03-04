@@ -643,12 +643,15 @@ void IConnection::parse(QString &data)
                        .arg(text);
 
             emit RequestWindow(chan, WT_CHANNEL, cid, false);
-            print(chan.toUpper(), tx);
 
-            if (text.contains(activeNick, Qt::CaseInsensitive))
+            if (text.contains(activeNick, Qt::CaseInsensitive)) {
+                print(chan.toUpper(), tx, PT_HIGHLIGHT);
                 emit HighlightWindow(w.wid, HL_HIGHLIGHT);
-            else
+            }
+            else {
+                print(chan.toUpper(), tx);
                 emit HighlightWindow(w.wid, HL_MSG);
+            }
 
             // Check if our nickname is in the text, if so, put up a tray notify
             if (data.indexOf(activeNick, Qt::CaseInsensitive) > -1)

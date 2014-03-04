@@ -64,6 +64,8 @@ IdealIRC::IdealIRC(QWidget *parent) :
     if (conf.maximized)
       setWindowState(Qt::WindowMaximized);
 
+    ui->toolBar->setVisible(conf.showToolBar);
+
     connect(&vc, SIGNAL(gotVersion()),
             this, SLOT(versionReceived()));
 

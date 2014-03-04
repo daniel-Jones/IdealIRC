@@ -20,7 +20,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -120,10 +120,27 @@
           <enum>QFrame::Raised</enum>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="12" column="0">
-           <widget class="QRadioButton" name="rdNicklistText">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="rdDefault">
             <property name="text">
-             <string>Nicklist text</string>
+             <string>Default text</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QRadioButton" name="rdLinks">
+            <property name="text">
+             <string>Links</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="rdLocalInfo">
+            <property name="text">
+             <string>Local info</string>
             </property>
            </widget>
           </item>
@@ -134,10 +151,31 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="0">
+          <item row="11" column="0">
+           <widget class="QRadioButton" name="rdInputText">
+            <property name="text">
+             <string>Input text</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QRadioButton" name="rdOwn">
+            <property name="text">
+             <string>Own text</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
            <widget class="QRadioButton" name="rdBackground">
             <property name="text">
              <string>Background</string>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="0">
+           <widget class="QRadioButton" name="rdWindowTreeText">
+            <property name="text">
+             <string>Windowtree text</string>
             </property>
            </widget>
           </item>
@@ -155,27 +193,24 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QRadioButton" name="rdDefault">
+          <item row="13" column="0">
+           <widget class="QRadioButton" name="rdNicklistText">
             <property name="text">
-             <string>Default text</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Nicklist text</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QRadioButton" name="rdLocalInfo">
-            <property name="text">
-             <string>Local info</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0">
+          <item row="10" column="0">
            <widget class="QRadioButton" name="rdInputBg">
             <property name="text">
              <string>Input bg.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="14" column="0">
+           <widget class="QRadioButton" name="rdWindowTreeBg">
+            <property name="text">
+             <string>Windowtree bg.</string>
             </property>
            </widget>
           </item>
@@ -186,45 +221,17 @@
             </property>
            </widget>
           </item>
-          <item row="13" column="0">
-           <widget class="QRadioButton" name="rdWindowTreeBg">
-            <property name="text">
-             <string>Windowtree bg.</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QRadioButton" name="rdLinks">
-            <property name="text">
-             <string>Links</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0">
-           <widget class="QRadioButton" name="rdInputText">
-            <property name="text">
-             <string>Input text</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QRadioButton" name="rdOwn">
-            <property name="text">
-             <string>Own text</string>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="0">
+          <item row="12" column="0">
            <widget class="QRadioButton" name="rdNicklistBg">
             <property name="text">
              <string>Nicklist bg.</string>
             </property>
            </widget>
           </item>
-          <item row="14" column="0">
-           <widget class="QRadioButton" name="rdWindowTreeText">
+          <item row="8" column="0">
+           <widget class="QRadioButton" name="rdHighlight">
             <property name="text">
-             <string>Windowtree text</string>
+             <string>Highlight</string>
             </property>
            </widget>
           </item>
@@ -581,6 +588,8 @@
   <tabstop>chkShowOptions</tabstop>
   <tabstop>chkShowWhois</tabstop>
   <tabstop>chkShowMotd</tabstop>
+  <tabstop>chkTrayNotify</tabstop>
+  <tabstop>edTray</tabstop>
   <tabstop>edQuit</tabstop>
   <tabstop>rdDefault</tabstop>
   <tabstop>rdLocalInfo</tabstop>
@@ -590,15 +599,28 @@
   <tabstop>rdNotice</tabstop>
   <tabstop>rdLinks</tabstop>
   <tabstop>rdOwn</tabstop>
+  <tabstop>rdHighlight</tabstop>
   <tabstop>rdBackground</tabstop>
+  <tabstop>rdInputBg</tabstop>
+  <tabstop>rdInputText</tabstop>
+  <tabstop>rdNicklistBg</tabstop>
+  <tabstop>rdNicklistText</tabstop>
+  <tabstop>rdWindowTreeBg</tabstop>
+  <tabstop>rdWindowTreeText</tabstop>
   <tabstop>colorCode</tabstop>
-  <tabstop>colorPick</tabstop>
+  <tabstop>slideR</tabstop>
+  <tabstop>slideG</tabstop>
+  <tabstop>slideB</tabstop>
+  <tabstop>slideH</tabstop>
+  <tabstop>slideS</tabstop>
+  <tabstop>slideV</tabstop>
   <tabstop>chkUnderlineLinks</tabstop>
   <tabstop>chkModes</tabstop>
   <tabstop>chkTimestamp</tabstop>
   <tabstop>edTimeFormat</tabstop>
   <tabstop>fontComboBox</tabstop>
   <tabstop>spinBox</tabstop>
+  <tabstop>colorPick</tabstop>
  </tabstops>
  <resources/>
  <connections>

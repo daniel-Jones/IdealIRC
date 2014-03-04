@@ -57,6 +57,7 @@ private:
     QString colNotice;
     QString colOwntextBg;
     QString colOwntext;
+    QString colHighlight;
     QString colLinks;
     QString colBackground;
     QString colInput;
