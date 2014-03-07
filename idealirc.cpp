@@ -201,6 +201,7 @@ void IdealIRC::closeEvent(QCloseEvent *e)
         }
     }
 
+    conf.showToolBar = ui->toolBar->isVisible();
     conf.maximized = isMaximized();
     conf.save();
 

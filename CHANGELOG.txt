@@ -1,3 +1,15 @@
+0.3.3 - March 7th 2014
+ * Brand new color picker, much more functional than the previous one.
+ * Setting new colors does not save them immediately now.
+ * Added new color options for input, nicklist and the tree view.
+ * Messages sent to you are now highlighted with a different color (tree view item will also become blue)
+ * New color parsing for the text view
+ * Added /Ctcp command.
+ * Added rejoin on connect.
+ * Functions in scripting can now use "..." as parameter making it possible to pass in infinite arguments. See wiki for documentation.
+ * Toolbar's visibility is now stored in config.
+ * Major code cleaning. More can still be cleaned and be done more efficient.
+
 0.3.0, 0.3.1 and 0.3.2 - March 1st 2014
  * Added a script editor
  * Added a tray icon with notification
@@ -47,14 +59,5 @@
 
  
 
-lavest prioritet MEN SKAL implementeres:
+Lowest priority but WILL be implemented some time:
  - http://ircv3.atheme.org/
-
-Todo
- * IChanConfig: mode k, l må fullføres. Endring av kanal innstillinger mangler.
-
-Øvrige ting som må gjøres:
-DCC
-MOTD skal åpnes i eget vindu og skrives i status (dette skal være default, men kan skrus av).
-Kanal favoritter, skal åpnes ved tilkopling. Denne baseres på 001 numeric, og kommer før MOTD slik at MOTD boksen vil komme fremst.
-Skripting

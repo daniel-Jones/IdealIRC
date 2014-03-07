@@ -117,7 +117,7 @@ void config::rehash()
     if (ini->ReadIni("Options", "ShowToolBar").length() == 0)
         showToolBar = true;
     else
-        showToolBar = stb(ini->ReadIni("Options", "ShowMotd"));
+        showToolBar = stb(ini->ReadIni("Options", "ShowToolBar"));
 
     if (ini->ReadIni("Options", "AutoReJoin").length() == 0)
         autoReJoin = false;
