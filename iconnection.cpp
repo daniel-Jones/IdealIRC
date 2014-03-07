@@ -676,7 +676,7 @@ void IConnection::parse(QString &data)
             if (ctcp.toUpper() == "PING") {
                 // Parse this.
                 if (msg.length() == 0) {
-                    print( "STATUS", tr("* CTCP %1 reply from %2: ? seconds")
+                    print( "STATUS", tr("CTCP %1 reply from %2: ? seconds")
                                        .arg(ctcp)
                                        .arg(u.nick),
                            PT_CTCP
@@ -689,7 +689,7 @@ void IConnection::parse(QString &data)
                 char clag[16];
                 sprintf(clag, "%.2f", lag);
                 QString s_lag(clag);
-                print( "STATUS", tr("* CTCP %1 reply from %2: %3 seconds")
+                print( "STATUS", tr("CTCP %1 reply from %2: %3 seconds")
                                    .arg(ctcp)
                                    .arg(u.nick)
                                    .arg(s_lag),
@@ -700,7 +700,7 @@ void IConnection::parse(QString &data)
             }
 
             if (msg.length() > 0)
-                print( "STATUS", tr("* CTCP %1 reply from %2: %3")
+                print( "STATUS", tr("CTCP %1 reply from %2: %3")
                                    .arg(ctcp)
                                    .arg(u.nick)
                                    .arg(msg),
@@ -708,7 +708,7 @@ void IConnection::parse(QString &data)
                       );
 
             if (msg.length() == 0)
-                print( "STATUS", tr("* CTCP %1 reply from %2")
+                print( "STATUS", tr("CTCP %1 reply from %2")
                                    .arg(ctcp)
                                    .arg(u.nick),
                        PT_CTCP
@@ -1398,6 +1398,26 @@ void IConnection::parseNumeric(int numeric, QString &data)
                              .arg(host)
                              .arg(port);
 
+        if (conf->autoReJoin) {
+            // Rejoin channels which is open
+            QHashIterator<QString,subwindow_t> i(winlist);
+            QString channels;
+            while (i.hasNext()) {
+                i.next();
+                subwindow_t sw = i.value();
+
+                if (sw.type != WT_CHANNEL)
+                    continue;
+
+                QString target = sw.widget->getTarget();
+                if (! channels.isEmpty())
+                    channels.append(',');
+                channels.append(target);
+            }
+
+            sockwrite(QString("JOIN %1").arg(channels));
+        }
+
         scriptParent->runevent(te_connect, QStringList()<<hostinfo);
     }
 
@@ -1427,7 +1447,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         for (int i = 3; i <= token.count()-1; i++) {
             QStringList lst = token[i].split('=');
 
-            if (lst.at(0) == "CHANMODES") {
+            if (lst[0] == "CHANMODES") {
                 /*
                 * Unreal: CHANMODES=beIqa,kfL,lj,psmntirRcOAQKVCuzNSMTGZ
                 *   IRCu: CHANMODES=b,AkU,l,imnpstrDdR

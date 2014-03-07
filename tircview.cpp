@@ -19,7 +19,7 @@
  */
 
 #include "tircview.h"
-#include <iostream>
+#include <QDebug>
 #include <QScrollBar>
 #include <QTextCursor>
 #include <QPainter>
@@ -67,6 +67,7 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
 
     QString buildLine;
     QString mainClass;
+    bool colorOpen = false; // True if a color is open, has to be closed on end of line.
 
     switch (ptype) {
         case PT_NORMAL:
@@ -114,31 +115,29 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
     QString link;
     QString linkText;
 
-    QString colorClasses;
-    QString fgCol;
-    QString bgCol;
+    QString colorClasses, fg_num, bg_num;
 
-    for (int i = 0; i <= line.length()-1; i++) {
+    for (int i = 0; i <= line.length()-1; ++i) {
         // Find control codes, etc.
-        QChar cc = line.at(i);
-        QChar prevcc = line.at(i);
+        QChar cc = line[i];
+        QChar prevcc = line[i];
         if (i > 0)
-            prevcc = line.at(i-1);
+            prevcc = line[i-1];
 
         if (rebuild) {
-            // 'c' contains control codes:
+            // 'c' contains control codes (except colors):
             QString c = colorClasses;
             if (bold)
-                c.append(" ctbold");
+                c += " ctbold";
             if (underline)
-                c.append(" ctunderline");
+                c += " ctunderline";
 
-            if (c.length() == 0)
+            if (c.isEmpty())
                 buildLine.append( QString("</span><span class=\"%1\">").arg(mainClass));
             else
                 buildLine.append( QString("</span><span class=\"%1 %2\">")
-                                  .arg(mainClass)
-                                  .arg(c)
+                                    .arg(mainClass)
+                                    .arg(c)
                                  );
 
             rebuild = false; // done.
@@ -154,7 +153,93 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
         if (cc == CTRL_COLOR) { // Colors
             if (i == line.length()-1) {
                 buildLine.append("</span>");
+                colorOpen = false;
                 break; // At end, just break. nothing more to do. ever.
+            }
+
+            enum {
+                st_Foreground,
+                st_Background
+            };
+            /*
+                "C" replaces the control code for color
+
+                C4        - Red foreground
+                C4,1      - Red foreground, black background
+                C,4       - Red background
+                C2,       - Blue foreground, reset background
+                C (alone) - reset all
+            */
+
+            int state = st_Foreground;
+            bool fgReset = false;
+            bool bgReset = false;
+            for (++i; i <= line.length()-1; ++i) {
+                cc = line[i];
+                bool isNum = false;
+                QString(cc).toInt(&isNum);
+
+                if (state == st_Foreground) {
+                    if (cc == ',') {
+                        // Switch to bacground number...
+                        state = st_Background;
+                        continue;
+                    }
+
+                    if (isNum) {
+                        // Add number to foreground...
+                        if (!fgReset) {
+                            fg_num.clear();
+                            fgReset = true;
+                        }
+                        fg_num += cc;
+                        continue;
+                    }
+                    else {
+                        // Normal text, break out.
+                        if (line[i-1] == CTRL_COLOR) { // no color added. (end code)
+                            //buildLine.append("</span>");
+                            //colorOpen = false;
+                            colorClasses.clear();
+                            fg_num.clear();
+                            bg_num.clear();
+                        }
+                        --i;
+                        break;
+                    }
+                }
+
+                if (state == st_Background) {
+                    if (isNum) {
+                        // Add number to background...
+                        if (!bgReset) {
+                            bg_num.clear();
+                            bgReset = true;
+                        }
+                        bg_num += cc;
+                        continue;
+                    }
+                    else {
+                        // Normal text, break out.
+                        --i;
+                        break;
+                    }
+                }
+            }
+
+            if (fg_num.isEmpty() && bg_num.isEmpty())
+                //buildLine.append("</span>");
+                colorClasses.clear();
+            else {
+                colorClasses.clear();
+                if (fg_num.length() > 0)
+                    colorClasses += " cf" + getCustomCSSColor(fg_num);
+
+                if (bg_num.length() > 0)
+                    colorClasses += " cb" + getCustomCSSColor(bg_num);
+
+                //buildLine.append(QString("<span class=\"%1\">").arg(c));
+                //colorOpen = true;
             }
 
             rebuild = true;
@@ -297,7 +382,7 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
         }
 
         else
-        buildLine.append(add);
+            buildLine.append(add);
 
     }
 
@@ -308,7 +393,7 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
                          );
 
 
-    if ((bold) || (underline) || (colorClasses.length() > 0))
+    if (bold || underline || !colorClasses.isEmpty())
         buildLine.append("</span>");
 
     if (ptype == PT_OWNTEXT)

@@ -345,7 +345,7 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             return true;
         }
 
-        QFile *f = new QFile(param.at(0));
+        QFile *f = new QFile(param[0]);
 
         if (! f->open(om)) {
             result = "0";

@@ -77,6 +77,7 @@ public:
     bool checkVersion;
     bool showMotd;
     bool showToolBar;
+    bool autoReJoin;
 
     // Colors
     QString colDefault;

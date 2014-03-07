@@ -119,6 +119,11 @@ void config::rehash()
     else
         showToolBar = stb(ini->ReadIni("Options", "ShowMotd"));
 
+    if (ini->ReadIni("Options", "AutoReJoin").length() == 0)
+        autoReJoin = false;
+    else
+        autoReJoin = stb(ini->ReadIni("Options", "AutoReJoin"));
+
 
     trayNotify = stb(ini->ReadIni("Options", "TrayNotify"));
 
@@ -353,6 +358,7 @@ void config::save()
     ini->WriteIni("Options", "CheckVersion", QString::number(checkVersion));
     ini->WriteIni("Options", "ShowMotd", QString::number(showMotd));
     ini->WriteIni("Options", "ShowToolBar", QString::number(showToolBar));
+    ini->WriteIni("Options", "AutoReJoin", QString::number(autoReJoin));
     ini->WriteIni("Options", "Log", QString::number(logEnabled));
     ini->WriteIni("Options", "LogPath", logPath);
     ini->WriteIni("Options", "LogChan", QString::number(logChannel));

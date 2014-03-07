@@ -43,13 +43,11 @@ void TScript::delWhitespace(QString *text)
     int i = 0;
 
     for (; i <= text->length()-1; i++) {
-        if (text->at(i) == 0x20) // Space
+        if (text->at(i) == ' ') // Space
             continue;
-        if (text->at(i) == 0x0B) // TAB
+        if (text->at(i) == '\t') // Tab
             continue;
-        if (text->at(i) == 0x0D) // Carriage return
-            continue;
-        if (text->at(i) == '\n')
+        if (text->at(i) == '\n') // newline
             continue;
 
         break; // break at first occurence of _anything else_ than whitespaces.
@@ -193,7 +191,9 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
         ex_Timer,
         ex_ScriptName,
         ex_FunctionName = 10,
-        ex_MenuName,
+        ex_MenuType,
+        ex_MenuTitle,
+        ex_MenuFunction,
         ex_DialogName,
         ex_DialogTitle,
         ex_DialogGeometry,
@@ -344,12 +344,14 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                         keyword.clear();
                         continue;
                     }
-                    /*
+
                     else if (keywup == "MENU") {
-                        ex = ex_MenuName;
+                        ex = ex_MenuType;
+                        state = st_Menu;
+                        keyword.clear();
                         continue;
                     }
-                    */
+
                     else if (keywup == "DIALOG") {
                         ex = ex_DialogName;
                         state = st_Dialog;
@@ -372,6 +374,13 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                     dialog =  new TCustomScriptDialog(keyword, dlgParent, this);
                     connect(dialog, SIGNAL(runEvent(e_iircevent,QStringList)),
                     this, SLOT(runEvent(e_iircevent,QStringList)));
+                    ex = ex_Brace;
+                    keyword.clear();
+                    continue;
+                }
+
+                if (ex == ex_MenuType) {
+                    temp[0] = keyword;
                     ex = ex_Brace;
                     keyword.clear();
                     continue;
@@ -621,6 +630,25 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 
                 }
 
+                if (state == st_Menu) {
+                    if (ex == ex_Statement) {
+                        if (keyword == "=") {
+                            ex = ex_MenuFunction;
+                            keyword.clear();
+                            continue;
+                        }
+
+                        if (temp[1].length() > 0)
+                            temp[1] += ' ';
+                        temp[1] += keyword;
+                    }
+
+                    if (ex == ex_MenuFunction) {
+                        ex = ex_Statement;
+
+                        qDebug() << "menu" << temp[0] << " - " << temp[1] << keyword;
+                    }
+                }
             }
 
             keyword.clear();
@@ -1226,6 +1254,19 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     }
 
     QStringList scpar = par.split(','); // parameter names
+    if (par == "...") {
+        scpar.clear();
+        QString all;
+        for (int i = 0; i <= param.count()-1; i++) {
+            scpar << QString("%%1").arg(i+1);
+            if (all.count() > 0)
+                all += ' ';
+            all += param[i];
+        }
+
+        scpar << "%0";
+        param << all;
+    }
 
     if (scpar.count() == 1)
         if (scpar[0].length() == 0)

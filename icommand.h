@@ -64,6 +64,8 @@ private:
     QString getCurrentTarget();
     QString getCurrentNickname();
     subwindow_t getCurrentSubwin();
+    QString NotConnectedToServer(QString command) { return tr("%1: Not connected to server.").arg(command); }
+    QString InsufficientParameters(QString command) { return tr("%1: Insufficient parameters").arg(command); }
 };
 
 #endif // ICOMMAND_H

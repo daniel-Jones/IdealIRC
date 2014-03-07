@@ -55,6 +55,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     ui->edTimeFormat->setText( conf->timestamp );
     ui->chkTrayNotify->setChecked( conf->trayNotify );
     ui->edTray->setValue( conf->trayNotifyDelay/1000 );
+    ui->chkReJoin->setChecked( conf->autoReJoin );
 
     connect(ui->rdActions,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdBackground,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
@@ -265,6 +266,7 @@ void IConfigCustomize::saveConfig()
     conf->timestamp = ui->edTimeFormat->text();
     conf->trayNotify = ui->chkTrayNotify->isChecked();
     conf->trayNotifyDelay = ui->edTray->value()*1000;
+    conf->autoReJoin = ui->chkReJoin->isChecked();
 
     conf->colDefault                = colDefault;
     conf->colLocalInfo              = colLocalInfo;

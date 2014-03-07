@@ -48,11 +48,11 @@ bool ICommand::parse(QString command)
 
     if (t1 == "JOIN") {
         if (! connection->isOnline()) {
-            localMsg(tr("/Join: Not connected to server."));
+            localMsg(NotConnectedToServer("/Join"));
             return true;
         }
         if (token.count() == 1) {
-            localMsg(tr("/Join: Insufficent parameters."));
+            localMsg(InsufficientParameters("/Join"));
             return true;
         }
         if (token.count() == 2) {
@@ -66,11 +66,11 @@ bool ICommand::parse(QString command)
 
     if (t1 == "PART") {
         if (! connection->isOnline()) {
-            localMsg(tr("/Part: Not connected to server."));
+            localMsg(NotConnectedToServer("/Part"));
             return true;
         }
         if (token.count() == 1) {
-            localMsg(tr("/Part: Insufficent parameters."));
+            localMsg(InsufficientParameters("/Part"));
             return true;
         }
         if (token.count() == 2) {
@@ -84,7 +84,7 @@ bool ICommand::parse(QString command)
 
     if (t1 == "ME") {
         if (! connection->isOnline()) {
-            localMsg(tr("/Me: Not connected to server."));
+            localMsg(NotConnectedToServer("/Me"));
             return true;
         }
         subwindow_t wt = winlist->value(activewin());
@@ -99,11 +99,11 @@ bool ICommand::parse(QString command)
 
     if (t1 == "MSG") {
         if (! connection->isOnline()) {
-            localMsg(tr("/Msg: Not connected to server."));
+            localMsg(NotConnectedToServer("/Msg"));
             return true;
         }
         if (token.count() < 3) {
-            localMsg(tr("/Msg: Insufficient parameters."));
+            localMsg(InsufficientParameters("/Me"));
             return true;
         }
         QString text = command.mid(token[1].length()+5);
@@ -113,11 +113,11 @@ bool ICommand::parse(QString command)
 
     if (t1 == "NOTICE") {
         if (! connection->isOnline()) {
-            localMsg(tr("/Notice: Not connected to server."));
+            localMsg(NotConnectedToServer("/Notice"));
             return true;
         }
         if (token.count() < 3) {
-            localMsg(tr("/Notice: Insufficient parameters."));
+            localMsg(InsufficientParameters("/Notice"));
             return true;
         }
         QString text = command.mid(token[1].length()+8);
@@ -181,7 +181,7 @@ bool ICommand::parse(QString command)
 
     if (t1 == "PING") {
         if (! connection->isOnline()) {
-            localMsg(tr("/Ping: Not connected to server."));
+            localMsg(NotConnectedToServer("/Ping"));
             return true;
         }
         QString ms = QString::number(QDateTime::currentMSecsSinceEpoch());
@@ -190,6 +190,42 @@ bool ICommand::parse(QString command)
         sockwrite( QString("PING :%1")
                      .arg(ms)
                   );
+        return true;
+    }
+
+    if (t1 == "CTCP") {
+        if (! connection->isOnline()) {
+            localMsg(NotConnectedToServer("/Ctcp"));
+            return true;
+        }
+
+        if (token.count() < 3) {
+            localMsg(InsufficientParameters("/Ctcp"));
+            return true;
+        }
+
+        // /ctcp target msg param param param ...
+
+        int skip = 0;
+        for (int i = 0; i <= 1; ++i)
+            skip += token[i].length() + 1;
+        QString msg = command.mid(skip).toUpper();
+
+        if (msg == "PING") {
+            QString ms = QString::number( QDateTime::currentMSecsSinceEpoch() );
+            msg += ' ';
+            msg += ms;
+        }
+
+        QString pre;
+        pre += char(0x01);
+        msg += char(0x01);
+        pre += msg;
+        sockwrite( QString("PRIVMSG %1 :%2")
+                     .arg(token[1])
+                     .arg(pre)
+                  );
+
         return true;
     }
 
