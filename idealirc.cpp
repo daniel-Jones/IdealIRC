@@ -161,13 +161,6 @@ void IdealIRC::showEvent(QShowEvent *)
 
     scriptParent.loadAllScripts();
     scriptParent.runevent(te_start);
-
-
-    QString text = QString("Farger. \x034Rød farge her.\x03 så ble det tomt.");
-//            .arg(QChar(CTRL_COLOR));
-
-    subwindow_t first = winlist.value(1);
-    first.widget->print(text);
 }
 
 void IdealIRC::closeEvent(QCloseEvent *e)
