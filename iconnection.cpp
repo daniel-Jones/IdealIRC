@@ -1980,7 +1980,8 @@ void IConnection::parseNumeric(int numeric, QString &data)
     else if (numeric == RPL_ENDOFNAMES) {
         QString chan = token[3];
         receivingNames = false;
-        winlist.value(chan.toUpper()).widget->sortMemberList();
+        if (chan != "*")
+            winlist.value(chan.toUpper()).widget->sortMemberList();
     }
 
     else if (numeric == RPL_LINKS) {        

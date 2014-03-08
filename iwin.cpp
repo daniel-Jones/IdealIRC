@@ -328,10 +328,7 @@ void IWin::inputEnterPushed()
 
     input->clear();
 
-    std::cout << "ENTER PUSHED " << WindowType << "=\"" << text.toStdString().c_str() << "\"" << std::endl;
-
     if (text[0] == '/') {
-
 
         bool commandOk = cmdhndl->parse(text);
 

@@ -94,6 +94,10 @@ void TIRCView::addLine(QString line, int ptype, bool rebuilding)
             mainClass = "PT_CTCP";
             break;
 
+        case PT_OWNTEXT:
+            mainClass = "PT_OWNTEXT";
+            break;
+
         case PT_HIGHLIGHT:
             mainClass = "PT_HIGHLIGHT";
             break;
