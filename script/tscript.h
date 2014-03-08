@@ -24,7 +24,10 @@
 #include <QWidget>
 #include <QStringList>
 #include <QHash>
+#include <QList>
 #include <QFile>
+#include <QAction>
+#include <QSignalMapper>
 
 #include "constants.h"
 #include "tscriptinternalfunctions.h"
@@ -71,16 +74,18 @@ enum e_scriptresult {
     se_EscapeOnEndLine,
     se_UnexpectedNewline = 25,
     se_NegativeNotAllowed,
-    se_FSeekFailed
+    se_FSeekFailed,
+    se_UnrecognizedMenu
 };
+
+class TScriptParent;
 
 class TScript : public QObject
 {
-
   Q_OBJECT
 
 public:
-    TScript(QObject *parent, QWidget *dialogParent, QString fname);
+    TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname);
     e_scriptresult loadScript2(QString includeFile = "", QString parent = "");
     e_scriptresult runf(QString function, QStringList param, QString &result, bool ignoreParamCount = false);
 
@@ -91,9 +96,12 @@ public:
     QString getPath() { return filename; }
     QString getErrorKeyword() { return errorKeyword; }
     int getCurrentLine() { return curLine; }
+    QList<QAction*> *getCustomNicklistMenu() { return &customNicklistMenu; }
+    QList<QAction*> *getCustomChannelMenu() { return &customChannelMenu; }
 
 private:
     QWidget *dlgParent;
+    TScriptParent *scriptParent;
     TScriptInternalFunctions ifn;
     TSockFactory sockets;
     QString filename;
@@ -106,6 +114,13 @@ private:
     QHash<QString,QString> container; // data container that's accessible by all function in current script.
     QHash<QString,TCustomScriptDialog*> dialogs;
     QHash<int,t_sfile> files; // file descriptor, QFile
+
+    QList<QAction*> customNicklistMenu;
+    QList<QAction*> customChannelMenu;
+    void resetMenu(QList<QAction*> *menu); // Use for re-parsing the menu structure
+    QSignalMapper nicklistMenuMapper;
+    QSignalMapper channelMenuMapper;
+
     e_scriptresult _runf_private2(int pos, QString function, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar, QString &result);
     e_iircevent getEvent(QString event); // Convert event string name to internal code
     void errorHandler(e_scriptresult res);
@@ -139,6 +154,10 @@ private:
 public slots:
     void timerTimeout(QString fn);
     bool runEvent(e_iircevent evt, QStringList param);
+
+private slots:
+    void nicklistMenuItemTriggered(QString function);
+    void channelMenuItemTriggered(QString function);
 
 signals:
     void execCmdSignal(QString cmd); // command param param2 ...

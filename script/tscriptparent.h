@@ -25,6 +25,8 @@
 #include <QStringList>
 #include <QVector>
 #include <QHash>
+#include <QAction>
+
 #include "config.h"
 #include "icommand.h"
 #include "tscript.h"
@@ -57,6 +59,10 @@ public:
     void loadAllScripts();
     void getToolbarPtr(QHash<QString,toolbar_t> **tb) { *tb = &toolbar; }
     void runScriptFunction(QString script, QString function);
+    QList<QAction*> getCustomNicklistMenu(); // Get items from all scripts.
+    QList<QAction*> getCustomChannelMenu(); // Get items from all scripts.
+    QStringList getCurrentNickSelection(); // Gets selected nicknames in active window (used for custom nicklist menu items)
+    QString getCurrentWindow(); // Gets the current window that's active
 
 signals:
     void refreshToolbar();

@@ -463,11 +463,15 @@ void IWin::splitterMoved(int, int)
 
 void IWin::textboxMenuRequested(QPoint p)
 {
+    textboxMenu->addActions( scriptParent->getCustomChannelMenu() );
+
     textboxMenu->popup(p);
 }
 
 void IWin::listboxMenuRequested(QPoint p)
 {
+    listboxMenu->addActions( scriptParent->getCustomNicklistMenu() );
+
     listboxMenu->popup(p);
 }
 
@@ -822,6 +826,20 @@ void IWin::doGfx(e_painting command, QStringList param)
 
         return;
     }
+}
+
+QStringList IWin::getSelectedMembers()
+{
+    const QList<QListWidgetItem*> sel = listbox->selectedItems();
+    QStringList list;
+    for (int i = 0; i <= sel.length()-1; ++i) {
+        QString nick = sel[i]->text();
+        if (connection->isValidCuLetter(nick[0].toLatin1()))
+            nick = nick.mid(1);
+        list << nick;
+    }
+
+    return list;
 }
 
 void IWin::picwinMouseEvent(e_iircevent event, int x, int y, int delta)

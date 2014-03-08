@@ -91,6 +91,7 @@ public:
       void reloadCSS(); // Runs only if TIRCVIEW is present.
       void clear(); // Clear contents
       void doGfx(e_painting command, QStringList param);
+      QStringList getSelectedMembers(); // Returns a list of selected nicknames.
 
 private:
       Ui::IWin *ui;
@@ -160,7 +161,6 @@ private slots:
       void on_actionTake_voice_triggered();
       void on_nickmenu_Query_triggered();
       void on_nickmenu_Whois_triggered();
-
       void on_actionKick_triggered();
 
 signals:

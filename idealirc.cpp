@@ -852,6 +852,6 @@ QSystemTrayIcon::MiddleClick	4	The system tray entry was clicked with the middle
 
 void IdealIRC::trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon)
 {
-    if (conf.trayNotify)
+    if (conf.trayNotify && isActiveWindow())
         trayicon.showMessage(title, message, icon, conf.trayNotifyDelay);
 }

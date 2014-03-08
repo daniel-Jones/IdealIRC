@@ -18,14 +18,15 @@
  *
  */
 
-#include "tscriptparent.h"
-#include "iconnection.h"
-#include "iwin.h"
 #include <iostream>
 #include <QStringList>
 #include <QUrl>
 #include <QDesktopServices>
 #include <QApplication>
+#include <QVectorIterator>
+#include "tscriptparent.h"
+#include "iconnection.h"
+#include "iwin.h"
 
 TScriptParent::TScriptParent(QObject *parent, QWidget *dialogParent, config *cfg,
                              QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl,
@@ -52,7 +53,7 @@ bool TScriptParent::loadScript(QString path, bool starting)
 {
     std::cout << "Loading '" << path.toStdString().c_str() << "'" << std::endl;
 
-    TScript *s = new TScript(this, dlgParent, path);
+    TScript *s = new TScript(this, this, dlgParent, path);
 
     connect(s, SIGNAL(error(QString)),
                this, SLOT(gotScriptError(QString)));
@@ -262,78 +263,93 @@ bool TScriptParent::loader(TScript *script)
   // Note: Line numbers are incorrect because the scripts truncate blank lines and comments.
     // Solution: Map actual line numbers with internal numbers?
 
-  e_scriptresult sr = script->loadScript2();
-  bool ok = false;
-  switch (sr) {
-    case se_FileCannotOpen:
-      gotScriptError( tr("Cannot open file %1")
-                        .arg(script->getPath())
-                     );
-      break;
-    case se_FileEmpty:
-      gotScriptError( tr("File %1 is empty")
-                        .arg(script->getPath())
-                     );
-      break;
-    case se_UnexpectedToken:
-      gotScriptError( tr("Unexpected token at '%1', line %2")
-                        .arg(script->getErrorKeyword())
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_UnexpectedNewline:
-      gotScriptError( tr("Unexpected line break at '%1', line %2")
-                        .arg(script->getErrorKeyword())
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_UnexpectedFinish:
-      gotScriptError( tr("Unexpected finish at '%1', line %2")
-                        .arg(script->getErrorKeyword())
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_InvalidMetaCommand:
-      gotScriptError( tr("Unexpected meta command '%1', line %2")
-                        .arg(script->getErrorKeyword())
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_InvalidEvent:
-      gotScriptError( tr("Invalid event on line %1")
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_InvalidBlockType:
-      gotScriptError( tr("Invalid block type on line %1")
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_InvalidParamCount:
-      gotScriptError( tr("Invalid parameter count on line %1")
-                        .arg(script->getCurrentLine())
-                     );
-      break;
-    case se_InvalidFileDescriptor:
-      gotScriptError( tr("Invalid file descriptor on line %1")
-                        .arg(script->getCurrentLine())
-                     );
-      break;
+    e_scriptresult sr = script->loadScript2();
+    bool ok = false;
+    switch (sr) {
+        case se_FileCannotOpen:
+            gotScriptError( tr("Cannot open file %1")
+                            .arg(script->getPath())
+                         );
+            break;
 
+        case se_FileEmpty:
+            gotScriptError( tr("File %1 is empty")
+                            .arg(script->getPath())
+                         );
+            break;
 
-    case se_None:
-      ok = true;
-      break;
-    default:
-      ok = false;
-      gotScriptWarning(tr("Script loader returned abnormally, code %1").arg(sr));
-      break;
-  }
+        case se_UnexpectedToken:
+            gotScriptError( tr("Unexpected token at '%1', line %2")
+                            .arg(script->getErrorKeyword())
+                            .arg(script->getCurrentLine())
+                         );
+            break;
 
-  if (! ok)
-    gotScriptError(tr("Unable to load script %1").arg(script->getPath()));
+        case se_UnexpectedNewline:
+            gotScriptError( tr("Unexpected line break at '%1', line %2")
+                            .arg(script->getErrorKeyword())
+                            .arg(script->getCurrentLine())
+                         );
+            break;
 
-  return ok;
+        case se_UnexpectedFinish:
+            gotScriptError( tr("Unexpected finish at '%1', line %2")
+                            .arg(script->getErrorKeyword())
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_InvalidMetaCommand:
+            gotScriptError( tr("Unexpected meta command '%1', line %2")
+                            .arg(script->getErrorKeyword())
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_InvalidEvent:
+            gotScriptError( tr("Invalid event on line %1")
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_InvalidBlockType:
+            gotScriptError( tr("Invalid block type on line %1")
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_InvalidParamCount:
+            gotScriptError( tr("Invalid parameter count on line %1")
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_InvalidFileDescriptor:
+            gotScriptError( tr("Invalid file descriptor on line %1")
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_UnrecognizedMenu:
+            gotScriptError( tr("Unrecognized menu on line %1")
+                            .arg(script->getCurrentLine())
+                         );
+            break;
+
+        case se_None:
+            ok = true;
+            break;
+
+        default:
+            ok = false;
+            gotScriptWarning(tr("Script loader returned abnormally, code %1").arg(sr));
+            break;
+    }
+
+    if (! ok)
+        gotScriptError(tr("Unable to load script %1").arg(script->getPath()));
+
+    return ok;
 }
 
 void TScriptParent::toolbarAdd(QString toolname, QString scriptname, QString tooltip)
@@ -407,4 +423,45 @@ void TScriptParent::runScriptFunction(QString script, QString function)
             break;
         }
     }
+}
+
+QList<QAction*> TScriptParent::getCustomNicklistMenu()
+{
+    QVectorIterator<TScript*> i(scriptlist);
+    QList<QAction*> items;
+    while (i.hasNext()) {
+        TScript *script = i.next();
+        items << *(script->getCustomNicklistMenu());
+    }
+
+    return items;
+}
+
+QList<QAction*> TScriptParent::getCustomChannelMenu()
+{
+    QVectorIterator<TScript*> i(scriptlist);
+    QList<QAction*> items;
+    while (i.hasNext()) {
+        TScript *script = i.next();
+        items << *(script->getCustomChannelMenu());
+    }
+
+    return items;
+}
+
+
+QStringList TScriptParent::getCurrentNickSelection()
+{
+    subwindow_t sw = winlist->value(*activeWid);
+
+    if (sw.type != WT_CHANNEL)
+        return QStringList(); // return an empty set if active window isn't a channel.
+
+    return sw.widget->getSelectedMembers();
+}
+
+QString TScriptParent::getCurrentWindow()
+{
+    subwindow_t sw = winlist->value(*activeWid);
+    return sw.widget->objectName();
 }

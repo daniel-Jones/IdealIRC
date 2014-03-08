@@ -21,21 +21,29 @@
 #include <QFile>
 #include <iostream>
 #include <QHashIterator>
+#include <QListIterator>
 #include <QVector>
 #include <QDebug>
 
+#include "tscriptparent.h"
 #include "tscript.h"
-#include "constants.h"
 
 
-TScript::TScript(QObject *parent, QWidget *dialogParent, QString fname) :
+TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname) :
     QObject(parent),
     dlgParent(dialogParent),
+    scriptParent(sp),
     ifn(&sockets, &fnindex, &dialogs, &files),
     filename(fname)
 {
     connect(&sockets, SIGNAL(runEvent(e_iircevent,QStringList)),
             this, SLOT(runEvent(e_iircevent,QStringList)));
+
+    connect(&nicklistMenuMapper, SIGNAL(mapped(QString)),
+            this, SLOT(nicklistMenuItemTriggered(QString)));
+
+    connect(&channelMenuMapper, SIGNAL(mapped(QString)),
+            this, SLOT(channelMenuItemTriggered(QString)));
 }
 
 void TScript::delWhitespace(QString *text)
@@ -97,6 +105,19 @@ QString TScript::setRelativePath(QString folder, QString file)
     }
 
     return dir + file;
+}
+
+void TScript::resetMenu(QList<QAction*> *menu)
+{
+    // After using this function a menu should be rebuilt, though nothing will crash if it doesn't.
+    QListIterator<QAction*> i(*menu);
+    while (i.hasNext()) {
+        QAction *a = i.next();
+        nicklistMenuMapper.removeMappings(a);
+        disconnect(a);
+        delete a;
+    }
+    menu->clear();
 }
 
 e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
@@ -195,14 +216,14 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
         ex_MenuTitle,
         ex_MenuFunction,
         ex_DialogName,
-        ex_DialogTitle,
+        ex_DialogTitle = 15,
         ex_DialogGeometry,
-        ex_DialogIcon = 15,
+        ex_DialogIcon,
         ex_DialogLabel,
         ex_DialogButton,
-        ex_DialogEditBox,
+        ex_DialogEditBox = 20,
         ex_DialogTextBox,
-        ex_DialogListBox = 20
+        ex_DialogListBox
     };
 
     enum {
@@ -219,6 +240,10 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 
     QString temp[2];
     TCustomScriptDialog *dialog = NULL;
+
+    // Reset the custom menues, they'll be set up later on in here...
+    resetMenu(&customNicklistMenu);
+    resetMenu(&customChannelMenu);
 
     for (int i = 0; i <= scriptstr.length()-1; i++) {
         QChar cc = scriptstr[i];
@@ -383,6 +408,8 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                     temp[0] = keyword;
                     ex = ex_Brace;
                     keyword.clear();
+                    temp[1].clear();
+                    temp[2].clear();
                     continue;
                 }
 
@@ -646,7 +673,29 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                     if (ex == ex_MenuFunction) {
                         ex = ex_Statement;
 
-                        qDebug() << "menu" << temp[0] << " - " << temp[1] << keyword;
+                        // temp[0] is what menu
+                        // temp[1] is caption of menu item
+                        // keyword is the function to run
+
+                        if (temp[0].toUpper() == "NICKLIST") {
+                            QAction *a = new QAction(temp[1], this);
+                            nicklistMenuMapper.setMapping(a, keyword);
+                            connect(a, SIGNAL(triggered()),
+                                    &nicklistMenuMapper, SLOT(map()));
+                            customNicklistMenu << a;
+                        }
+
+                        else if (temp[0].toUpper() == "CHANNEL") {
+                            QAction *a = new QAction(temp[1], this);
+                            channelMenuMapper.setMapping(a, keyword);
+                            connect(a, SIGNAL(triggered()),
+                                    &channelMenuMapper, SLOT(map()));
+                            customChannelMenu << a;
+                        }
+
+                        else
+                            return se_UnrecognizedMenu;
+
                     }
                 }
             }
@@ -1191,6 +1240,20 @@ bool TScript::runEvent(e_iircevent evt, QStringList param)
     }
 
     return found;
+}
+
+void TScript::nicklistMenuItemTriggered(QString function)
+{
+    QString r;
+    runf(function, scriptParent->getCurrentNickSelection(), r, true);
+}
+
+void TScript::channelMenuItemTriggered(QString function)
+{
+    QString r;
+    QStringList para;
+    para << scriptParent->getCurrentWindow();
+    runf(function, para, r, true);
 }
 
 e_scriptresult TScript::runf(QString function, QStringList param, QString &result, bool ignoreParamCount)

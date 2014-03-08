@@ -51,6 +51,7 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     connectionClosing(false),
     motd(cfg, (QWidget*)parent),
     scriptParent(sp),
+    receivingNames(false),
     cmA("b"),
     cmB("k"),
     cmC("l"),
@@ -743,6 +744,8 @@ void IConnection::parse(QString &data)
                                      .arg(chan),
                    PT_SERVINFO
                   );
+
+            sockwrite(QString("WHO %1").arg(chan));
         }
         else { // Someone joined a channel I am on
             print( chan, tr("Joins: %1 (%2@%3)")
@@ -1944,6 +1947,13 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (nicks.count() == 0) // Nothing do to, stop.
             return;
 
+        subwindow_t win = winlist.value(chan.toUpper());
+
+        if (! receivingNames) {
+            win.widget->resetMemberlist();
+            receivingNames = true;
+        }
+
         for (int i = 0; i <= nicks.count()-1; i++) {
             QString item = nicks[i];
             char mode = 0x00;
@@ -1962,7 +1972,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
             if (mode != 0x00)
                 m.mode << mode;
             // Ident and host is unknown, for now. It's safe not to have it.
-            subwindow_t win = winlist.value(chan.toUpper());
             win.widget->insertMember(item, m, false);
         }
     }
@@ -1970,6 +1979,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
     else if (numeric == RPL_ENDOFNAMES) {
         QString chan = token[3];
+        receivingNames = false;
         winlist.value(chan.toUpper()).widget->sortMemberList();
     }
 

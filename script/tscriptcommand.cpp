@@ -62,7 +62,7 @@ bool TScriptCommand::parse(QString &command)
         }
 
         QString text = command.mid(5); // skip "echo" and actually echo this.
-        QString target = "$ACTIVE";
+        QString target = "$ACTIVE$";
 
         if (token[1][0] == '@') {
             target = token[1];

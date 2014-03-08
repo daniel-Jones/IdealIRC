@@ -106,6 +106,7 @@ private:
       IMotdView motd;
       QStringList acList; // Contains channel names we'd like to autocomplete.
       TScriptParent *scriptParent;
+      bool receivingNames;
 
       /* For retreiving data, onSocketReadyRead() */
       QByteArray linedata;
