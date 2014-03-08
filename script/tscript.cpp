@@ -107,17 +107,17 @@ QString TScript::setRelativePath(QString folder, QString file)
     return dir + file;
 }
 
-void TScript::resetMenu(QList<QAction*> *menu)
+void TScript::resetMenu(QList<QAction*> &menu)
 {
     // After using this function a menu should be rebuilt, though nothing will crash if it doesn't.
-    QListIterator<QAction*> i(*menu);
+    QListIterator<QAction*> i(menu);
     while (i.hasNext()) {
         QAction *a = i.next();
         nicklistMenuMapper.removeMappings(a);
         disconnect(a);
         delete a;
     }
-    menu->clear();
+    menu.clear();
 }
 
 e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
@@ -150,7 +150,6 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     if (QFile::exists(fn) == false)
     return se_FileNotExist;
 
-
     QFile f(fn);
     bool fo = f.open(QIODevice::ReadOnly | QIODevice::Text);
     if (fo == false)
@@ -164,7 +163,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     QString tmp;
     bool isCommented = false;
 
-    for (int i = 0; i <= ba.length()-1; i++) {
+    for (int i = 0; i <= ba.length()-1; ++i) {
         QChar c = ba[i];
 
         if (c == '\n') { // newline
@@ -238,14 +237,15 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     int ex = ex_Block; // We expect to find a script block to begin with. either function, script or menu.
     int n = 0; // Nesting level. 0 is where script blocks are at (script, function, menu, etc.)
 
-    QString temp[2];
+    QString temp[3];
     TCustomScriptDialog *dialog = NULL;
 
     // Reset the custom menues, they'll be set up later on in here...
-    resetMenu(&customNicklistMenu);
-    resetMenu(&customChannelMenu);
+    resetMenu(customNicklistMenu);
+    resetMenu(customChannelMenu);
 
-    for (int i = 0; i <= scriptstr.length()-1; i++) {
+
+    for (int i = 0; i <= scriptstr.length()-1; ++i) {
         QChar cc = scriptstr[i];
 
         errorKeyword = keyword + cc;
@@ -410,6 +410,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                     keyword.clear();
                     temp[1].clear();
                     temp[2].clear();
+
                     continue;
                 }
 

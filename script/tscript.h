@@ -117,7 +117,7 @@ private:
 
     QList<QAction*> customNicklistMenu;
     QList<QAction*> customChannelMenu;
-    void resetMenu(QList<QAction*> *menu); // Use for re-parsing the menu structure
+    void resetMenu(QList<QAction *> &menu); // Use for re-parsing the menu structure
     QSignalMapper nicklistMenuMapper;
     QSignalMapper channelMenuMapper;
 
