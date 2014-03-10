@@ -244,7 +244,6 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     resetMenu(customNicklistMenu);
     resetMenu(customChannelMenu);
 
-
     for (int i = 0; i <= scriptstr.length()-1; ++i) {
         QChar cc = scriptstr[i];
 
@@ -684,6 +683,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                             connect(a, SIGNAL(triggered()),
                                     &nicklistMenuMapper, SLOT(map()));
                             customNicklistMenu << a;
+                            temp[1].clear();
                         }
 
                         else if (temp[0].toUpper() == "CHANNEL") {
@@ -692,6 +692,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                             connect(a, SIGNAL(triggered()),
                                     &channelMenuMapper, SLOT(map()));
                             customChannelMenu << a;
+                            temp[1].clear();
                         }
 
                         else
@@ -721,6 +722,188 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     qDebug() << "---";
 
     return se_None;
+}
+
+e_scriptresult TScript::extract(QString &text, bool extractVariables)
+{
+    enum {
+        st_Add = 0,
+        st_Variable
+    };
+    int fnest = 0; // level of nested functions
+    int state = st_Add;
+    QString result;
+    QString vname;
+
+    for (int i = 0; i <= text.length()-1; ++i) {
+        QChar c = text[i];
+        if (c == '\\') {
+            if (i == text.length()-1)
+                return se_EscapeOnEndLine;
+            ++i;
+            result += c;
+            continue;
+        }
+
+        if (state == st_Add) {
+            if ((c == '%') && (extractVariables)) {
+                // var
+                state = st_Variable;
+                vname = "%";
+                continue;
+            }
+
+            if (c == '$') {
+                // fn
+                QString r;
+                e_scriptresult err = extractFunction(text, r, &i);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
+
+                if (i < text.length()-1)
+                    --i;
+
+                result += r;
+                continue;
+            }
+
+            result += c;
+            continue;
+        }
+
+        if (state == st_Variable) {
+            if ((c == ' ') || (c == '%') || (i == text.length()-1)) {
+                // got var name
+
+                if ((i == text.length()-1) && (c != ' ') && (c != '%'))
+                    vname += c; // variable is on end of line, add last character to vname.
+
+                if (c == ' ')
+                    --i; // get space added to text.
+                result += variables.value(vname);
+                state = st_Add;
+                continue;
+            }
+            vname += c;
+            continue;
+        }
+    }
+
+    text = result;
+    return se_None;
+}
+
+e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos)
+{
+    // Parses the very first function that occurs beginning from pos.
+    // pos will update where the function ended in text.
+
+    enum {
+        st_Wait = 0,  // wait for $
+        st_FnName,    // read function name
+        st_FnParam    // parse parameters
+    };
+
+    QString function;
+    QString param;
+    QStringList paramList;
+
+    /* text = $function
+     * text = $fn(param)
+     * text = $fn($calc(5+5), %var)
+     * ...
+     */
+
+    bool whitespace = false;
+    int state = st_Wait;
+    for (; *pos <= text.length()-1; ++(*pos)) {
+        int i = *pos;
+        QChar c = text[i];
+
+        if (c == '\\') {
+            if (i == text.length()-1)
+                return se_EscapeOnEndLine;
+            if (state == st_FnName)
+                function += text[++i];
+            if (state == st_FnParam)
+                param += text[++i];
+        }
+
+        if (state == st_Wait) {
+            if (c == '$') {
+                state = st_FnName;
+                continue;
+            }
+            else
+                continue;
+        }
+
+        if (state == st_FnName) {
+            if ((c == ' ') || (i == text.length()-1)) {
+                if (i == text.length()-1)
+                    function += c;
+
+                break;
+            }
+
+            if (c == '(') {
+                whitespace = true;
+                state = st_FnParam;
+                continue;
+            }
+
+            if (c == ')')
+                break;
+
+            function += c;
+            continue;
+        }
+
+        if (state == st_FnParam) {
+
+            if (c == ')') {
+                if ((! paramList.isEmpty()) || (! param.isEmpty())) {
+                    e_scriptresult err = extract(param);
+                    if ((err != se_None) && (err != se_RunfDone))
+                        return err;
+
+                    paramList << param;
+                }
+
+                ++(*pos);
+                break;
+            }
+            if (c == '$') {
+                QString r;
+                e_scriptresult err = extractFunction(text, r, pos);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
+
+                param += r;
+                --(*pos);
+                continue;
+            }
+            if (c == ',') {
+                whitespace = true;
+                e_scriptresult err = extract(param);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
+
+                paramList << param;
+                param.clear();
+                continue;
+            }
+
+            if (((c == ' ') || c == '\t') && (whitespace))
+                continue;
+            else if (whitespace)
+                whitespace = false;
+
+            param += c;
+        }
+    }
+
+    return runf(function, paramList, result);
 }
 
 QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> *binVar)
@@ -769,246 +952,7 @@ QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> *bin
     return tmp;
 }
 
-QString TScript::extractVars(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar)
-{
-    enum {
-        st_add = 0, // Add anything until c is % - escaping allowed like \%
-        st_var,
-        st_fnignore
-    };
-
-    int st = st_add;
-    QString result;
-    QString var;
-    int nl = 0;
-    for (int i = 0; i <= text.length()-1; i++) {
-        QChar c = text[i];
-
-        if ((c == '\\') && (st != st_fnignore)) {
-            if (i == text.length()-1)
-                break;
-            i++;
-            c = text[i];
-            result += c;
-            continue;
-        }
-
-        if (st == st_add) {
-            if (c == '%') {
-                st = st_var;
-                var = "%";
-                continue;
-            }
-            if (c == '$')
-                st = st_fnignore;
-
-            result += c;
-            continue;
-        }
-
-        if (st == st_fnignore) {
-            if (((c == ' ') || (c == '$')) && (nl == 0)) {
-                st = st_add;
-                if (c == ' ')
-                    result += ' ';
-                continue;
-            }
-
-
-            result += c;
-
-            if (c == '(')
-                nl++;
-            if (c == ')')
-                nl--;
-
-            if (nl == 0)
-                st = st_add;
-
-            continue;
-        }
-
-        if (st == st_var) {
-            if ((c == ' ') || (c == '%') || (i == text.length()-1)) {
-
-                if ((c != ' ') && (c != '%') && (i == text.length()-1))
-                    var += c;
-
-                if (binVar->contains(var))
-                    result += var;
-                else {
-                    int idx = varName->indexOf(var);
-                    if (idx > -1)
-                        result += varData->at(idx);
-
-                    if (c == ' ')
-                        result += ' ';
-                }
-                st = st_add;
-                continue;
-            }
-
-            var += c;
-        }
-    }
-
-    return result;
-}
-
-QString TScript::extractFunction(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar)
-{
-    enum {
-        st_Add = 0,
-        st_Name,
-        st_ParamWS,
-        st_Param
-    };
-
-
-    QString result;
-    int st = st_Add;
-    QString para;
-    QStringList params;
-    QString fname;
-    for (int i = 0; i <= text.length()-1; i++) {
-        QChar c = text[i];
-
-        if (st == st_Add) {
-            if (c == '$') {
-                st = st_Name;
-                fname.clear();
-                continue;
-            }
-            result += c;
-        }
-
-        if (st == st_Name) {
-            if (c == ' ') {
-                QString r;
-                params.clear();
-                runf(fname, params, r);
-                result += r;
-                st = st_Add;
-                continue;
-            }
-
-            if (i == text.length()-1) {
-                QString r;
-                fname += c;
-                runf(fname, params, r);
-                result += r;
-                st = st_Add;
-                params.clear();
-                continue;
-            }
-
-            if (c == '(') {
-                params.clear();
-                para.clear();
-                st = st_ParamWS;
-                continue;
-            }
-
-            fname += c;
-        }
-
-        if (st == st_ParamWS) {
-            if (i == text.length()-1)
-                return ""; // unexpected end
-
-            if ((c == ' ') || (c == '\t'))
-                continue;
-            if (c == ')') {
-                QString r;
-                runf(fname, params, r);
-                result += r;
-                st = st_Add;
-                params.clear();
-                continue;
-            }
-
-            st = st_Param;
-        }
-
-        if (st == st_Param) {
-            bool add = true;
-            if (c == '\\') {
-                if (i == text.length()-1)
-                    break;
-                para += text[++i];
-                continue;
-            }
-
-            if (c == '$') {
-                int nl = 0;
-                para += c;
-                for (i++; i <= text.length()-1; i++) {
-                    c = text[i];
-                    QChar c1;
-                    if (i == 0)
-                        c1 = c;
-                    else
-                        c1 = text[i-1];
-
-                    if (nl == 0) {
-                        if (c == ' ') {
-                            para += ' ';
-                            break;
-                        }
-                        if (c == ')')
-                            break;
-                        if (c == ',')
-                            break;
-                        if (i == text.length()-1) {
-                            para += c;
-                            break;
-                        }
-                    }
-
-                    para += c;
-                    add = false;
-
-                    if ((c == '(') && (c1 != '\\'))
-                        nl++;
-                    if ((c == ')') && (c1 != '\\'))
-                        nl--;
-
-                }
-            }
-
-            if (c == ',') {
-                para = extractVars(para, varName, varData, binVar);
-                para = extractFunction(para, varName, varData, binVar);
-                params.push_back(para);
-                para.clear();
-                st = st_ParamWS;
-                continue;
-            }
-
-            if (c == ')') {
-                if (para.length() > 0) {
-                    para = extractVars(para, varName, varData, binVar);
-                    para = extractFunction(para, varName, varData, binVar);
-                    params.push_back(para);
-                }
-
-                QString r;
-                runf(fname, params, r);
-                result += r;
-                st = st_Add;
-                params.clear();
-                continue;
-            }
-
-            if (add)
-                para += c;
-        }
-    }
-
-    return result;
-}
-
-bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar)
+bool TScript::solveBool(QString &data)
 {
     /// This function solves the individual bool expressions like  test == 1234
 
@@ -1030,23 +974,6 @@ bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varDat
 
     for (int i = 0; i <= data.length()-1; i++) {
         QChar c = data[i];
-
-        if (c == '%') {
-            int vl = data.indexOf(' ', i);
-            if (vl == -1)
-                vl = data.length()-1;
-
-            QString var = data.mid(i, vl);
-
-            var = extractVars(var, varName, varData, binVar);
-            if (onQ2)
-                Q2 += var;
-            else
-                Q1 += var;
-
-            i = vl;
-            continue;
-        }
 
         if ((c == '=') && (data[i+1] == '=')) {
             onQ2 = true;
@@ -1092,9 +1019,11 @@ bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varDat
 
         if (onQ2)
             Q2 += c;
-        else
+        else {
+            if ((c == ' ') && ((data[i+1] == '!') || (data[i+1] == '=') || (data[i+1] == '<') || (data[i+1] == '>')))
+                continue;
             Q1 += c;
-
+        }
     }
 
     if (Q1 == "\\n")
@@ -1102,8 +1031,15 @@ bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varDat
     if (Q2 == "\\n")
         Q2 = "\n";
 
-    Q1 = extractFunction(Q1, varName, varData, binVar);
-    Q2 = extractFunction(Q2, varName, varData, binVar);
+    if (Q1.toUpper() == "$NULL")
+        Q1.clear();
+    if (Q2.toUpper() == "$NULL")
+        Q2.clear();
+
+    // TODO error checking missing.
+
+    extract(Q1);
+    extract(Q2);
 
     QString Q1u = Q1.toUpper();
     QString Q2u = Q2.toUpper();
@@ -1135,12 +1071,12 @@ bool TScript::solveBool(QString &data, QStringList *varName, QStringList *varDat
     return false;
 }
 
-bool TScript::solveLogic(QString &data, QStringList *varName, QStringList *varData, QHash<QString, QByteArray> *binVar)
+bool TScript::solveLogic(QString &data)
 {
     /// This one solves a sentence with bool expressions, like: ((test == 1234) && (lol != 4))
     /// For solving of  test == 1234  see solveBool();
 
-    data = extractFunction(data, varName, varData, binVar);
+    //data = extractFunctionOld(data, varName, varData, binVar);
 
     int tl = data.length();
 
@@ -1149,24 +1085,52 @@ bool TScript::solveLogic(QString &data, QStringList *varName, QStringList *varDa
 
     int nst = 0; // Paranthesis nesting level
     QString exp; // Expression to run with mathexp.h
-    QString lt; // Logic testing, ex.: "testvar != 1234"
+    QString lt; // Logic testing, eg. "testvar != 1234"
     bool addLt = false;
 
-    for (int i = 0; i <= tl-1; i++) {
+    bool fnParanthesis = false;
+    int fnpnest = 0;
+
+    for (int i = 0; i <= tl-1; ++i) {
         QChar c = data[i]; // Current character
         QChar c1 = 0x00; // Next character
 
         if (i < tl-1) // Only get next character if we aren't on the end.
             c1 = data[i+1];
 
+        if (c == '$')
+            fnParanthesis = true;
+
+        if (fnParanthesis) {
+            if ((fnpnest == 0) && (c == ' ')) {
+                fnParanthesis = false;
+                lt += c;
+                continue;
+            }
+
+            if (c == '(') {
+                ++fnpnest;
+                lt += c;
+                continue;
+            }
+
+            if (c == ')') {
+                --fnpnest;
+                lt += c;
+                if (fnpnest == 0)
+                    fnParanthesis = false;
+                continue;
+            }
+        }
+
         if (c == '(') {
-            nst++;
+            ++nst;
             exp += c;
             lt.clear();
             continue;
         }
         if ((c == ')') && (addLt == false)) {
-            nst--;
+            --nst;
             exp += c;
             if (nst == 0) {
                 if (i < tl-1) {
@@ -1188,7 +1152,7 @@ bool TScript::solveLogic(QString &data, QStringList *varName, QStringList *varDa
         if ((c == '&') && (c1 == '&')) {
             // AND
             exp += '*';
-            i++; // we're checking 2 characters, so increment one time now and it'll increment one by end of this loop.
+            ++i; // we're checking 2 characters, so increment one time now and it'll increment one by end of this loop.
             continue;
         }
 
@@ -1198,7 +1162,7 @@ bool TScript::solveLogic(QString &data, QStringList *varName, QStringList *varDa
         addLt = true;
 
         if ((c == ')') && (addLt == true)) {
-            int l = solveBool(lt, varName, varData, binVar);
+            int l = solveBool(lt);
             exp += QString::number(l) + ')';
             lt.clear();
             addLt = false;
@@ -1394,16 +1358,23 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
         }
     }
 
-    QHash<QString,QByteArray> binVar;
-    e_scriptresult res = _runf_private2(pos, function, &scpar, &param, &binVar, result);
+    for (int i = 0; i <= scpar.count()-1; ++i)
+        variables.insert(scpar[i], param[i]);
+
+    e_scriptresult res = _runf_private2(pos, &scpar, result);
+
+    /* Cleaning up this way is dangerous. don't.
+    for (int i = 0; i <= scpar.count()-1; ++i)
+        variables.remove(scpar[i]);
+        */
 
     return res;
 }
 
-e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *varName, QStringList *varData, QHash<QString, QByteArray> *binVar, QString &result)
+e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &result)
 {
     #ifdef IIRC_DEBUG_SCRIPT
-    qDebug() << "TScript::_runf_private2(" << pos << "," << function << ", varName" << *varName << ", varData" << *varData << ", [binVar] , [&result]);";
+    qDebug() << "TScript::_runf_private2(" << pos << "," << function << ", parName" << *varName << ", varData" << *varData << ", [binVar] , [&result]);";
     #endif
 
     /* Here we run functions we _know_ exist. Do not run this one directly.
@@ -1560,7 +1531,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                         break;
                     keyword += scriptstr[i];
                 }
-                extractFunction(keyword, varName, varData, binVar);
+
+                e_scriptresult err = extract(keyword);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
+
                 keyword.clear();
                 continue;
             }
@@ -1602,8 +1577,9 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     }
                 }
 
-                rs = extractFunction(rs, varName, varData, binVar);
-                rs = extractVars(rs, varName, varData, binVar);
+                e_scriptresult err = extract(rs);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 result.clear();
                 result.append(rs);
@@ -1653,7 +1629,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 if (pn != 0)
                     return se_UnexpectedToken;
 
-                bool ok = solveLogic(logic, varName, varData, binVar);
+                bool ok = solveLogic(logic);
                 lastIFresult = ok;
 
                 if (ok == false) {
@@ -1720,7 +1696,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 if (pn != 0)
                     return se_UnexpectedToken;
 
-                bool ok = solveLogic(logic, varName, varData, binVar);
+                bool ok = solveLogic(logic);
 
                 if (ok == false) {
                     wbp.pop_back();
@@ -1821,21 +1797,56 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 }
 
-                if (st != st_Data) // In case something very weird happens, this prevents TIRC to go bananas.
-                    return  se_UnexpectedNewline;
+                if (st != st_Data) // In case something very weird happens, this prevents IIRC to go bananas.
+                    return se_UnexpectedNewline;
 
-                data = extractFunction(data, varName, varData, binVar);
-                data = extractVars(data, varName, varData, binVar);
+                e_scriptresult err = extract(data);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                int pos = varName->indexOf(vname);
+                variables.insert(vname, data);
 
-                if (pos > -1) {
-                    varName->removeAt(pos);
-                    varData->removeAt(pos);
+                keyword.clear();
+                continue;
+            }
+
+            if (keywup == "DEL") {
+                // del %var
+
+                enum {
+                    st_VarPrefix = 0,
+                    st_VarName
+                };
+
+                int st = st_VarPrefix;
+                QString vname = "%";
+
+                for (; i <= scriptstr.length()-1; i++) {
+                    QChar c = scriptstr[i];
+
+                    if (st == st_VarPrefix) {
+                        if ((c == ' ') || (c == '\t'))
+                            continue;
+                        else if (c == '%')
+                            st = st_VarName;
+                        else
+                            return se_UnexpectedToken;
+
+                        continue;
+                    }
+
+                    if (st == st_VarName) {
+                        if (c == '\n')
+                            break;
+                        else
+                            vname += c;
+
+                        continue;
+                    }
                 }
 
-                varName->push_back(vname);
-                varData->push_back(data);
+                variables.remove(vname);
+                parName->removeAll(vname);
 
                 keyword.clear();
                 continue;
@@ -1896,8 +1907,9 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 double val = 1.0f;
                 if (value.length() > 0) {
-                    value = extractFunction(value, varName, varData, binVar);
-                    value = extractVars(value, varName, varData, binVar);
+                    e_scriptresult err = extract(value);
+                    if ((err != se_None) && (err != se_RunfDone))
+                        return err;
 
                     bool ok = false;
                     val = value.toDouble(&ok);
@@ -1907,43 +1919,17 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 // Increment or decrement value is in 'val'
 
-                double varval = 0.0f; // default value of the variable (if it doesn't exist)
-                int pos = varName->indexOf(vname);
-                if (pos > -1)
-                    varval = varData->at(pos).toDouble();
+                bool ok = false;
+                double varval = variables.value(vname).toDouble(&ok);
+                if (!ok)
+                    varval = 0.0f;
 
                 if (keywup == "INC")
                     varval += val;
                 if (keywup == "DEC")
                     varval -= val;
 
-                // save to variable
-                if (pos > -1) {
-                    // Variable exist
-                    varData->replace(pos, QString::number(varval));
-                }
-                else {
-                    // Variable does not, create new.
-                    varName->push_back(vname);
-                    varData->push_back(QString::number(varval));
-                }
-
-                keyword.clear();
-                continue;
-            }
-
-            if (keywup == "VARTABLE") {
-                // vartable - DEBUGGING ONLY.
-                emit warning("Printing vartable result in standard output stream.");
-                qDebug() << "Following values MUST be identical: varNameCount:" << varName->count() << " varDataCount:" << varData->count();
-
-                for (int i = 0; i <= varName->count()-1; i++)
-                    qDebug() << varName->at(i) << "::" << varData->at(i);
-
-                if (varData->count() > varName->count()) {
-                    for (int i = varName->count(); i <= varData->count()-1; i++)
-                        qDebug() << " \"----\" ::" << varData->at(i);
-                }
+                variables.insert(vname, QString::number(varval));
 
                 keyword.clear();
                 continue;
@@ -1996,13 +1982,15 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     }
                 }
 
-                QString cname = extractFunction(id, varName, varData, binVar);
-                cname = extractVars(cname, varName, varData, binVar);
+                e_scriptresult err = extract(id);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                QString d = extractFunction(data, varName, varData, binVar);
-                d = extractVars(d, varName, varData, binVar);
+                err = extract(data);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                writeCon(cname, d);
+                writeCon(id, data);
 
                 keyword.clear();
                 continue;
@@ -2025,10 +2013,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     id += c;
                 }
 
-                QString cname = extractFunction(id, varName, varData, binVar);
-                cname = extractVars(cname, varName, varData, binVar);
+                e_scriptresult err = extract(id);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                delCon(cname);
+                delCon(id);
 
                 keyword.clear();
                 continue;
@@ -2099,10 +2088,13 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     }
                 }
 
-                idx = extractFunction(idx, varName, varData, binVar);
-                idx = extractVars(idx, varName, varData, binVar);
-                pattern = extractFunction(pattern, varName, varData, binVar);
-                pattern = extractVars(pattern, varName, varData, binVar);
+                e_scriptresult err = extract(idx);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
+
+                err = extract(pattern);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 int index = idx.toInt();
                 if (index < 0)
@@ -2139,16 +2131,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 if (index == 0)
                     data = QString::number( count-1 );
 
-                int varpos = varName->indexOf(var);
-
-                if (varpos > -1)
-                    varData->replace(varpos, data); // var exists, just update with new val.
-
-                else {
-                    // Var does not exist, create new.
-                    varName->push_back(var);
-                    varData->push_back(data);
-                }
+                variables.insert(var, data);
 
                 keyword.clear();
                 continue;
@@ -2210,20 +2193,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 }
 
-                id = extractFunction(id, varName, varData, binVar);
-                id = extractVars(id, varName, varData, binVar);
+                e_scriptresult err = extract(id);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                QString d = container.value(id);
-                int pos = varName->indexOf(vname);
-                if (pos > -1) {
-                    // var exists, just update with new val.
-                    varData->replace(pos, d);
-                }
-                else {
-                    // Var does not exist, create new.
-                    varName->push_back(vname);
-                    varData->push_back(d);
-                }
+                variables.insert(vname, container.value(id));
 
                 keyword.clear();
                 continue;
@@ -2279,11 +2253,13 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 }
 
-                id = extractFunction(id, varName, varData, binVar);
-                id = extractVars(id, varName, varData, binVar);
+                e_scriptresult err = extract(id);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                msec = extractFunction(msec, varName, varData, binVar);
-                msec = extractVars(msec, varName, varData, binVar);
+                err = extract(msec);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 int ms = msec.toInt();
                 TTimer *tmr = timers.value(id.toUpper(), 0);
@@ -2311,8 +2287,9 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     id += c;
                 }
 
-                id = extractFunction(id, varName, varData, binVar);
-                id = extractVars(id, varName, varData, binVar);
+                e_scriptresult err = extract(id);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 TTimer *tmr = timers.value(id.toUpper(), 0);
                 if (tmr == 0)
@@ -2389,11 +2366,14 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 }
 
-                sockname = extractFunction(sockname, varName, varData, binVar);
-                sockname = extractVars(sockname, varName, varData, binVar);
+                e_scriptresult err = extract(sockname);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                QString argsEx = extractFunction(args, varName, varData, binVar);
-                argsEx = extractVars(argsEx, varName, varData, binVar);
+                QString argsEx = args;
+                err = extract(argsEx);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 bool accept = false;  // a
                 bool close = false;   // c
@@ -2496,8 +2476,10 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     data.append( argsEx );
 
                     if (binary) {
+                        /* TODO
                         QString d(data); // This will have the binary variable name in QString format (not the data)
                         data = extractBinVars(d, binVar); // This parses the variable, reading out the binary data.
+                        */
                     }
 
                     if (newline)
@@ -2527,6 +2509,7 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                         return se_MissingVariable; // variables must begin wtih a percent %
 
                     if (binary) {
+                        /* TODO
                         // QHash will replace existant values.
                         binVar->insert(vname, data);
 
@@ -2535,22 +2518,13 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                             varName->removeAt(pos);
                             varData->removeAt(pos);
                         }
+                        */
                     }
                     else {
                         /// String variables
-                        int pos = varName->indexOf(vname);
-                        if (pos > -1) {
-                            // var exists, just update with new val.
-                            varData->replace(pos, data);
-                        }
-                        else {
-                            // Var does not exist, create new.
-                            varName->push_back(vname);
-                            varData->push_back(data);
-                        }
 
-                        if (binVar->contains(vname))
-                            binVar->remove(vname); // Remove binary variable.
+                        variables.insert(vname, data);
+                        // remember to remove any binVar with same name.
                     }
 
                     keyword.clear();
@@ -2668,9 +2642,17 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     }
 
                     if (st == st_Name) {
-                        if (c == '\n')
+                        if (c == '\n') {
+                            e_scriptresult err = extract(toolname);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
                             break;
+                        }
                         if (c == ' ') {
+                            e_scriptresult err = extract(toolname);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
+
                             st = st_Arg;
                             continue;
                         }
@@ -2679,8 +2661,12 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     }
 
                     if (st == st_Arg) {
-                        if (c == '\n')
+                        if (c == '\n') {
+                            e_scriptresult err = extract(arg);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
                             break;
+                        }
 
                         arg += c;
                         continue;
@@ -2793,8 +2779,9 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 if (sum > 1)
                     return se_InvalidSwitches;
 
-                arg = extractFunction(arg, varName, varData, binVar);
-                arg = extractVars(arg, varName, varData, binVar);
+                e_scriptresult err = extract(arg);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 bool ok = false;
                 if (show)
@@ -2881,8 +2868,10 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                         if (c == ' ') {
                             st = st_ignore;
                             stnext = st_length;
-                            fds = extractFunction(fds, varName, varData, binVar);
-                            fds = extractVars(fds, varName, varData, binVar);
+
+                            e_scriptresult err = extract(fds);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
                             continue;
                         }
                         if (c == '\n')
@@ -2896,8 +2885,10 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                         if (c == ' ') {
                             st = st_ignore;
                             stnext = st_var;
-                            length = extractFunction(length, varName, varData, binVar);
-                            length = extractVars(length, varName, varData, binVar);
+
+                            e_scriptresult err = extract(length);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
                             continue;
                         }
                         if (c == '\n')
@@ -2937,13 +2928,8 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 else
                     data = f->read(len);
 
-                if (ts.binary == true)
-                    binVar->insert(var, data);
-                else {
-                    varName->push_back(var);
-                    varData->push_back(data);
-                }
-
+                variables.insert(var, data);
+                // TODO: check if ts.binary is true, and write binary accordingly.
 
                 keyword.clear();
                 continue;
@@ -2977,8 +2963,10 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                         if (c == ' ') {
                             st = st_ignore;
                             stnext = st_data;
-                            fds = extractFunction(fds, varName, varData, binVar);
-                            fds = extractVars(fds, varName, varData, binVar);
+                            e_scriptresult err = extract(fds);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
+
                             continue;
                         }
                         if (c == '\n')
@@ -2998,10 +2986,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
 
                 }
 
-                datas = extractFunction(datas, varName, varData, binVar);
-                datas = extractVars(datas, varName, varData, binVar);
+                e_scriptresult err = extract(datas);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
-                data = extractBinVars(datas, binVar);
+                // TODO data = extractBinVars(datas, binVar);
                 int fd = fds.toInt();
                 if (! files.contains(fd))
                     return se_InvalidFileDescriptor;
@@ -3047,8 +3036,11 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                         if (c == ' ') {
                             st = st_ignore;
                             stnext = st_pos;
-                            fds = extractFunction(fds, varName, varData, binVar);
-                            fds = extractVars(fds, varName, varData, binVar);
+
+                            e_scriptresult err = extract(fds);
+                            if ((err != se_None) && (err != se_RunfDone))
+                                return err;
+
                             continue;
                         }
                         fds += c;
@@ -3066,8 +3058,9 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     }
                 }
 
-                poss = extractFunction(poss, varName, varData, binVar);
-                poss = extractVars(poss, varName, varData, binVar);
+                e_scriptresult err = extract(poss);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
 
                 pos = poss.toLongLong();
                 fd = fds.toInt();
@@ -3097,8 +3090,10 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                     fds += c;
                 }
 
-                fds = extractFunction(fds, varName, varData, binVar);
-                fds = extractVars(fds, varName, varData, binVar);
+                e_scriptresult err = extract(fds);
+                if ((err != se_None) && (err != se_RunfDone))
+                    return err;
+
                 fd = fds.toInt();
 
                 if (! files.contains(fd))
@@ -3125,15 +3120,15 @@ e_scriptresult TScript::_runf_private2(int pos, QString function, QStringList *v
                 keyword += scriptstr[i];
             }
 
-            QString c = extractFunction(keyword, varName, varData, binVar);
-            c = extractVars(c, varName, varData, binVar);
-            execCmd(c);
+            e_scriptresult err = extract(keyword);
+            if ((err != se_None) && (err != se_RunfDone))
+                return err;
+
+            execCmd(keyword);
 
             keyword.clear();
             continue;
         }
-
-
 
         keyword += cc;
     }

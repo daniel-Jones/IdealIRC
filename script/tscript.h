@@ -114,6 +114,8 @@ private:
     QHash<QString,QString> container; // data container that's accessible by all function in current script.
     QHash<QString,TCustomScriptDialog*> dialogs;
     QHash<int,t_sfile> files; // file descriptor, QFile
+    QHash<QString,QString> variables;
+    QHash<QString,QByteArray> binVars;
 
     QList<QAction*> customNicklistMenu;
     QList<QAction*> customChannelMenu;
@@ -121,7 +123,7 @@ private:
     QSignalMapper nicklistMenuMapper;
     QSignalMapper channelMenuMapper;
 
-    e_scriptresult _runf_private2(int pos, QString function, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar, QString &result);
+    e_scriptresult _runf_private2(int pos, QStringList *parName, QString &result);
     e_iircevent getEvent(QString event); // Convert event string name to internal code
     void errorHandler(e_scriptresult res);
 
@@ -129,11 +131,13 @@ private:
     void delCon(QString id);
     QString readCon(QString id);
     void execCmd(QString cmd) { if (cmd.length() > 0) { emit execCmdSignal(cmd); } }
-    QString extractVars(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar);
+    e_scriptresult extract(QString &text, bool extractVariables = true); // extract functions and variables
+    e_scriptresult extractFunction(QString &text, QString &result, int *pos);
+    QString extractVarsOld(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar);
     QByteArray extractBinVars(QString &text, QHash<QString, QByteArray> *binVar);
-    bool solveBool(QString &data, QStringList *varName, QStringList *varData, QHash<QString, QByteArray> *binVar);
-    bool solveLogic(QString &data, QStringList *varName, QStringList *varData, QHash<QString, QByteArray> *binVar);
-    QString extractFunction(QString &data, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar); // data <- a script line to execute, replacing $function(para) with a result, if any.
+    bool solveBool(QString &data);
+    bool solveLogic(QString &data);
+    QString extractFunctionOld(QString &data, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar); // data <- a script line to execute, replacing $function(para) with a result, if any.
                                                                                        // We need variable data to extract any possible variables before we send the data to function.
     void delWhitespace(QString *text);
     QString setRelativePath(QString folder, QString file); // puts file on folder unless file is a full path.

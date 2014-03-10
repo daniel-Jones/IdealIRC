@@ -38,6 +38,8 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     haveExceptionList(false),
     haveInviteList(false),
     FillSettings(false),
+    ial(this, &activeNick, &sortrule),
+    //addresslist((QWidget*)parent, this),
     cmdhndl(this, cfg),
     conf(cfg),
     cid(connId),
@@ -56,7 +58,6 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     cmB("k"),
     cmC("l"),
     cmD("imnpstr")
-
 {
 
     cmdhndl.setWinList(&winlist);
@@ -183,6 +184,8 @@ void IConnection::onSocketDisconnected()
         emit connectionClosed();
         return; // All windows are closed, status window will close itself when ready to close.
     }
+
+    ial.reset();
 
     active = false;
     maxBanList = -1;
@@ -500,7 +503,6 @@ void IConnection::parse(QString &data)
         return;
     }
 
-
     else if (token1up == "PONG") {
         bool ok = false;
         qint64 ms_now = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -521,6 +523,9 @@ void IConnection::parse(QString &data)
     else if (token1up == "PRIVMSG") {
         user_t u = parseUserinfo(token.at(0));
         QString text = getMsg(data);
+
+        ial.setHostname(u.nick, u.host);
+        ial.setIdent(u.nick, u.user);
 
         // CTCP check, ACTION check
         if (text[0] != ' ') {
@@ -668,6 +673,9 @@ void IConnection::parse(QString &data)
         user_t u = parseUserinfo(token.at(0)); // Get userinfo about who this is about
         QString msg = getMsg(data);
 
+        ial.setHostname(u.nick, u.host);
+        ial.setIdent(u.nick, u.user);
+
         if (msg.at(0) == 0x01) { // CTCP reply
             QString ctcp = msg.split(' ')[0].toUpper();
             ctcp.remove(QChar(0x01));
@@ -735,8 +743,14 @@ void IConnection::parse(QString &data)
     else if (token1up == "JOIN") {
         user_t u = parseUserinfo(token[0]);
         QString chan = token[2];
+
         if (chan[0] == ':')
-        chan = chan.mid(1);
+            chan = chan.mid(1);
+
+        ial.addNickname(u.nick);
+        ial.addChannel(u.nick, chan);
+        ial.setHostname(u.nick, u.host);
+        ial.setIdent(u.nick, u.user);
 
         if (u.nick == activeNick) { // I am joining a channel
             emit RequestWindow(chan, WT_CHANNEL, cid, true);
@@ -744,8 +758,6 @@ void IConnection::parse(QString &data)
                                      .arg(chan),
                    PT_SERVINFO
                   );
-
-            sockwrite(QString("WHO %1").arg(chan));
         }
         else { // Someone joined a channel I am on
             print( chan, tr("Joins: %1 (%2@%3)")
@@ -775,6 +787,8 @@ void IConnection::parse(QString &data)
             chan = msg;
             msg.clear();
         }
+
+        ial.delChannel(u.nick, chan);
 
         if (windowExist(chan) == false)
             return;
@@ -815,6 +829,9 @@ void IConnection::parse(QString &data)
         QString msg = getMsg(data);
         QString chan = token[2];
         QString target = token[3];
+
+        ial.delChannel(u.nick, chan);
+
         print( chan.toUpper(), tr("%1 kicked %2 (%3)")
                                  .arg(u.nick)
                                  .arg(target)
@@ -840,6 +857,9 @@ void IConnection::parse(QString &data)
     else if (token1up == "QUIT") {
         user_t u = parseUserinfo(token[0]); // Get userinfo about who this is about
         QString msg = getMsg(data); // Get quit msg.
+
+        ial.delNickname(u.nick);
+
         QHashIterator<QString,subwindow_t> w(winlist); // Set up iterator for all open windows, to find this user
         while (w.hasNext()) {
             w.next();
@@ -869,6 +889,9 @@ void IConnection::parse(QString &data)
     else if (token1up == "MODE") {
         user_t u = parseUserinfo(token[0]);
         QString target = token[2];
+
+        ial.setHostname(u.nick, u.host);
+        ial.setIdent(u.nick, u.user);
 
         if (isValidChannel(target)) {
             // Channel mode!
@@ -921,18 +944,22 @@ void IConnection::parse(QString &data)
 
                 // Check if we must increment parapos...
                 if ((cmA.contains(m) || cmB.contains(m)) || ((p == '+') && (cmC.contains(m))))
-                parapos++;
+                    parapos++;
 
                 if (isValidCuMode(m)) {
                     // Mode is a valid "channel usermode", store it
                     QString param = token[parapos];
                     parapos++; // user modes to channel isn't in the cm* lists. increment.
                     IWin *w = getWinObj(target);
-                    if (p == '+')
-                    w->MemberSetMode(param, getCuLetter(m));
+                    if (p == '+') {
+                        ial.addMode(param, target, getCuLetter(m));
+                        w->MemberSetMode(param, getCuLetter(m));
+                    }
 
-                    if (p == '-')
-                    w->MemberUnsetMode(param, getCuLetter(m));
+                    if (p == '-') {
+                        ial.delMode(param, target, getCuLetter(m));
+                        w->MemberUnsetMode(param, getCuLetter(m));
+                    }
                 }
             }
         }
@@ -943,12 +970,15 @@ void IConnection::parse(QString &data)
         return;
     }
 
-
     else if (token1up == "NICK") {
         user_t u = parseUserinfo(token[0]);
         QString newnick = token[2];
         if (newnick[0] == ':')
             newnick = newnick.mid(1);
+
+        ial.setHostname(u.nick, u.host);
+        ial.setIdent(u.nick, u.user);
+        ial.setNickname(u.nick, newnick);
 
         if (u.nick == activeNick) {
             print("STATUS", tr("Your nickname is now %1").arg(newnick));
@@ -983,6 +1013,9 @@ void IConnection::parse(QString &data)
                        .arg(newTopic),
                PT_SERVINFO
               );
+
+        ial.setHostname(u.nick, u.host);
+        ial.setIdent(u.nick, u.user);
 
         /* TODO
         TWin *tg = winlist->value(chan.toUpper()).window;
@@ -1070,7 +1103,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
         print("STATUS", text);
         return;
     }
-
 
     else if (numeric == ERR_CANNOTSENDTOCHAN) {
         QString text = QString("%1: %2")
@@ -1341,6 +1373,8 @@ void IConnection::parseNumeric(int numeric, QString &data)
         activeNick = token[2];
         active = true; // Connection is registered.
 
+        ial.addNickname(activeNick);
+
         // Perform on connect
         QString fname = QString("%1/perform").arg(CONF_PATH);
         QFile f(fname);
@@ -1573,7 +1607,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
         return;
     }
 
-
     else if (numeric == RPL_AWAY) {
         QString nickname = token[3];
         QString text = tr("%1 is away: %2")
@@ -1591,7 +1624,10 @@ void IConnection::parseNumeric(int numeric, QString &data)
         nick = token[3];
         userhost = QString("%1@%2")
                     .arg(token[4])
-                    .arg(token.at(5));
+                    .arg(token[5]);
+
+        ial.setIdent(nick, token[4]);
+        ial.setHostname(nick, token[5]);
 
         name = getMsg(data);
 
@@ -1969,13 +2005,19 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
             member_t m;
             m.nickname = item;
-            if (mode != 0x00)
+            ial.addNickname(m.nickname);
+            ial.addChannel(m.nickname, chan);
+
+            if (mode != 0x00) {
                 m.mode << mode;
-            // Ident and host is unknown, for now. It's safe not to have it.
+                ial.resetModes(m.nickname, chan);
+                ial.addMode(m.nickname, chan, mode);
+            }
+
+            // Ident and host is unknown, for now. It's safe not to have it.            
             win.widget->insertMember(item, m, false);
         }
     }
-
 
     else if (numeric == RPL_ENDOFNAMES) {
         QString chan = token[3];
@@ -1984,7 +2026,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
             winlist.value(chan.toUpper()).widget->sortMemberList();
     }
 
-    else if (numeric == RPL_LINKS) {        
+    else if (numeric == RPL_LINKS) {
         int l = 0;
         for (int i = 0; i <= 2; i++)
             l += token[i].length() + 1;
@@ -2019,8 +2061,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
     else if ((numeric == RPL_ENDOFMOTD) || (numeric == ERR_NOMOTD)) {
         print("STATUS", getMsg(data));
 
-        std::cout << "connect ok" << std::endl;
-
         if (conf->showMotd)
             motd.show();
 
@@ -2049,6 +2089,8 @@ void IConnection::parseNumeric(int numeric, QString &data)
         emit RequestTrayMsg(tr("Connected to server"), tr("Successfully connected to %1").arg(conf->server));
         emit connectedToIRC();
 
+        // for displaying the IAL inside a GUI. shows when connected to a server.
+        //addresslist.show();
         return;
     }
 
@@ -2203,29 +2245,30 @@ void IConnection::parseNumeric(int numeric, QString &data)
         return;
     }
 
-    /** @todo userhost, for banning members.
-  else if (numeric == RPL_USERHOST) {
-    if (userhostAction.length() > 0) {
-      // Do action and return, nothing to view in STATUS.
+    else if (numeric == RPL_USERHOST) {
+        QString result = getMsg(data);
+        if (result.isEmpty())
+            return;
 
-      // Get the actual hostname.
-      QString host = token.at(3).split("@").at(1); // <-- yes messy. I don't care.
+        QStringList items = result.split(' ');
+        for (int i = 0; i <= items.count()-1; ++i) {
+            QString item = items[i];
+            QString nickname = item.split('=')[0];
+            nickname = nickname.replace('*', "");
+            if (ial.hasNickname(nickname)) {
+                QString identhost = item.split('=')[1];
+                QString ident = identhost.split('@')[0];
+                QString host = identhost.split('@')[1];
+                ident = ident.replace('+',"");
 
-      // Save the action to a non-constant
-      char *act = new char[512];
-      strcpy(act, userhostAction.toStdString().c_str());
-
-      char *execthis = new char[512];
-
-      // convert the %s into whatever we got told to
-      sprintf(execthis, act, host.toStdString().c_str());
-
-      // sockwrite it.
-      sockwrite(QString(execthis));
-      userhostAction.clear();
+                ial.setIdent(nickname, ident);
+                ial.setHostname(nickname, host);
+            }
+        }
+        print("STATUS", data);
+        return;
     }
-  }
-  */
+
     else if ((numeric == RPL_WHOISACTUALHOST) || (numeric == RPL_WHOISMODES) || (numeric == RPL_WHOISIDENTIFIED)) {
         QString nick = token[3];
         QString text = getMsg(data);

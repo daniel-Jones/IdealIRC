@@ -295,7 +295,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTBUFFER") {
         // Used to turn on/off instant painting in a @window
         // Useful if there's a lot to redraw during a timer (e.g. games, gui)
-        if (token.count() != 6) {
+        if (token.count() != 3) {
             echo("STATUS", tr("/Paintbuffer: Invalid parameter count"), PT_LOCALINFO);
             return true;
         }

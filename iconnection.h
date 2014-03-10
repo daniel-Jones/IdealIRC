@@ -31,6 +31,10 @@
 #include "icommand.h"
 #include "ichannellist.h"
 #include "imotdview.h"
+#include "ial.h"
+
+// For accessing the IAL with a GUI
+//#include "iaddresslist.h"
 
 class TScriptParent;
 
@@ -82,7 +86,12 @@ public:
       QString getcmC() { return cmC; }
       QString getcmD() { return cmD; }
 
+      IAL ial;
+
 private:
+      // for accessing the IAL with a GUI.
+      //IAddressList addresslist;
+
       ICommand cmdhndl;
       config *conf;
       int cid; // Connection ID. Will never change. Equal to the ID of status window this belongs to.

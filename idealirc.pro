@@ -24,8 +24,6 @@ TEMPLATE = app
 
 RC_FILE = idealirc.rc
 
-#DEFINES += QT_NO_CAST_FROM_ASCII
-
 SOURCES += main.cpp\
         idealirc.cpp \
     iwin.cpp \
@@ -66,7 +64,10 @@ SOURCES += main.cpp\
     script/iscriptmanager.cpp \
     script/editor/iscripteditor.cpp \
     script/editor/tscripteditorhighlighter.cpp \
-    script/editor/editorwidget.cpp
+    script/editor/editorwidget.cpp \
+    ial.cpp
+
+#iaddresslist.cpp
 
 HEADERS  += idealirc.h \
     iwin.h \
@@ -110,7 +111,10 @@ HEADERS  += idealirc.h \
     script/iscriptmanager.h \
     script/editor/iscripteditor.h \
     script/editor/tscripteditorhighlighter.h \
-    script/editor/editorwidget.h
+    script/editor/editorwidget.h \
+    ial.h
+
+#iaddresslist.h
 
 FORMS    += idealirc.ui \
     iwin.ui \
@@ -127,6 +131,8 @@ FORMS    += idealirc.ui \
     imotdview.ui \
     script/iscriptmanager.ui \
     script/editor/iscripteditor.ui
+
+#iaddresslist.ui
 
 RESOURCES += \
     resources.qrc
