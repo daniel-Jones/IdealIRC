@@ -730,7 +730,7 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
         st_Add = 0,
         st_Variable
     };
-    int fnest = 0; // level of nested functions
+
     int state = st_Add;
     QString result;
     QString vname;
@@ -740,8 +740,9 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
         if (c == '\\') {
             if (i == text.length()-1)
                 return se_EscapeOnEndLine;
-            ++i;
+            c = text[++i];
             result += c;
+
             continue;
         }
 
@@ -780,7 +781,10 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
 
                 if (c == ' ')
                     --i; // get space added to text.
-                result += variables.value(vname);
+                if (! binVars.contains(vname))
+                    result += variables.value(vname);
+                else
+                    result += vname;
                 state = st_Add;
                 continue;
             }
@@ -906,7 +910,7 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
     return runf(function, paramList, result);
 }
 
-QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> *binVar)
+QByteArray TScript::extractBinVars(QString &text)
 {
     // Scan through the text and put data into 'temp'.
     // When encountering '%' sign, do not add that to temp, but figure the complete variable name (when we encounter a space),
@@ -935,9 +939,9 @@ QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> *bin
                 if ((i == text.length()-1) && (c != ' '))
                     var += c;
 
-                bool ex = binVar->contains(var);
+                bool ex = binVars.contains(var);
                 if (ex)
-                    tmp += binVar->value(var);
+                    tmp += binVars.value(var);
 
                 if (c == ' ')
                     tmp += ' ';
@@ -962,12 +966,12 @@ bool TScript::solveBool(QString &data)
 
     enum {
         NOOPERATOR = 0,
-        NOT_EQ,
-        IS_EQ,
-        LESSTHAN,
-        GREATERTHAN,
-        LESSTHANEQUAL,
-        GREATERTHANEQUAL
+        NOT_EQ = 1,
+        IS_EQ = 2,
+        LESSTHAN = 3,
+        GREATERTHAN = 4,
+        LESSTHANEQUAL = 5,
+        GREATERTHANEQUAL = 6
     };
 
     short op = NOOPERATOR;
@@ -1102,22 +1106,25 @@ bool TScript::solveLogic(QString &data)
             fnParanthesis = true;
 
         if (fnParanthesis) {
-            if ((fnpnest == 0) && (c == ' ')) {
+            if ((fnpnest == 0) && ((c == ' ') || (c == ')'))) { // function was given no paranthesis, safe to continue.
                 fnParanthesis = false;
-                lt += c;
+                if (c == ')')
+                    --i;
+                else
+                    lt += c;
                 continue;
             }
 
-            if (c == '(') {
+            if (c == '(') { // Function paranthesis found, increment nest level of it...
                 ++fnpnest;
                 lt += c;
                 continue;
             }
 
-            if (c == ')') {
+            if (c == ')') { // decrement nest level of function paranthesis...
                 --fnpnest;
                 lt += c;
-                if (fnpnest == 0)
+                if (fnpnest == 0) // out of function paranthesises, next ones are likely to be the conditional testers.
                     fnParanthesis = false;
                 continue;
             }
@@ -1382,7 +1389,6 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
     *
     * Following comes a 2000 line script interpreter:
     */
-
 
     // Typically, "keyword" would be the first word in every code it executes.
     QString keyword;
@@ -1811,7 +1817,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
             }
 
             if (keywup == "DEL") {
-                // del %var
+                // del %var %var2 %var3 ...
 
                 enum {
                     st_VarPrefix = 0,
@@ -1836,17 +1842,26 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     }
 
                     if (st == st_VarName) {
-                        if (c == '\n')
+                        if (c == '\n') {
+                            binVars.remove(vname);
+                            variables.remove(vname);
+                            parName->removeAll(vname);
                             break;
+                        }
+                        else if ((c == ' ') || (c == '\t')) {
+                            binVars.remove(vname);
+                            variables.remove(vname);
+                            parName->removeAll(vname);
+                            vname.clear();
+                            st = st_VarPrefix;
+                            continue;
+                        }
                         else
                             vname += c;
 
                         continue;
                     }
                 }
-
-                variables.remove(vname);
-                parName->removeAll(vname);
 
                 keyword.clear();
                 continue;
@@ -2476,10 +2491,8 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     data.append( argsEx );
 
                     if (binary) {
-                        /* TODO
                         QString d(data); // This will have the binary variable name in QString format (not the data)
-                        data = extractBinVars(d, binVar); // This parses the variable, reading out the binary data.
-                        */
+                        data = extractBinVars(d); // This parses the variable, reading out the binary data.
                     }
 
                     if (newline)
@@ -2509,22 +2522,14 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                         return se_MissingVariable; // variables must begin wtih a percent %
 
                     if (binary) {
-                        /* TODO
                         // QHash will replace existant values.
-                        binVar->insert(vname, data);
-
-                        int pos = varName->indexOf(vname); // Find exsisting variable
-                        if (pos > -1) { // Delete text variable
-                            varName->removeAt(pos);
-                            varData->removeAt(pos);
-                        }
-                        */
+                        binVars.insert(vname, data);
+                        variables.remove(vname); // remove string variable of same name
                     }
                     else {
                         /// String variables
-
                         variables.insert(vname, data);
-                        // remember to remove any binVar with same name.
+                        binVars.remove(vname);
                     }
 
                     keyword.clear();
@@ -2928,8 +2933,10 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 else
                     data = f->read(len);
 
-                variables.insert(var, data);
-                // TODO: check if ts.binary is true, and write binary accordingly.
+                if (ts.binary)
+                    binVars.insert(var, data);
+                else
+                    variables.insert(var, data);
 
                 keyword.clear();
                 continue;
@@ -2990,7 +2997,8 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
-                // TODO data = extractBinVars(datas, binVar);
+                data = extractBinVars(datas);
+
                 int fd = fds.toInt();
                 if (! files.contains(fd))
                     return se_InvalidFileDescriptor;

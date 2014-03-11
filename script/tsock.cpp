@@ -20,7 +20,7 @@
 
 #include "tsock.h"
 #include <QStringList>
-#include <iostream>
+#include <QDebug>
 
 TSock::TSock(QTcpSocket *sock, QObject *parent) :
   QObject(parent),
@@ -115,7 +115,7 @@ QByteArray TSock::readBuffer() // Read out entire buffer.
 QString TSock::readBufferLn() // Read out first line (to next \n).
 {
     QString data = socket->readLine();
-    return data.replace('\n', ""); // Remove any newlines (according to Qt docu, we'll get a \n on the end.)
+    return data.mid(0, data.length()-2); // remove newline on the end
 }
 
 void TSock::socketError(QAbstractSocket::SocketError error)

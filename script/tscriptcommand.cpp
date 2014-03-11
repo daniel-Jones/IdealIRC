@@ -333,6 +333,8 @@ void TScriptCommand::echo(QString target, QString text, int type)
 
     if (target == "$ACTIVE$") {
         subwindow_t sw = winlist->value(*activeWid);
+        if (sw.type >= WT_GRAPHIC)
+            sw = winlist->value(*activeConn); // active connection is the previous active one.
         sw.widget->print(text);
         return;
     }

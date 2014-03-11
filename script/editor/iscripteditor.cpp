@@ -22,6 +22,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QHashIterator>
+#include <QScrollBar>
 
 #include "iscripteditor.h"
 #include "ui_iscripteditor.h"
@@ -123,10 +124,15 @@ void IScriptEditor::store(QString file)
     ft.text->append( editor.toPlainText() );
 }
 
-void IScriptEditor::load(QString file, bool select)
+void IScriptEditor::load(QString file, bool select, bool loadAfterSave)
 { // Load from internal memory
     file_t ft = files.value(file);
     QModelIndex index = ft.item->index();
+
+    file_t prev = files.value(current);
+    prev.textCursor = editor.textCursor().position();
+    prev.scrollPos = editor.verticalScrollBar()->pos();
+    files.insert(current, prev);
 
     if (select) {
         ignoreNextRowChange = true;
@@ -136,6 +142,10 @@ void IScriptEditor::load(QString file, bool select)
 
     ignoreNextTextChange = true;
     editor.setPlainText(*ft.text);
+    QTextCursor c = editor.textCursor();
+    c.setPosition( ft.textCursor );
+    editor.setTextCursor(c);
+    //editor.verticalScrollBar()->move( ft.scrollPos ); //doesn't work
     current = file;
 }
 
@@ -169,6 +179,11 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
     QFile file(setRelativePath(scriptFile, parent->text()));
     QByteArray data;
 
+    QTextCursor cursor = editor.textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    int def = cursor.position();
+    QPoint scroll = editor.verticalScrollBar()->pos();
+
     if (! file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         int q = QMessageBox::question(this, tr("Unable to open file"),
                                       tr("Unable to open '%1'\r\nAttempt to create it?")
@@ -178,13 +193,15 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
         if (q == QMessageBox::Yes) {
 
             if (! file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                int q = QMessageBox::question(this, tr("Unable to create file"),
-                                              tr("Unable to create file '%1'")
-                                               .arg(parent->text()));
+                QMessageBox::question(this, tr("Unable to create file"),
+                                      tr("Unable to create file '%1'")
+                                        .arg(parent->text()));
                 file_t ft;
                 ft.modified = false;
                 ft.item = parent;
                 ft.text = new QByteArray();
+                ft.textCursor = def;
+                ft.scrollPos = scroll;
                 files.insert(parent->text(), ft);
                 return;
             }
@@ -197,8 +214,14 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
         file_t ft;
         ft.modified = false;
         ft.item = parent;
-        if (files.contains(parent->text()))
-            ft.text = files.value(parent->text()).text;
+        ft.textCursor = def;
+        ft.scrollPos = scroll;
+        if (files.contains(parent->text())) {
+            file_t f = files.value(parent->text());
+            ft.text = f.text;
+            ft.textCursor = f.textCursor;
+            ft.scrollPos = f.scrollPos;
+        }
         else
             ft.text = new QByteArray();
         files.insert(parent->text(), ft);
@@ -211,12 +234,15 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
         ft.modified = false;
         ft.item = parent;
         ft.text = new QByteArray(data);
+        ft.textCursor = def;
+        ft.scrollPos = scroll;
+        if (files.contains(current)) {
+            file_t f = files.value(current);
+            ft.textCursor = f.textCursor;
+            ft.scrollPos = f.scrollPos;
+        }
         files.insert(parent->text(), ft);
     }
-
-
-
-    qDebug() << "Tree setup:" << parent->text();
 
     enum { st_find=0, st_meta, st_include };
     /* States:
@@ -372,6 +398,7 @@ void IScriptEditor::currentRowChanged(const QModelIndex &current, const QModelIn
         return;
     }
 
+    // do not confuse the argument "current" with the class member "current"! :
     store( this->current ); // this is actually the previous document. this->current updates in load()
 
     load( current.data().toString() );

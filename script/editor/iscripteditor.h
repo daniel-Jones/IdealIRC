@@ -27,6 +27,7 @@
 #include <QItemSelectionModel>
 #include <QHash>
 #include <QCloseEvent>
+#include <QPoint>
 
 #include "config.h"
 #include "editorwidget.h"
@@ -40,6 +41,8 @@ typedef struct T_FILE {
     bool modified;
     QStandardItem *item;
     QByteArray *text;
+    int textCursor;
+    QPoint scrollPos;
 } file_t;
 
 class IScriptEditor : public QDialog
@@ -67,7 +70,7 @@ private:
     void saveFile(QString filename); // Save given file
     void saveAll(); // Save all files
     void store(QString file); // Store to internal memory
-    void load(QString file, bool select = false); // Load from internal memory
+    void load(QString file, bool select = false, bool loadAfterSave = false); // Load from internal memory
     void setupTreeView(); // Use this to (re)load the entire tree-view.
     void setupTreeView(QStandardItem *parent); // used to fill in children
     QString setRelativePath(QString folder, QString file);

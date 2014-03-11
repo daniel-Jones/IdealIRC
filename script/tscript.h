@@ -134,7 +134,7 @@ private:
     e_scriptresult extract(QString &text, bool extractVariables = true); // extract functions and variables
     e_scriptresult extractFunction(QString &text, QString &result, int *pos);
     QString extractVarsOld(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar);
-    QByteArray extractBinVars(QString &text, QHash<QString, QByteArray> *binVar);
+    QByteArray extractBinVars(QString &text);
     bool solveBool(QString &data);
     bool solveLogic(QString &data);
     QString extractFunctionOld(QString &data, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar); // data <- a script line to execute, replacing $function(para) with a result, if any.
