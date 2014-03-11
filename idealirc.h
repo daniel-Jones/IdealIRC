@@ -61,6 +61,7 @@ public:
 private:
       Ui::IdealIRC *ui;
       bool firstShow; // True on startup. See showEvent();
+      bool windowIsActive;
       QHash<int,subwindow_t> winlist; // Windows list
       QHash<int,IConnection*> conlist; // Connections list. int is "parent" from CreateSubWindow.
       int activeWid;
@@ -115,6 +116,7 @@ private slots:
       void on_actionScript_Manager_triggered();
       void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
       void trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information);
+      void applicationFocusChanged(QWidget* old, QWidget* now);
 };
 
 #endif // IDEALIRC_H

@@ -35,6 +35,7 @@ IdealIRC::IdealIRC(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::IdealIRC),
     firstShow(true),
+    windowIsActive(true),
     confDlg(NULL),
     favourites(NULL),
     chanlist(NULL),
@@ -45,6 +46,9 @@ IdealIRC::IdealIRC(QWidget *parent) :
     scriptParent(this, this, &conf, &conlist, &winlist, &activeWid, &activeConn)
 {
     ui->setupUi(this);
+
+    connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
+            this, SLOT(applicationFocusChanged(QWidget*,QWidget*)));
 
     ui->menuIIRC->addAction(ui->actionConnect);
     ui->menuIIRC->addAction(ui->actionOptions);
@@ -142,8 +146,6 @@ void IdealIRC::recreateScriptManager()
 void IdealIRC::showEvent(QShowEvent *)
 {
     /// Insert stuff that should run every showEvent here:
-
-
 
 
     // --
@@ -852,6 +854,14 @@ QSystemTrayIcon::MiddleClick	4	The system tray entry was clicked with the middle
 
 void IdealIRC::trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon)
 {
-    if (conf.trayNotify && isActiveWindow())
+    if (conf.trayNotify && !windowIsActive)
         trayicon.showMessage(title, message, icon, conf.trayNotifyDelay);
+}
+
+void IdealIRC::applicationFocusChanged(QWidget *old, QWidget *now)
+{
+  if (old == 0 && isAncestorOf(now) == true)
+    windowIsActive = true;
+  else if (isAncestorOf(old) == true && now == 0)
+    windowIsActive = false;
 }

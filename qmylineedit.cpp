@@ -22,9 +22,18 @@
 #include "constants.h"
 #include <iostream>
 
+int LineEditStyle::pixelMetric(PixelMetric metric, const QStyleOption *option, const QWidget *widget) const
+{
+  if (metric == QStyle::PM_TextCursorWidth)
+    return editptr->cursorSize;
+
+  return QProxyStyle::pixelMetric(metric,option,widget);
+}
+
 QMyLineEdit::QMyLineEdit(QWidget *parent, config *cfg) :
     QLineEdit(parent),
     acIndex(NULL),
+    cursorSize(1),
     kc(-1),
     conf(cfg)
 {
@@ -33,13 +42,25 @@ QMyLineEdit::QMyLineEdit(QWidget *parent, config *cfg) :
 
     updateCSS();
 
+    style = new LineEditStyle(this);
+
     QFont f(conf->fontName);
     f.setPixelSize(conf->fontSize);
     setFont(f);
 }
 
+void QMyLineEdit::focusInEvent(QFocusEvent *e)
+{
+    cursorSize = 1;
+    setStyle(style);
+    e->ignore();
+}
+
 void QMyLineEdit::focusOutEvent(QFocusEvent *e)
 {
+    cursorSize = 0;
+    setStyle(style);
+
     switch (e->reason()) {
         case Qt::TabFocusReason:
             setFocus();

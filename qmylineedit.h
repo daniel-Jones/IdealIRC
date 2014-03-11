@@ -24,7 +24,20 @@
 #include <QLineEdit>
 #include <QKeyEvent>
 #include <QFocusEvent>
+#include <QProxyStyle>
 #include "config.h"
+
+class QMyLineEdit;
+
+class LineEditStyle : public QProxyStyle
+{
+public:
+    LineEditStyle(QMyLineEdit *ptr, QStyle *style = 0) : QProxyStyle(style), editptr(ptr) { }
+    int pixelMetric(PixelMetric metric, const QStyleOption *option = 0, const QWidget *widget = 0) const;
+
+private:
+    QMyLineEdit *editptr;
+};
 
 class QMyLineEdit : public QLineEdit
 {
@@ -36,20 +49,24 @@ public:
     QString acPhrase(); // Return a phrase to match, based on where the text cursor is.
     int acBegin(); // Same as above but returns the first index of where to replace ac text.
     int *acIndex; // Get this one from IWin. We need it here because whenever
-                    // a key NOT being TAB_KEY, we must reset it to zero.
-                    // Should not be unsafe to have it as public either.
+                  // a key NOT being TAB_KEY, we must reset it to zero.
+                  // Should not be unsafe to have it as public either.
+
+    int cursorSize;
 
 private:
     int kc;
     QStringList history; // History of line inputs
     config *conf;
     QColor getColorFromCode(int num);
+    LineEditStyle *style;
 
 private slots:
     void lnReturn();
 
 protected:
     void keyPressEvent(QKeyEvent *e);
+    void focusInEvent(QFocusEvent *e);
     void focusOutEvent(QFocusEvent *e);
 
 signals:

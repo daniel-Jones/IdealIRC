@@ -623,13 +623,13 @@ void IConnection::parse(QString &data)
         }
 
         QString name = u.nick;
-        if (isValidChannel(token.at(2).toUpper()) == false) { // Privmsg
+        if (isValidChannel(token[2].toUpper()) == false) { // Privmsg
             emit RequestWindow(name, WT_PRIVMSG, cid, false);
             print( name.toUpper(), QString("<%1> %2")
                                      .arg(name)
                                      .arg(text)
                   );
-            subwindow_t w = winlist.value(token.at(2).toUpper());
+            subwindow_t w = winlist.value(name.toUpper());
             emit HighlightWindow(w.wid, HL_MSG);
             emit RequestTrayMsg(tr("Private MSG from %1").arg(name), text);
         }
