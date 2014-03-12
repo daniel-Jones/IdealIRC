@@ -101,8 +101,6 @@ void TSockFactory::sockclose(QString name)
         return; // Nothing more to do, error is reported at sockerror().
 
     socket->close();
-    delete socket;
-    slist.remove(name.toUpper());
 }
 
 void TSockFactory::sockopen(QString name, QString host, int port)
@@ -253,8 +251,12 @@ void TSockFactory::processSockEvent(QString name, e_iircevent event, QStringList
     if (event == te_sockclose) {
         TSock *socket = NULL;
         lastErr = pickSocket(name, &socket);
-        if (lastErr == 0)
-            socket->close();
+        if (lastErr == 0) {
+            emit runEvent(event, para);
+            socket->deleteLater();
+            slist.remove(name.toUpper());
+            return;
+        }
     }
 
     emit runEvent(event, para);
