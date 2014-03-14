@@ -51,6 +51,14 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
             this, SLOT(channelMenuItemTriggered(QString)));
 }
 
+QString TScript::lm(int line)
+{
+    if (! lineMap.contains(line))
+        return "[Unknown line]"; // oops, this shouldn't really happen!
+
+    return lineMap.value(line);
+}
+
 void TScript::delWhitespace(QString *text)
 {
     int i = 0;
@@ -133,9 +141,11 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
         scriptstr.clear();
         errorKeyword.clear();
         curLine = 1;
+        loadIntLine = 1;
         include.clear();
         command.clear();
         tevent.clear();
+        lineMap.clear();
 
         QHashIterator<QString,TCustomScriptDialog*> i(dialogs);
         while (i.hasNext()) {
@@ -168,13 +178,30 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     QString tmp;
     bool isCommented = false;
 
+    QString lineFile = includeFile;
+    if (lineFile.isEmpty())
+        lineFile = filename;
+
+    int cLine = 1;
+
     for (int i = 0; i <= ba.length()-1; ++i) {
         QChar c = ba[i];
 
         if (c == '\n') { // newline
             delWhitespace(&tmp);
-            if (tmp.length() > 0)
+
+            lineMap.insert(loadIntLine, QString("%1:%2")
+                                          .arg(cLine)
+                                          .arg(lineFile)
+                           );
+
+            if (tmp.length() > 0) {
                 scriptstr.push_back(tmp + '\n');
+                loadIntLine++;
+            }
+
+            cLine++;
+
             isCommented = false;
             tmp.clear();
             continue;
@@ -747,7 +774,6 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
                 return se_EscapeOnEndLine;
             c = text[++i];
             result += c;
-
             continue;
         }
 
@@ -1169,6 +1195,12 @@ bool TScript::solveLogic(QString &data)
         if (i < tl-1) // Only get next character if we aren't on the end.
             c1 = data[i+1];
 
+        if (c == '\\') { // BUG: extract() function shadows the escaping here.
+            lt += c1;
+            ++i;
+            continue;
+        }
+
         if (c == '$')
             fnParanthesis = true;
 
@@ -1271,7 +1303,7 @@ bool TScript::runEvent(e_iircevent evt, QStringList param)
 
             e_scriptresult ok = runf(fnct, param, r);
             if (ok != se_RunfDone)
-                emit error( QString("Unable to run function %1 (Script %2) - Parameter count?")
+                emit error( QString("Unable to run function %1 via an event (Script %2) - Parameter count?")
                             .arg(fnct)
                             .arg(name)
                            );
@@ -1720,6 +1752,8 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
             }
 
             if (keywup == "ELSE") {
+                // BUG: Any IF statements above this (unrelated to nesting level) will cause
+                //      this else to run if the latest one were FALSE.
                 if (lastIFresult == false) {
                     state = st_Literal;
                     ex = ex_BraceOpen;
@@ -3383,68 +3417,68 @@ void TScript::errorHandler(e_scriptresult res)
         break;
 
         case se_InvalidParamCount:
-            emit error( tr("Invalid parameter count around '%1' at line %2")
+            emit error( tr("Invalid parameter count around '%1' at %2")
                           .arg(errorKeyword)
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_InvalidSwitches:
-            emit error( tr("Invalid switches around '%1' at line %2")
+            emit error( tr("Invalid switches around '%1' at %2")
                           .arg(errorKeyword)
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_UnexpectedToken:
-            emit error( tr("Unexpected token around '%1' at line %2")
+            emit error( tr("Unexpected token around '%1' at %2")
                           .arg(errorKeyword)
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_EscapeOnEndLine:
-            emit error( tr("Escape character on line break at line %1")
-                          .arg(curLine)
+            emit error( tr("Escape character on line break at %1")
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_InvalidFunction:
             emit warning( tr("Invalid function at line %1")
-                          .arg(curLine)
+                          .arg(lm(curLine))
                          );
             break;
 
         case se_NegativeNotAllowed:
-            emit error( tr("Negative value not allowed around '%1' at line %2")
+            emit error( tr("Negative value not allowed around '%1' at %2")
                           .arg(errorKeyword)
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_InvalidTimer:
             emit error( tr("Invalid timer on line %1")
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_BreakNoWhile:
             emit error( tr("Trying to 'break' outside while loop, %1")
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         case se_ContinueNoWhile:
             emit error( tr("Trying to 'continue' outside while loop, %1")
-                          .arg(curLine)
+                          .arg(lm(curLine))
                        );
             break;
 
         default:
-            emit warning( tr("Function ended abnormal (code %1) around '%2' at line %3")
+            emit warning( tr("Function ended abnormal (code %1) around '%2' at %3")
                           .arg(res)
                           .arg(errorKeyword)
-                          .arg(curLine)
+                          .arg(lm(curLine))
                          );
             break;
 

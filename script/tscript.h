@@ -101,6 +101,8 @@ public:
     QList<QAction*> *getCustomNicklistMenu() { return &customNicklistMenu; }
     QList<QAction*> *getCustomChannelMenu() { return &customChannelMenu; }
 
+    QString lm(int line); // Line map.
+
 private:
     QWidget *dlgParent;
     TScriptParent *scriptParent;
@@ -118,6 +120,7 @@ private:
     QHash<int,t_sfile> files; // file descriptor, QFile
     QHash<QString,QString> variables;
     QHash<QString,QByteArray> binVars;
+    QMap<int,QString> lineMap; // key: internal line, value: line number with filename
 
     QList<QAction*> customNicklistMenu;
     QList<QAction*> customChannelMenu;
@@ -152,6 +155,7 @@ private:
     QString scriptstr; // Save script here, no whitespaces
     QString errorKeyword;
     int curLine;
+    int loadIntLine; // used when mapping line numbers, this is for internal line numbers.
     bool lastIFresult;
 
     bool customDialogShow(QString oname);

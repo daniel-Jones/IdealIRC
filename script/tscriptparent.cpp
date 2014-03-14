@@ -72,7 +72,9 @@ bool TScriptParent::loadScript(QString path, bool starting)
 
 
     if (! loader(s)) {
-        gotScriptError( tr("Unable to load script '%1").arg(path) );
+        gotScriptError( tr("Unable to load script '%1', error at %2")
+                        .arg(path)
+                        .arg(s->lm(s->getCurrentLine())));
         disconnect(s, SIGNAL(error(QString)),
                       this, SLOT(gotScriptError(QString)));
         return false;
@@ -279,60 +281,60 @@ bool TScriptParent::loader(TScript *script)
             break;
 
         case se_UnexpectedToken:
-            gotScriptError( tr("Unexpected token at '%1', line %2")
+            gotScriptError( tr("Unexpected token at '%1', %2")
                             .arg(script->getErrorKeyword())
-                            .arg(script->getCurrentLine())
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_UnexpectedNewline:
-            gotScriptError( tr("Unexpected line break at '%1', line %2")
+            gotScriptError( tr("Unexpected line break at '%1', %2")
                             .arg(script->getErrorKeyword())
-                            .arg(script->getCurrentLine())
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_UnexpectedFinish:
-            gotScriptError( tr("Unexpected finish at '%1', line %2")
+            gotScriptError( tr("Unexpected finish at '%1', %2")
                             .arg(script->getErrorKeyword())
-                            .arg(script->getCurrentLine())
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_InvalidMetaCommand:
-            gotScriptError( tr("Unexpected meta command '%1', line %2")
+            gotScriptError( tr("Unexpected meta command '%1', %2")
                             .arg(script->getErrorKeyword())
-                            .arg(script->getCurrentLine())
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_InvalidEvent:
-            gotScriptError( tr("Invalid event on line %1")
-                            .arg(script->getCurrentLine())
+            gotScriptError( tr("Invalid event at %1")
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_InvalidBlockType:
-            gotScriptError( tr("Invalid block type on line %1")
-                            .arg(script->getCurrentLine())
+            gotScriptError( tr("Invalid block type at %1")
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_InvalidParamCount:
-            gotScriptError( tr("Invalid parameter count on line %1")
-                            .arg(script->getCurrentLine())
+            gotScriptError( tr("Invalid parameter count at %1")
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_InvalidFileDescriptor:
-            gotScriptError( tr("Invalid file descriptor on line %1")
-                            .arg(script->getCurrentLine())
+            gotScriptError( tr("Invalid file descriptor at %1")
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
         case se_UnrecognizedMenu:
-            gotScriptError( tr("Unrecognized menu on line %1")
-                            .arg(script->getCurrentLine())
+            gotScriptError( tr("Unrecognized menu at %1")
+                            .arg(script->lm(script->getCurrentLine()))
                          );
             break;
 
@@ -342,7 +344,10 @@ bool TScriptParent::loader(TScript *script)
 
         default:
             ok = false;
-            gotScriptWarning(tr("Script loader returned abnormally, code %1").arg(sr));
+            gotScriptWarning( tr("Script loader returned abnormally, code %1 at %2")
+                                .arg(sr)
+                                .arg(script->lm(script->getCurrentLine()))
+                             );
             break;
     }
 
