@@ -1,3 +1,27 @@
+0.3.5 - March 12th 2014
+ * Script variables are now global - SOME SCRIPTS MAY BREAK DUE TO THIS!
+   Scripting with global variables is somewhat different to having local ones, you have to
+   take care of function parameters overwriting already set variables, etc.
+ * Added DEL instruction to delete unused variables (DEL %var1 %var2 %var3 ...)
+ * IF / While does now parse functions inside them better and they generally works better now.
+ * IAL added but there's no purpose for it just yet.
+ * Fixed menus so they don't re-add previous item texts.
+ * When ECHO'ing to a picture window, the text was silently ignored. fixed, the text displays in the
+   status of previous connection.
+ * The script editor does now keep some sort of trace of text cursor when changing between documents.
+   However when saving the cursor still goes back to top.
+ * Text cursor in subwindows should not be visible in all windows, only the active one.
+   However the fix for this added another bug that makes the latest created window to lose it, but
+   double clicking the text-input shows it back again.
+ * Fixed when a socket was closed by the peer it wasn't destroyed causing the socket name to be unusable.
+
+0.3.4 - March 8th 2014
+ * Custom scriptable menus added.
+ * /names does now not add duplicates to nicklist.
+ * Tray notify does now not show when IIRC is the active window.
+ * Added back the missing own text highlight.
+ * Generic code cleaning.
+
 0.3.3 - March 7th 2014
  * Brand new color picker, much more functional than the previous one.
  * Setting new colors does not save them immediately now.

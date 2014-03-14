@@ -22,8 +22,8 @@
 #define CONSTANTS_H
 
 /* Version constants */
-#define VERSION_STRING "0.3.4"
-#define VERSION_INTEGER 13
+#define VERSION_STRING "0.3.5"
+#define VERSION_INTEGER 14
 
 //#define IIRC_DEBUG_SCRIPT 1
 //#define IIRC_DEBUG_TWIN 1
