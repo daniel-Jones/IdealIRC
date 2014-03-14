@@ -61,14 +61,20 @@ public:
     QStringList* getChannels(QString nickname);
     QString getIdent(QString nickname);
     QString getHost(QString nickname);
-    QList<char> getModeChars(QString nickname, QString channel);
+    QList<char> getModeChars(QString nickname, QString channel, bool cs = true);
+
+    bool sharesChannel(QString nickname, QString channel); // checks if nickname shares the channel with us (they're also on there)
+    bool isOperator(QString nickname, QString channel);
+    bool isHalfop(QString nickname, QString channel);
+    bool isVoiced(QString nickname, QString channel);
+    bool isRegular(QString nickname, QString channel);
 
 private:
     QString *activeNick; // My current nickname of this connection.
     QHash<QString,IALEntry_t*> entries;
     QList<char> *sortrule;
-    IALEntry_t* getEntry(QString nickname);
-    IALChannel_t* getChannel(QString nickname, QString channel);
+    IALEntry_t* getEntry(QString nickname, bool cs = true);
+    IALChannel_t* getChannel(QString nickname, QString channel, bool cs = true);
     void sortList(QList<char> *lst);
     bool sortLargerThan(const QString s1, const QString s2);
 

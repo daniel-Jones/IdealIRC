@@ -27,7 +27,7 @@
 
 #include "tscriptparent.h"
 #include "tscript.h"
-
+#include "iconnection.h"
 
 TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
                  QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn) :
@@ -976,7 +976,13 @@ bool TScript::solveBool(QString &data)
         LESSTHAN = 3,
         GREATERTHAN = 4,
         LESSTHANEQUAL = 5,
-        GREATERTHANEQUAL = 6
+        GREATERTHANEQUAL = 6,
+
+        ISON_CHANNEL = 7,
+        ISOPERATOR = 8,
+        ISHALFOP = 9,
+        ISVOICED = 10,
+        ISREGULAR = 11
     };
 
     short op = NOOPERATOR;
@@ -1026,10 +1032,45 @@ bool TScript::solveBool(QString &data)
             continue;
         }
 
+        if ((c == '?') && (data[i+1] == '#')) {
+            onQ2 = true;
+            op = ISON_CHANNEL;
+            i += 2;
+            continue;
+        }
+
+        if ((c == '?') && (data[i+1] == '@')) {
+            onQ2 = true;
+            op = ISOPERATOR;
+            i += 2;
+            continue;
+        }
+
+        if ((c == '?') && (data[i+1] == '%')) {
+            onQ2 = true;
+            op = ISHALFOP;
+            i += 2;
+            continue;
+        }
+
+        if ((c == '?') && (data[i+1] == '+')) {
+            onQ2 = true;
+            op = ISVOICED;
+            i += 2;
+            continue;
+        }
+
+        if ((c == '?') && (data[i+1] == '-')) {
+            onQ2 = true;
+            op = ISREGULAR;
+            i += 2;
+            continue;
+        }
+
         if (onQ2)
             Q2 += c;
         else {
-            if ((c == ' ') && ((data[i+1] == '!') || (data[i+1] == '=') || (data[i+1] == '<') || (data[i+1] == '>')))
+            if ((c == ' ') && ((data[i+1] == '!') || (data[i+1] == '=') || (data[i+1] == '<') || (data[i+1] == '>') || (data[i+1] == '?')))
                 continue;
             Q1 += c;
         }
@@ -1050,8 +1091,14 @@ bool TScript::solveBool(QString &data)
     extract(Q1);
     extract(Q2);
 
+    qDebug() << "Q1=" << Q1 << " Q2=" << Q2;
+
     QString Q1u = Q1.toUpper();
     QString Q2u = Q2.toUpper();
+
+    IConnection *c;
+    if (op >= ISON_CHANNEL) // channel specific operations
+        c = conList->value(*activeConn);
 
     switch (op) {
         case NOT_EQ:
@@ -1071,6 +1118,21 @@ bool TScript::solveBool(QString &data)
 
         case GREATERTHANEQUAL:
             return (Q1.toDouble() >= Q2.toDouble());
+
+        case ISON_CHANNEL:
+            return c->ial.sharesChannel(Q1, Q2);
+
+        case ISOPERATOR:
+            return c->ial.isOperator(Q1, Q2);
+
+        case ISHALFOP:
+            return c->ial.isHalfop(Q1, Q2);
+
+        case ISVOICED:
+            return c->ial.isVoiced(Q1, Q2);
+
+        case ISREGULAR:
+            return c->ial.isRegular(Q1, Q2);
 
         default:
             return false;

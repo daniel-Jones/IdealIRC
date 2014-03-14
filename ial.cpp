@@ -216,31 +216,80 @@ QString IAL::getHost(QString nickname)
     return entry->hostname;
 }
 
-QList<char> IAL::getModeChars(QString nickname, QString channel)
+QList<char> IAL::getModeChars(QString nickname, QString channel, bool cs)
 {
-    IALChannel_t *chanEntry = getChannel(nickname, channel);
+    IALChannel_t *chanEntry = getChannel(nickname, channel, cs);
     if (chanEntry == NULL)
         return QList<char>();
 
     return chanEntry->modeChar;
 }
 
-IALEntry_t* IAL::getEntry(QString nickname)
+bool IAL::sharesChannel(QString nickname, QString channel)
 {
-    return entries.value(nickname, NULL);
+    IALChannel_t *chan = getChannel(nickname, channel, false);
+    if (chan == NULL)
+        return false;
+    return true;
 }
 
-IALChannel_t* IAL::getChannel(QString nickname, QString channel)
+bool IAL::isOperator(QString nickname, QString channel)
 {
-    IALEntry_t* entry = getEntry(nickname);
+    QList<char> modes = getModeChars(nickname, channel, false);
+    return modes.contains('@');
+}
+
+bool IAL::isHalfop(QString nickname, QString channel)
+{
+    QList<char> modes = getModeChars(nickname, channel, false);
+    return modes.contains('%');
+}
+
+bool IAL::isVoiced(QString nickname, QString channel)
+{
+    QList<char> modes = getModeChars(nickname, channel, false);
+    return modes.contains('+');
+}
+
+bool IAL::isRegular(QString nickname, QString channel)
+{
+    QList<char> modes = getModeChars(nickname, channel, false);
+    return modes.isEmpty();
+}
+
+IALEntry_t* IAL::getEntry(QString nickname, bool cs)
+{
+    if (cs) // case sensitive, faster
+        return entries.value(nickname, NULL);
+
+    QHashIterator<QString,IALEntry_t*> i(entries);
+    while (i.hasNext()) {
+        i.next();
+        IALEntry_t *r = i.value();
+        if (i.key().toUpper() == nickname.toUpper())
+            return r;
+    }
+
+    return NULL;
+}
+
+IALChannel_t* IAL::getChannel(QString nickname, QString channel, bool cs)
+{
+    IALEntry_t* entry = getEntry(nickname, cs);
     if (entry == NULL)
         return NULL;
 
     QListIterator<IALChannel_t*> i(entry->channels);
     while (i.hasNext()) {
         IALChannel_t *c = i.next();
-        if (c->name == channel)
-            return c;
+
+        if (cs)
+            if (c->name == channel)
+                return c;
+
+        if (! cs)
+            if (c->name.toUpper() == channel.toUpper())
+                return c;
     }
 
     return NULL;
