@@ -25,9 +25,13 @@
 #include <iostream>
 #include <QDateTime>
 #include <QFontMetrics>
+#include <QDebug>
 #include <QApplication>
 
-TScriptInternalFunctions::TScriptInternalFunctions(TSockFactory *sf, QHash<QString,int> *functionindex, QHash<QString,TCustomScriptDialog*> *dlgs, QHash<int,t_sfile> *fl, QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn, QObject *parent) :
+TScriptInternalFunctions::TScriptInternalFunctions(TSockFactory *sf, QHash<QString,int> *functionindex,
+                                                   QHash<QString,TCustomScriptDialog*> *dlgs, QHash<int,t_sfile> *fl,
+                                                   QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl,
+                                                   int *aWid, int *aConn, QObject *parent) :
     QObject(parent),
     sockfactory(sf),
     fnindex(functionindex),

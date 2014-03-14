@@ -34,7 +34,7 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
     QObject(parent),
     dlgParent(dialogParent),
     scriptParent(sp),
-    ifn(&sockets, &fnindex, &dialogs, &files, conList, winList, activeWid, activeConn),
+    ifn(&sockets, &fnindex, &dialogs, &files, cl, wl, aWid, aConn),
     filename(fname),
     activeWid(aWid),
     activeConn(aConn),
