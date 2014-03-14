@@ -85,7 +85,9 @@ class TScript : public QObject
   Q_OBJECT
 
 public:
-    TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname);
+    TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
+            QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn);
+
     e_scriptresult loadScript2(QString includeFile = "", QString parent = "");
     e_scriptresult runf(QString function, QStringList param, QString &result, bool ignoreParamCount = false);
 
@@ -122,6 +124,11 @@ private:
     void resetMenu(QList<QAction *> &menu); // Use for re-parsing the menu structure
     QSignalMapper nicklistMenuMapper;
     QSignalMapper channelMenuMapper;
+
+    int *activeWid;
+    int *activeConn;
+    QHash<int,subwindow_t> *winList;
+    QHash<int,IConnection*> *conList;
 
     e_scriptresult _runf_private2(int pos, QStringList *parName, QString &result);
     e_iircevent getEvent(QString event); // Convert event string name to internal code

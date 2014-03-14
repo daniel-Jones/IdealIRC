@@ -29,12 +29,17 @@
 #include "tscript.h"
 
 
-TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname) :
+TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
+                 QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn) :
     QObject(parent),
     dlgParent(dialogParent),
     scriptParent(sp),
-    ifn(&sockets, &fnindex, &dialogs, &files),
-    filename(fname)
+    ifn(&sockets, &fnindex, &dialogs, &files, conList, winList, activeWid, activeConn),
+    filename(fname),
+    activeWid(aWid),
+    activeConn(aConn),
+    winList(wl),
+    conList(cl)
 {
     connect(&sockets, SIGNAL(runEvent(e_iircevent,QStringList)),
             this, SLOT(runEvent(e_iircevent,QStringList)));

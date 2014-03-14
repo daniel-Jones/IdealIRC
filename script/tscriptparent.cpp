@@ -53,7 +53,7 @@ bool TScriptParent::loadScript(QString path, bool starting)
 {
     std::cout << "Loading '" << path.toStdString().c_str() << "'" << std::endl;
 
-    TScript *s = new TScript(this, this, dlgParent, path);
+    TScript *s = new TScript(this, this, dlgParent, path, conlist, winlist, activeWid, activeConn);
 
     connect(s, SIGNAL(error(QString)),
                this, SLOT(gotScriptError(QString)));
