@@ -341,6 +341,7 @@ bool TScriptParent::loader(TScript *script, int *errcode)
             break;
 
         case se_None:
+            ok = true;
             break;
 
         default:
