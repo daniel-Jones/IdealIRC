@@ -1,3 +1,24 @@
+0.3.6 - March 15th 2014
+ * Fixed bug where you could not select ServerInfo color in customization.
+ * Fixed so menu types won't be considered an event.
+ * Added hostname in titlebar of query windows.
+ * Added hostname in titlebar of query windows.
+ * Added confirmation on close an online status window.
+ * Line numbers in scripts are now mapped, error reporting should be more accurate on line numbers now.
+ * Added IALHostGet script event.
+ * New IF operators:
+     ?# Is nickname on channel
+     ?@ Is nickname operator on channel
+     ?% Is nickname halfop on channel
+     ?+ Is nickname voiced on channel
+     ?- Is nickname regular (no modes) on channel
+   These operators only work with members who are on the same channel as you.
+ * New functions:
+   $HostMask(nickname)
+   $IALHostMask(nickname)
+   $CurWinType
+   $Target
+
 0.3.5 - March 12th 2014
  * Script variables are now global - SOME SCRIPTS MAY BREAK DUE TO THIS!
    Scripting with global variables is somewhat different to having local ones, you have to
