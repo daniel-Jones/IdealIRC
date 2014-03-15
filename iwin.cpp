@@ -1017,7 +1017,12 @@ void IWin::on_actionKick_triggered()
     if (item == 0)
         return;
 
-    QString reason = QInputDialog::getText(this, tr("Kick reason"), tr("Type a reson for the kick:"));
+    bool ok = false;
+    QString reason = QInputDialog::getText(this, tr("Kick reason"), tr("Type a reson for the kick:"),
+                                           QLineEdit::Normal, "", &ok);
+
+    if (! ok)
+        return;
 
     QString nickname = stripModeChar(item->text());
     sockwrite(QString("KICK %1 %2 :%3")
