@@ -25,6 +25,8 @@
 #include <QHash>
 #include <QStringList>
 
+class TScriptParent;
+
 typedef struct T_IALCHANNEL {
     QString name;
     QList<char> modeChar; // modes the user got in the channel such as @, +
@@ -42,7 +44,7 @@ class IAL : public QObject
     Q_OBJECT
 
 public:
-    explicit IAL(QObject *parent, QString *activeNickname, QList<char> *sortingRule);
+    explicit IAL(QObject *parent, QString *activeNickname, QList<char> *sortingRule, TScriptParent *sp);
     void reset(); // When socket disconnects, run this.
     void addNickname(QString nickname);
     bool delNickname(QString nickname);
@@ -73,6 +75,7 @@ private:
     QString *activeNick; // My current nickname of this connection.
     QHash<QString,IALEntry_t*> entries;
     QList<char> *sortrule;
+    TScriptParent *scriptParent;
     IALEntry_t* getEntry(QString nickname, bool cs = true);
     IALChannel_t* getChannel(QString nickname, QString channel, bool cs = true);
     void sortList(QList<char> *lst);

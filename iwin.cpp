@@ -35,6 +35,7 @@
 #include <QDebug>
 #include <qalgorithms.h>
 #include <QInputDialog>
+#include <QMessageBox>
 
 #include "iconnection.h"
 #include "iwin.h"
@@ -269,6 +270,14 @@ void IWin::closeEvent(QCloseEvent *e)
     if (WindowType == WT_STATUS) {
         statusCount--;
         if (connection->isOnline()) {
+            int btn = QMessageBox::question(this, tr("Close connection?"),
+                                            tr("The connection is online. Do you want to close?"));
+            if (btn == QMessageBox::No) {
+                e->ignore();
+                statusCount++;
+                return;
+            }
+
             connection->closeConnection(true);
             e->ignore();
         }
@@ -318,6 +327,24 @@ void IWin::focusInEvent(QFocusEvent *)
 {
     if (input != NULL)
         input->setFocus();
+}
+
+void IWin::setConnectionPtr(IConnection *con)
+{
+    connection = con;
+
+    if ((WindowType == WT_PRIVMSG) && (con->isOnline()) && (con->ial.getHost(target) != "")) {
+        updateTitleHost();
+    }
+}
+
+void IWin::updateTitleHost()
+{
+    setWindowTitle( QString("%1 (%2@%3)")
+                      .arg(target)
+                      .arg(connection->ial.getIdent(target))
+                      .arg(connection->ial.getHost(target))
+                   );
 }
 
 void IWin::inputEnterPushed()
@@ -521,6 +548,9 @@ void IWin::print(const QString &text, const int ptype)
 
     if ((WindowType == WT_CHANNEL) || (WindowType == WT_PRIVMSG))
         writeToLog(msg);
+
+    if (WindowType == WT_PRIVMSG)
+        updateTitleHost();
 }
 
 void IWin::insertMember(QString nickname, member_t mt, bool sort)

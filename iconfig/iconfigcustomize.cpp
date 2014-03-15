@@ -65,6 +65,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     connect(ui->rdLocalInfo,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdNotice,           SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdOwn,              SIGNAL(clicked()), &colorSignals, SLOT(map()));
+    connect(ui->rdServerInfo,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdHighlight,        SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdInputBg,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdInputText,        SIGNAL(clicked()), &colorSignals, SLOT(map()));

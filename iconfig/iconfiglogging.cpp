@@ -84,6 +84,7 @@ void IConfigLogging::on_btnBrowse_clicked()
 
     if (fd.exec()) {
         ui->edLogPath->setText( fd.directory().absolutePath() );
+        loadFiles();
     }
 }
 

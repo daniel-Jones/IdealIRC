@@ -38,7 +38,7 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     haveExceptionList(false),
     haveInviteList(false),
     FillSettings(false),
-    ial(this, &activeNick, &sortrule),
+    ial(this, &activeNick, &sortrule, sp),
     //addresslist((QWidget*)parent, this),
     cmdhndl(this, cfg),
     conf(cfg),
@@ -2265,7 +2265,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                 ial.setHostname(nickname, host);
             }
         }
-        print("STATUS", data);
+        print("STATUS", result);
         return;
     }
 

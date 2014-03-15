@@ -716,6 +716,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                                     &nicklistMenuMapper, SLOT(map()));
                             customNicklistMenu << a;
                             temp[1].clear();
+                            temp[0].clear();
                         }
 
                         else if (temp[0].toUpper() == "CHANNEL") {
@@ -725,6 +726,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                                     &channelMenuMapper, SLOT(map()));
                             customChannelMenu << a;
                             temp[1].clear();
+                            temp[0].clear();
                         }
 
                         else
@@ -1754,6 +1756,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
             if (keywup == "ELSE") {
                 // BUG: Any IF statements above this (unrelated to nesting level) will cause
                 //      this else to run if the latest one were FALSE.
+
                 if (lastIFresult == false) {
                     state = st_Literal;
                     ex = ex_BraceOpen;
@@ -3401,6 +3404,10 @@ e_iircevent TScript::getEvent(QString event)
 
     else if (evt == "DLISTBOXSELECT")
         return te_dlistboxselect;
+
+    else if (evt == "IALHOSTGET")
+        return te_ialhostget;
+
     else
         return te_noevent;
 }

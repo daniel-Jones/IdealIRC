@@ -83,7 +83,7 @@ public:
       void setInputText(QString text);
       void setTopic(QString newTopic) { topic = newTopic; } // Just for storing, nothing else.
       void setCmdHandler(ICommand *cmd) { cmdhndl = cmd; }
-      void setConnectionPtr(IConnection *con) { connection = con; }
+      void setConnectionPtr(IConnection *con);
       void sockwrite(QString data) { emit sendToSocket(data); }
       IConnection* getConnection() { return connection; }
       void setSortRuleMap(QList<char> *sl) { sortrule = sl; }
@@ -92,6 +92,7 @@ public:
       void clear(); // Clear contents
       void doGfx(e_painting command, QStringList param);
       QStringList getSelectedMembers(); // Returns a list of selected nicknames.
+      void updateTitleHost(); // for WT_PRIVMSG, set hostname in titlebar
 
 private:
       Ui::IWin *ui;

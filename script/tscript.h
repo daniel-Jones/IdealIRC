@@ -46,38 +46,6 @@ typedef struct T_SCRIPTLINE {
     QString text;
 } t_scriptline;
 
-enum e_scriptresult {
-    se_None = 0,
-    se_Finished,
-    se_FileNotExist,
-    se_FileEmpty,
-    se_FileCannotOpen,
-    se_UnexpectedFinish = 5,
-    se_RunfDone,
-    se_BreakNoWhile,
-    se_ContinueNoWhile,
-    se_InvalidParamCount,
-    se_FunctionEmpty = 10,
-    se_InvalidFunction,
-    se_InvalidCommand,
-    se_InvalidMetaCommand,
-    se_InvalidSwitches,
-    se_InvalidIncludeFile = 15,
-    se_InvalidEvent,
-    se_InvalidBlockType,
-    se_InvalidTimer,
-    se_InvalidFileDescriptor,
-    se_MissingVariable = 20,
-    se_FunctionIdxOutOfBounds,
-    se_TimerAlreadyDefined,
-    se_UnexpectedToken,
-    se_EscapeOnEndLine,
-    se_UnexpectedNewline = 25,
-    se_NegativeNotAllowed,
-    se_FSeekFailed,
-    se_UnrecognizedMenu
-};
-
 class TScriptParent;
 
 class TScript : public QObject

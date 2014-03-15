@@ -19,14 +19,16 @@
  */
 
 #include <QListIterator>
-#include "ial.h"
-
 #include <QDebug>
 
-IAL::IAL(QObject *parent, QString *activeNickname, QList<char> *sortingRule) :
+#include "ial.h"
+#include "script/tscriptparent.h"
+
+IAL::IAL(QObject *parent, QString *activeNickname, QList<char> *sortingRule, TScriptParent *sp) :
     QObject(parent),
     activeNick(activeNickname),
-    sortrule(sortingRule)
+    sortrule(sortingRule),
+    scriptParent(sp)
 {
 }
 
@@ -60,7 +62,13 @@ bool IAL::setHostname(QString nickname, QString hostname)
     if (entry == NULL)
         return false;
 
+    QString entryhost = entry->hostname;
+
     entry->hostname = hostname;
+
+    if (entryhost != hostname) // send event after we've updated.
+        scriptParent->runevent(te_ialhostget, QStringList()<<nickname<<hostname);
+
     return true;
 }
 

@@ -21,6 +21,7 @@
 #include "tscriptinternalfunctions.h"
 #include "math.h"
 #include "iwin.h"
+#include "iconnection.h"
 
 #include <iostream>
 #include <QDateTime>
@@ -277,6 +278,49 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             r += param[i];
 
         result = r;
+        return true;
+    }
+
+    if (fn == "HOSTMASK") {
+        // Returns hostmask *!*@host.name of nickname if IAL got it.
+        // Otherwise, if IAL doesn't, it returns nickname!*@* as hostmask.
+        if (param.count() != 1) {
+            result.clear();
+            return false;
+        }
+        QString nickname = param[0];
+
+        IConnection *con = conList->value(*activeConn);
+        QString host = con->ial.getHost(nickname);
+        if (host.isEmpty()) {
+            host = nickname;
+            host.append("!*@*");
+        }
+        else
+            host.prepend("*!*@");
+
+        result = host;
+
+        return true;
+    }
+
+    if (fn == "IALHOSTMASK") {
+        // Returns hostname of nickname if IAL got it, otherwise empty text.
+        // Better off using $hostmask() instead.
+        if (param.count() != 1) {
+            result.clear();
+            return false;
+        }
+        QString nickname = param[0];
+
+        IConnection *con = conList->value(*activeConn);
+        QString host = con->ial.getHost(nickname);
+
+        if (! host.isEmpty())
+            host.prepend("*!*@");
+
+        result = host;
+
         return true;
     }
 
