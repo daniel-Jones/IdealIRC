@@ -71,9 +71,11 @@ bool TScriptParent::loadScript(QString path, bool starting)
                this, SLOT(stopURLDisplay()));
 
 
-    if (! loader(s)) {
-        gotScriptError( tr("Unable to load script '%1', error at %2")
+    int errcode = se_None;
+    if (! loader(s, &errcode)) {
+        gotScriptError( tr("Unable to load script '%1', error %2 at %3")
                         .arg(path)
+                        .arg(errcode)
                         .arg(s->lm(s->getCurrentLine())));
         disconnect(s, SIGNAL(error(QString)),
                       this, SLOT(gotScriptError(QString)));
@@ -259,7 +261,7 @@ void TScriptParent::saveLoadedScripts()
     }
 }
 
-bool TScriptParent::loader(TScript *script)
+bool TScriptParent::loader(TScript *script, int *errcode)
 {
   // Handle errors from loadeing here, this is used both on load and reload.
   // Note: Line numbers are incorrect because the scripts truncate blank lines and comments.
@@ -339,7 +341,6 @@ bool TScriptParent::loader(TScript *script)
             break;
 
         case se_None:
-            ok = true;
             break;
 
         default:
@@ -351,8 +352,8 @@ bool TScriptParent::loader(TScript *script)
             break;
     }
 
-    if (! ok)
-        gotScriptError(tr("Unable to load script %1").arg(script->getPath()));
+    if (errcode != NULL)
+        *errcode = sr;
 
     return ok;
 }

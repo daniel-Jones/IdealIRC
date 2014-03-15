@@ -41,6 +41,9 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
     winList(wl),
     conList(cl)
 {
+    // Set file relative to config file
+    filename = setRelativePath(CONF_FILE, filename);
+
     connect(&sockets, SIGNAL(runEvent(e_iircevent,QStringList)),
             this, SLOT(runEvent(e_iircevent,QStringList)));
 

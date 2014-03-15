@@ -229,6 +229,11 @@ bool ICommand::parse(QString command)
         return true;
     }
 
+    if (t1 == "KICK") {
+        // kick #chan nick [reason]
+
+    }
+
 
     return false; // Command wasn't found.
 }

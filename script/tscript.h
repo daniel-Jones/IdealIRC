@@ -71,6 +71,8 @@ public:
 
     QString lm(int line); // Line map.
 
+    static QString setRelativePath(QString folder, QString file); // puts file on folder unless file is a full path.
+
 private:
     QWidget *dlgParent;
     TScriptParent *scriptParent;
@@ -118,7 +120,6 @@ private:
     QString extractFunctionOld(QString &data, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar); // data <- a script line to execute, replacing $function(para) with a result, if any.
                                                                                        // We need variable data to extract any possible variables before we send the data to function.
     void delWhitespace(QString *text);
-    QString setRelativePath(QString folder, QString file); // puts file on folder unless file is a full path.
 
     QString scriptstr; // Save script here, no whitespaces
     QString errorKeyword;

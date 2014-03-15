@@ -95,7 +95,7 @@ private slots:
     bool displayURL; // used on UrlClick event.
     void echo(QString text, int type) { cmdhndl.echo("STATUS", text, type); }
     void echo(QString target, QString text, int type) { cmdhndl.echo(target, text, type); }
-    bool loader(TScript *script);
+    bool loader(TScript *script, int *errcode = NULL);
 };
 
 #endif // TSCRIPTPARENT_H
