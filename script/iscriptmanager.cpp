@@ -48,7 +48,7 @@ IScriptManager::IScriptManager(QWidget *parent, TScriptParent *sp, config *cfg) 
     int count = ini.CountItems("Script");
     for (int i = 1; i <= count; i++) {
         QString name = ini.ReadIniItem("Script", i);
-        QString path = ini.ReadIni("Script", name);
+        QString path = TScript::setRelativePath(CONF_FILE, ini.ReadIni("Script", name));
 
         addItem(name, path);
     }

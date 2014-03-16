@@ -28,7 +28,6 @@
 
 #include "iwin.h"
 #include "config.h"
-#include "icommand.h"
 #include "ichannellist.h"
 #include "imotdview.h"
 #include "ial.h"
@@ -36,6 +35,7 @@
 // For accessing the IAL with a GUI
 //#include "iaddresslist.h"
 
+class ICommand;
 class TScriptParent;
 
 // for parseUserinfo();
@@ -67,6 +67,7 @@ public:
       char getCuLetter(char l);
       bool isValidCuMode(char mode);
       bool isValidCuLetter(char l);
+      bool isValidChannel(QString channel);
       subwindow_t getSubWindowStruct(QString wname) { return winlist.value(wname); }
       QString getConnectionInfo() { return host + ":" + QString::number(port); } // Returns the connections server:port
       QString trimCtrlCodes(QString &text);
@@ -135,7 +136,6 @@ private:
 
       QString getMsg(QString &data);
       IWin* getWinObj(QString name); // Returns NULL if no matches.
-      bool isValidChannel(QString channel);
 
       user_t parseUserinfo(QString uinfo);
       void parse(QString &data);

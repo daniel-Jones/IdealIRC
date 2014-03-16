@@ -25,6 +25,7 @@
 
 #include "constants.h"
 #include "iconnection.h"
+#include "icommand.h"
 #include "numerics.h"
 #include "script/tscriptparent.h"
 
@@ -304,6 +305,9 @@ bool IConnection::windowExist(QString name)
 
 bool IConnection::isValidChannel(QString channel)
 {
+    if (channel.isEmpty())
+        return false;
+
     char prefix = channel[0].toLatin1();
     return chantype.contains(prefix);
 }
@@ -557,7 +561,7 @@ void IConnection::parse(QString &data)
                 // CTCP indicator
                 QString ctcp = tx.at(0);
                 ctcp.remove(QChar(0x01));
-                print( "STATUS", tr("CTCP %1 from %2")
+                print( "STATUS", tr("[CTCP %1] from %2")
                                    .arg(ctcp)
                                    .arg(u.nick),
                        PT_CTCP
@@ -679,13 +683,13 @@ void IConnection::parse(QString &data)
         if (msg.at(0) == 0x01) { // CTCP reply
             QString ctcp = msg.split(' ')[0].toUpper();
             ctcp.remove(QChar(0x01));
-            msg = msg.mid(ctcp.length() + 1);
+            msg = msg.mid(ctcp.length() + 2);
             msg.remove(QChar(0x01));
 
             if (ctcp.toUpper() == "PING") {
                 // Parse this.
                 if (msg.length() == 0) {
-                    print( "STATUS", tr("CTCP %1 reply from %2: ? seconds")
+                    print( activewin(), tr("[CTCP Reply %1 (? sec)] from %2")
                                        .arg(ctcp)
                                        .arg(u.nick),
                            PT_CTCP
@@ -698,10 +702,10 @@ void IConnection::parse(QString &data)
                 char clag[16];
                 sprintf(clag, "%.2f", lag);
                 QString s_lag(clag);
-                print( "STATUS", tr("CTCP %1 reply from %2: %3 seconds")
+                print( activewin(), tr("[CTCP Reply %1 (%2 sec)] from %3")
                                    .arg(ctcp)
-                                   .arg(u.nick)
-                                   .arg(s_lag),
+                                   .arg(s_lag)
+                                   .arg(u.nick),
                        PT_CTCP
                       );
 
@@ -709,15 +713,15 @@ void IConnection::parse(QString &data)
             }
 
             if (msg.length() > 0)
-                print( "STATUS", tr("CTCP %1 reply from %2: %3")
+                print( activewin(), tr("[CTCP Reply %1 (%2)] from %3")
                                    .arg(ctcp)
-                                   .arg(u.nick)
-                                   .arg(msg),
+                                   .arg(msg)
+                                   .arg(u.nick),
                        PT_CTCP
                       );
 
             if (msg.length() == 0)
-                print( "STATUS", tr("CTCP %1 reply from %2")
+                print( activewin(), tr("[CTCP Reply %1] from %2")
                                    .arg(ctcp)
                                    .arg(u.nick),
                        PT_CTCP
@@ -1031,10 +1035,14 @@ void IConnection::parse(QString &data)
         if (token[2] != activeNick)
             return; // Apparently, this wasn't to us...
 
+        QString channel = token[3];
+        if (channel[0] == ':')
+            channel = channel.mid(1);
+
         user_t u = parseUserinfo(token[0]);
-        print( "$ACTIVE$", tr("%1 invited you to channel %3")
+        print( activewin(), tr("%1 invited you to channel %3")
                              .arg(u.nick)
-                             .arg(token[3]),
+                             .arg(channel),
                PT_SERVINFO
               );
         return;
@@ -1923,8 +1931,8 @@ void IConnection::parseNumeric(int numeric, QString &data)
     }
 
     else if (numeric == RPL_INVITING) {
-        QString chan = token[3];
-        QString nick = token[4];
+        QString nick = token[3];
+        QString chan = token[4];
 
         QString target = "STATUS";
         if (windowExist(chan))

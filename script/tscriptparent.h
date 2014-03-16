@@ -28,11 +28,11 @@
 #include <QAction>
 
 #include "config.h"
-#include "icommand.h"
 #include "tscript.h"
 #include "tscriptcommand.h"
 #include "constants.h"
 
+class ICommand;
 class IConnection;
 
 typedef struct T_CUSTOM_TOOLBAR {

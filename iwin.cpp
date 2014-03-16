@@ -37,9 +37,9 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
-#include "iconnection.h"
 #include "iwin.h"
 #include "ui_iwin.h"
+#include "iconnection.h"
 #include "script/tscriptparent.h"
 
 #include <iostream>
@@ -528,7 +528,7 @@ void IWin::print(const QString &text, const int ptype)
 
     if ((ptype == PT_LOCALINFO) || (ptype == PT_SERVINFO))
         msg.prepend("*** ");
-    if ((ptype == PT_ACTION) || (ptype == PT_CTCP))
+    if (ptype == PT_ACTION)
         msg.prepend("* ");
 
     if ((ptype == PT_ACTION) || (ptype == PT_CTCP))

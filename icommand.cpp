@@ -40,11 +40,11 @@ bool ICommand::parse(QString command)
         ONLY return false if the command was not found.
     */
 
-    if (command.at(0) == '/')
+    if (command[0] == '/')
         command = command.mid(1);
 
-    QStringList token = command.split(" ");
-    QString t1 = token.at(0).toUpper();
+    QStringList token = command.split(' ');
+    QString t1 = token[0].toUpper();
 
     if (t1 == "JOIN") {
         if (! connection->isOnline()) {
@@ -77,38 +77,16 @@ bool ICommand::parse(QString command)
             part(token.at(1));
             return true;
         }
-        QString reason = command.mid(t1.length() + token.at(1).length() + 2);
+        QString reason = command.mid(t1.length() + token[1].length() + 2);
         part(token.at(1), reason);
         return true;
     }
 
-    if (t1 == "ME") {
-        if (! connection->isOnline()) {
-            localMsg(NotConnectedToServer("/Me"));
-            return true;
-        }
-        subwindow_t wt = winlist->value(activewin());
-        if ((wt.type != WT_CHANNEL) && (wt.type != WT_PRIVMSG)) {
-            localMsg(tr("You're not in a chat window!"));
-            return true;
-        }
-        QString target = wt.widget->getTarget();
-        me(target, command.mid(3));
-        return true;
-    }
+    if (t1 == "QUIT") {
+        QString reason;
 
-    if (t1 == "MSG") {
-        if (! connection->isOnline()) {
-            localMsg(NotConnectedToServer("/Msg"));
-            return true;
-        }
-        if (token.count() < 3) {
-            localMsg(InsufficientParameters("/Me"));
-            return true;
-        }
-        QString text = command.mid(token[1].length()+5);
-        msg(token[1], text);
-        return true;
+        reason = command.mid(5);
+        quit(reason);
     }
 
     if (t1 == "NOTICE") {
@@ -125,71 +103,32 @@ bool ICommand::parse(QString command)
         return true;
     }
 
-    if ((t1 == "RAW") || (t1 == "QUOTE")) {
+    if (t1 == "MSG") {
         if (! connection->isOnline()) {
-            localMsg( tr("/%1: Not connected to server.")
-                     .arg(t1)
-                  );
+            localMsg(NotConnectedToServer("/Msg"));
             return true;
         }
-        if (token.count() < 2) {
-            localMsg( tr("/%1: Insufficient parameters.")
-                     .arg(t1)
-                  );
+        if (token.count() < 3) {
+            localMsg(InsufficientParameters("/Msg"));
             return true;
         }
-        QString c = command.mid(t1.length()+1);
-        sockwrite(c); // Send raw data.
-        echo( tr("RAW: %1")
-                .arg(c)
-             );
+        QString text = command.mid(token[1].length()+5);
+        msg(token[1], text);
         return true;
     }
 
-    if (t1 == "CHARSET") {
-        if (token.count() < 2) {
-            localMsg( tr("/Charset: Current set is '%1'")
-                     .arg(conf->charset));
-            return true;
-        }
-
-        QList<QByteArray> codecList = QTextCodec::availableCodecs();
-        bool exist = false;
-        QByteArray codec;
-        codec.append(token[1]);
-
-        for (int i = 0; i <= codecList.length()-1; i++) {
-            QString item = codecList[i];
-            if (item.toUpper() == token[1].toUpper()) {
-                exist = true;
-                break;
-            }
-        }
-        if (! exist) {
-            localMsg( tr("/Charset: Encoding '%1' doesn't exsist.")
-                     .arg(token[1])
-                  );
-        }
-        else {
-            localMsg( tr("/Charset: Set encoding to '%1'")
-                     .arg(token[1])
-                  );
-            conf->charset = token[1];
-        }
-        return true;
-    }
-
-    if (t1 == "PING") {
+    if (t1 == "ME") {
         if (! connection->isOnline()) {
-            localMsg(NotConnectedToServer("/Ping"));
+            localMsg(NotConnectedToServer("/Me"));
             return true;
         }
-        QString ms = QString::number(QDateTime::currentMSecsSinceEpoch());
-        echo(tr("Sending PING to server..."), PT_SERVINFO);
-
-        sockwrite( QString("PING :%1")
-                     .arg(ms)
-                  );
+        subwindow_t wt = winlist->value(activewin());
+        if ((wt.type != WT_CHANNEL) && (wt.type != WT_PRIVMSG)) {
+            localMsg(tr("You're not in a chat window!"));
+            return true;
+        }
+        QString target = wt.widget->getTarget();
+        me(target, command.mid(3));
         return true;
     }
 
@@ -217,23 +156,92 @@ bool ICommand::parse(QString command)
             msg += ms;
         }
 
-        QString pre;
-        pre += char(0x01);
-        msg += char(0x01);
-        pre += msg;
-        sockwrite( QString("PRIVMSG %1 :%2")
-                     .arg(token[1])
-                     .arg(pre)
-                  );
-
+        ctcp(token[1], msg);
         return true;
     }
 
     if (t1 == "KICK") {
         // kick #chan nick [reason]
+        if (token.count() < 2) {
+            localMsg(InsufficientParameters("/Kick"));
+            return true;
+        }
+        QString channel = token[1];
+        QString nickname;
+        int l = 5;
+        if (! connection->isValidChannel(channel)) {
+            channel.clear();
+            nickname = token[1];
+            l += nickname.length() + 1;
+        }
+        else {
+            nickname = token[2];
+            l += nickname.length() + channel.length() + 2;
+        }
 
+        QString reason = command.mid(l);
+
+        kick(channel, nickname, reason);
+
+        return true;
     }
 
+    if (t1 == "BAN") {
+        if (token.count() < 2) {
+            localMsg(InsufficientParameters("/Ban"));
+            return true;
+        }
+
+        QString channel = token[1];
+        QString nickname;
+        if (token.count() == 2) {
+            channel.clear();
+            nickname = token[1];
+        }
+        else
+            nickname = token[2];
+
+        ban(channel, nickname);
+        return true;
+    }
+
+    if ((t1 == "RAW") || (t1 == "QUOTE")) {
+        if (! connection->isOnline()) {
+            localMsg( tr("/%1: Not connected to server.")
+                     .arg(t1)
+                  );
+            return true;
+        }
+        if (token.count() < 2) {
+            localMsg( tr("/%1: Insufficient parameters.")
+                     .arg(t1)
+                  );
+            return true;
+        }
+        QString c = command.mid(t1.length()+1);
+        raw(c);
+        return true;
+    }
+
+    if (t1 == "CHARSET") {
+        if (token.count() < 2) {
+            localMsg( tr("/Charset: Current set is '%1'")
+                     .arg(conf->charset));
+            return true;
+        }
+
+        charset(token[1]);
+        return true;
+    }
+
+    if (t1 == "PING") {
+        if (! connection->isOnline()) {
+            localMsg(NotConnectedToServer("/Ping"));
+            return true;
+        }
+        ping();
+        return true;
+    }
 
     return false; // Command wasn't found.
 }
@@ -294,17 +302,6 @@ void ICommand::msg(QString target, QString message)
          );
 }
 
-void ICommand::ctcp(QString target, QString message)
-{
-    message.prepend(0x01);
-    message.append(0x01);
-
-    sockwrite( QString("PRIVMSG %1 :%2")
-                 .arg(target)
-                 .arg(message)
-              );
-}
-
 void ICommand::me(QString target, QString message)
 {
     QString send = QString("%1ACTION %2%3")
@@ -324,6 +321,102 @@ void ICommand::me(QString target, QString message)
          );
 }
 
+void ICommand::kick(QString channel, QString nickname, QString reason)
+{
+    if (channel.isEmpty()) {
+        subwindow_t wt = getCurrentSubwin();
+        if (wt.type != WT_CHANNEL) {
+            echo(NotInAChannel("/Kick"));
+            return;
+        }
+        channel = wt.widget->getTarget();
+    }
+
+    sockwrite( QString("KICK %1 %2 :%3")
+                 .arg(channel)
+                 .arg(nickname)
+                 .arg(reason)
+              );
+}
+
+void ICommand::ban(QString channel, QString nickname)
+{
+    if (channel.isEmpty()) {
+        subwindow_t wt = getCurrentSubwin();
+        if (wt.type != WT_CHANNEL) {
+            localMsg(NotInAChannel("/Ban"));
+            return;
+        }
+        channel = wt.widget->getTarget();
+    }
+
+    connection->ial.setChannelBan(channel, nickname);
+}
+
+void ICommand::raw(QString data)
+{
+    sockwrite(data); // Send raw data.
+    echo( tr("[RAW] %1")
+            .arg(data)
+         );
+}
+
+void ICommand::ctcp(QString target, QString message)
+{
+
+    echo( QString("[CTCP %1] to %2")
+            .arg(message)
+            .arg(target),
+          PT_CTCP
+         );
+
+
+    message.prepend(0x01);
+    message.append(0x01);
+
+    sockwrite( QString("PRIVMSG %1 :%2")
+                 .arg(target)
+                 .arg(message)
+              );
+}
+
+void ICommand::charset(QString newCodec)
+{
+    QList<QByteArray> codecList = QTextCodec::availableCodecs();
+    bool exist = false;
+    QByteArray codec;
+    codec.append(newCodec);
+
+    for (int i = 0; i <= codecList.length()-1; i++) {
+        QString item = codecList[i];
+        if (item.toUpper() == newCodec.toUpper()) {
+            newCodec = item.toUpper();
+            exist = true;
+            break;
+        }
+    }
+    if (! exist) {
+        localMsg( tr("/Charset: Encoding '%1' doesn't exsist.")
+                 .arg(newCodec)
+              );
+    }
+    else {
+        localMsg( tr("/Charset: Set encoding to '%1'")
+                 .arg(newCodec)
+              );
+        conf->charset = newCodec;
+    }
+}
+
+void ICommand::ping()
+{
+    QString ms = QString::number(QDateTime::currentMSecsSinceEpoch());
+    echo(tr("Sending PING to server..."), PT_SERVINFO);
+
+    sockwrite( QString("PING :%1")
+                 .arg(ms)
+              );
+}
 
 /// -------------------------------------------------------------
 
@@ -341,8 +434,7 @@ void ICommand::echo(QString message, int ptype)
 
 void ICommand::sockwrite(QString data)
 {
-    subwindow_t wt = getCurrentSubwin();
-    wt.widget->sockwrite(data);
+    connection->sockwrite(data);
 }
 
 QString ICommand::getCurrentTarget()
@@ -367,5 +459,8 @@ QString ICommand::activewin()
 
 subwindow_t ICommand::getCurrentSubwin()
 {
+    if (*activeConn != *cid)
+        return winlist->value("STATUS");
+
     return winlist->value(activewin());
 }

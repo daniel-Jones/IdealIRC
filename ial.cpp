@@ -20,16 +20,23 @@
 
 #include <QListIterator>
 #include <QDebug>
+#include <QDateTime>
 
 #include "ial.h"
+#include "iconnection.h"
 #include "script/tscriptparent.h"
 
-IAL::IAL(QObject *parent, QString *activeNickname, QList<char> *sortingRule, TScriptParent *sp) :
+IAL::IAL(IConnection *parent, QString *activeNickname, QList<char> *sortingRule, TScriptParent *sp) :
     QObject(parent),
     activeNick(activeNickname),
     sortrule(sortingRule),
-    scriptParent(sp)
+    scriptParent(sp),
+    connection(parent)
 {
+    connect(&garbageTimer, SIGNAL(timeout()),
+            this, SLOT(cleanGarbage()));
+    garbageTimer.setInterval(300000); // every 5 mins
+    garbageTimer.start();
 }
 
 void IAL::reset()
@@ -41,14 +48,21 @@ void IAL::addNickname(QString nickname)
 {
     if (! entries.contains(nickname))
         entries.insert(nickname, new IALEntry_t);
+
+    garbage.removeAll(nickname);
 }
 
-bool IAL::delNickname(QString nickname)
+void IAL::delNickname(QString nickname)
 {
-    if (entries.remove(nickname) == 0)
-        return false;
-    else
-        return true;
+    IALEntry_t *entry = getEntry(nickname);
+    if (entry == NULL)
+        return;
+
+    if (nickname != *activeNick) { // cannot mark deletion on ourself.
+        // Mark age for when this one should be deleted (5 mins)
+        entry->age = QDateTime::currentMSecsSinceEpoch() / 1000;
+        garbage << nickname;
+    }
 }
 
 bool IAL::hasNickname(QString nickname)
@@ -66,9 +80,18 @@ bool IAL::setHostname(QString nickname, QString hostname)
 
     entry->hostname = hostname;
 
-    if (entryhost != hostname) // send event after we've updated.
+    if (entryhost != hostname) { // Handle events on host change or setting new
         scriptParent->runevent(te_ialhostget, QStringList()<<nickname<<hostname);
 
+        for (int i = 0; i <= banSet.count()-1; i++) {
+            QStringList param = banSet[i].split(' ');
+            if (param[1].toUpper() == nickname.toUpper()) {
+                connection->sockwrite(QString("MODE %1 +b %2")
+                                      .arg(param[0])
+                                      .arg(hostname));
+            }
+        }
+    }
     return true;
 }
 
@@ -123,9 +146,10 @@ bool IAL::delChannel(QString nickname, QString channel)
     entry->channels.removeAll(c);
     delete c;
 
-    // No channels left and this isn't us. delete.
-    if ((entry->channels.isEmpty()) && (nickname != *activeNick))
-        entries.remove(nickname);
+    // No channels left, mark for deletion.
+    if (entry->channels.isEmpty())
+        delNickname(nickname); // If it is us, delNickname() ignores it.
+
     return true;
 }
 
@@ -265,6 +289,26 @@ bool IAL::isRegular(QString nickname, QString channel)
     return modes.isEmpty();
 }
 
+void IAL::setChannelBan(QString channel, QString nickname)
+{
+    QString hostname = getHost(nickname);
+
+    if (! hostname.isEmpty()) {
+        connection->sockwrite( QString("MODE %1 +b %2")
+                                 .arg(channel)
+                                 .arg(hostname)
+                              );
+
+        return;
+    }
+
+    banSet << QString("%1 %2")
+              .arg(channel)
+              .arg(nickname);
+
+    connection->sockwrite(QString("USERHOST %1").arg(nickname));
+}
+
 IALEntry_t* IAL::getEntry(QString nickname, bool cs)
 {
     if (cs) // case sensitive, faster
@@ -334,4 +378,21 @@ bool IAL::sortLargerThan(const QString s1, const QString s2)
 
     // This returns when the texts are equal.
     return false;
+}
+
+void IAL::cleanGarbage()
+{
+    qint64 current = QDateTime::currentMSecsSinceEpoch() / 1000;
+
+    for (int i = 0; i <= garbage.size()-1; i++) {
+        QString name = garbage[i];
+        IALEntry_t *entry = entries.value(name, NULL);
+        if (entry == NULL)
+            continue;
+
+        if  ((current-entry->age) < 300)
+            continue; // Too "young"
+
+        entries.remove(name);
+    }
 }

@@ -43,8 +43,13 @@ public:
     void quit(QString reason);
     void notice(QString target, QString message);
     void msg(QString target, QString message);
-    void ctcp(QString target, QString message);
     void me(QString target, QString message);
+    void ctcp(QString target, QString message); // Do not add 0x01 to the message, this function does it.
+    void kick(QString channel, QString nickname, QString reason = "");
+    void ban(QString channel, QString nickname);
+    void raw(QString data);
+    void charset(QString newCodec = ""); // Adding no parameters echoes out current charset.
+    void ping(); // Issue a PING to the server (see if we or them is still alive)
 
 public slots:
     // Primarily we should use parse. You can tie it to a signal aswell.
@@ -65,7 +70,8 @@ private:
     QString getCurrentNickname();
     subwindow_t getCurrentSubwin();
     QString NotConnectedToServer(QString command) { return tr("%1: Not connected to server.").arg(command); }
-    QString InsufficientParameters(QString command) { return tr("%1: Insufficient parameters").arg(command); }
+    QString InsufficientParameters(QString command) { return tr("%1: Insufficient parameters.").arg(command); }
+    QString NotInAChannel(QString command) { return tr("%1: Not in a channel.").arg(command); }
 };
 
 #endif // ICOMMAND_H

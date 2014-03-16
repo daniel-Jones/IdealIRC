@@ -26,6 +26,7 @@
 #include <QVectorIterator>
 #include "tscriptparent.h"
 #include "iconnection.h"
+#include "icommand.h"
 #include "iwin.h"
 
 TScriptParent::TScriptParent(QObject *parent, QWidget *dialogParent, config *cfg,

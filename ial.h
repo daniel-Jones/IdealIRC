@@ -24,7 +24,9 @@
 #include <QObject>
 #include <QHash>
 #include <QStringList>
+#include <QTimer>
 
+class IConnection;
 class TScriptParent;
 
 typedef struct T_IALCHANNEL {
@@ -37,6 +39,7 @@ typedef struct T_IALENTRY {
     QString ident;
     QString hostname;
     QList<IALChannel_t*> channels;
+    qint64 age;
 } IALEntry_t;
 
 class IAL : public QObject
@@ -44,10 +47,10 @@ class IAL : public QObject
     Q_OBJECT
 
 public:
-    explicit IAL(QObject *parent, QString *activeNickname, QList<char> *sortingRule, TScriptParent *sp);
+    explicit IAL(IConnection *parent, QString *activeNickname, QList<char> *sortingRule, TScriptParent *sp);
     void reset(); // When socket disconnects, run this.
     void addNickname(QString nickname);
-    bool delNickname(QString nickname);
+    void delNickname(QString nickname);
     bool hasNickname(QString nickname);
     bool setHostname(QString nickname, QString hostname);
     bool setIdent(QString nickname, QString ident);
@@ -71,16 +74,24 @@ public:
     bool isVoiced(QString nickname, QString channel);
     bool isRegular(QString nickname, QString channel);
 
+    void setChannelBan(QString channel, QString nickname);
+
 private:
     QString *activeNick; // My current nickname of this connection.
     QHash<QString,IALEntry_t*> entries;
+    QStringList garbage;
+    QTimer garbageTimer;
+    QStringList banSet;
     QList<char> *sortrule;
     TScriptParent *scriptParent;
+    IConnection *connection;
     IALEntry_t* getEntry(QString nickname, bool cs = true);
     IALChannel_t* getChannel(QString nickname, QString channel, bool cs = true);
     void sortList(QList<char> *lst);
     bool sortLargerThan(const QString s1, const QString s2);
 
+private slots:
+    void cleanGarbage();
 };
 
 #endif // IAL_H
