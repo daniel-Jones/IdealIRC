@@ -47,7 +47,7 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     active(false),
     registered(false),
     isupport(false),
-    CloseChildren(false),
+    ShuttingDown(false),
     tryingConnect(false),
     chanlistPtr(clptr),
     listInDialog(false),
@@ -134,6 +134,7 @@ bool IConnection::sockwrite(QString data)
         QByteArray encodedData = tc->fromUnicode(data);
         encodedData.append("\r\n");
         socket.write(encodedData);
+        qDebug() << "[out]" << encodedData;
     }
     else {
         QByteArray outData;
@@ -169,18 +170,7 @@ void IConnection::onSocketConnected()
 
 void IConnection::onSocketDisconnected()
 {
-    if (CloseChildren) { // Close all windows related to this connection
-        QHashIterator<QString, subwindow_t> i(winlist);
-        while (i.hasNext()) {
-            i.next();
-            subwindow_t win = i.value();
-
-            if (win.widget == NULL)
-                continue; // Window is already destroyed, can't do much with this. (Why is it even in the list? look closer on this if it becomes an issue!)
-
-            if (win.type != WT_STATUS)
-                win.widget->close();
-        }
+    if (ShuttingDown) { // Close all windows related to this connection
         socket.close();
         emit connectionClosed();
         return; // All windows are closed, status window will close itself when ready to close.
@@ -228,7 +218,7 @@ void IConnection::onSocketDisconnected()
     scriptParent->runevent(te_disconnect, QStringList()<<hostinfo);
 }
 
-void IConnection::closeConnection(bool cc)
+void IConnection::closeConnection(bool shutdown)
 {
     if (tryingConnect == true) {
         print("STATUS", tr("Disconnected."), PT_LOCALINFO);
@@ -239,7 +229,7 @@ void IConnection::closeConnection(bool cc)
 
     if (socket.isOpen()) {
         connectionClosing = true;
-        CloseChildren = cc;
+        ShuttingDown = shutdown;
         QString data = QString("QUIT :%1")
                          .arg( conf->quit );
 

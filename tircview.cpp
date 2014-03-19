@@ -512,6 +512,11 @@ void TIRCView::contextMenuEvent(QContextMenuEvent *e)
     emit menuRequested(e->globalPos());
 }
 
+void TIRCView::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    emit mouseDblClick();
+}
+
 QColor TIRCView::getColorFromCode(int num)
 {
     switch(num) {

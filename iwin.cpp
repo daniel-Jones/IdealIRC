@@ -138,7 +138,6 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         }
     }
 
-
     if (WindowType == WT_CHANNEL) {
         textdata = new TIRCView(conf);
 
@@ -156,6 +155,9 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         connect(split, SIGNAL(splitterMoved(int,int)),
                 this, SLOT(splitterMoved(int,int)));
 
+        connect(textdata, SIGNAL(mouseDblClick()),
+                this, SLOT(mouseDoubleClick()));
+
         ui->gridLayout->addWidget(input, 1, 0);
 
         setTabOrder(input, listbox);
@@ -166,7 +168,6 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
 
         connect(listbox, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
                 this, SLOT(listboxDoubleClick(QListWidgetItem*)));
-
 
         opMenu = new QMenu(this);
         opMenu->setTitle("Operator menu");
@@ -201,6 +202,15 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
             writeToLog(" ");
             writeToLog("CHANNEL WINDOW OPENED AT: " + QDateTime::currentDateTime().toString("ddd MMMM d yyyy"));
         }
+    }
+
+    if (WindowType == WT_TXTINPUT) {
+        textdata = new TIRCView(conf);
+
+        input = new QMyLineEdit(this, conf);
+        ui->gridLayout->addWidget(textdata, 0, 0);
+        ui->gridLayout->addWidget(input, 1, 0);
+        setTabOrder(input, textdata);
     }
 
     if (WindowType == WT_TXTONLY) {
@@ -362,6 +372,9 @@ void IWin::inputEnterPushed()
         if (! commandOk) // We didn't have it in internal commands list, check for custom command.
             commandOk = scriptParent->command(text);
 
+        if (connection == NULL)
+            return; // Nothing more to do.
+
         if ((! commandOk) && (connection->isSocketOpen() == true)) {
             // Run this if we didn't have the command, assume it's on the server.
             sockwrite( text.mid(1) );
@@ -403,6 +416,8 @@ void IWin::inputEnterPushed()
                PT_OWNTEXT
               );
     }
+
+    scriptParent->runevent(te_input, QStringList()<<objectName()<<text);
 }
 
 void IWin::tabKeyPushed()
@@ -739,6 +754,11 @@ void IWin::clear()
 
 void IWin::doGfx(e_painting command, QStringList param)
 {
+    // DEPRECATED FUNCTION.
+
+    // There is no need to check if param has correct count in this function
+    // because the check has been done before this function was called.
+
     if (picwin == NULL)
         return;
 
@@ -851,6 +871,16 @@ void IWin::doGfx(e_painting command, QStringList param)
         bool state = (bool*)param[0].toInt();
         picwin->setViewBuffer(state);
 
+        return;
+    }
+
+    if (command == pc_setlayer) {
+        picwin->setLayer(param[0]);
+        return;
+    }
+
+    if (command == pc_dellayer) {
+        picwin->delLayer(param[0]);
         return;
     }
 }
@@ -969,6 +999,12 @@ QString IWin::stripModeChar(QString nickname)
     if (connection->isValidCuLetter(m))
         nickname = nickname.mid(1); // Nickname have a modechar, skip it.
     return nickname;
+}
+
+void IWin::mouseDoubleClick()
+{
+    if (WindowType == WT_CHANNEL)
+        on_actionChannel_settings_triggered();
 }
 
 void IWin::on_actionGive_op_triggered()

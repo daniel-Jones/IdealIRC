@@ -54,7 +54,8 @@ class TScript : public QObject
 
 public:
     TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
-            QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn);
+            QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn/*,
+            QMenu *nicklist, QMenu *channel, QMenu *status, QMenu *privmsg*/);
 
     e_scriptresult loadScript2(QString includeFile = "", QString parent = "");
     e_scriptresult runf(QString function, QStringList param, QString &result, bool ignoreParamCount = false);
@@ -94,6 +95,7 @@ private:
 
     QList<QAction*> customNicklistMenu;
     QList<QAction*> customChannelMenu;
+    void createMenu(int &pos, char type, QMenu *parent); // position is where the given menu block starts in script (byte pos). (after {)
     void resetMenu(QList<QAction *> &menu); // Use for re-parsing the menu structure
     QSignalMapper nicklistMenuMapper;
     QSignalMapper channelMenuMapper;

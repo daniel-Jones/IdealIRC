@@ -62,7 +62,7 @@ public:
       ICommand* getCmdHndlPtr() { return &cmdhndl; }
       QList<char>* getSortRuleMapPtr() { return &sortrule; }
       int getCid() { return cid; }
-      void closeConnection(bool cc = false); // If cc (close children) is set to true, when socket really gets disconnected, we also close all windows assigned except the status.
+      void closeConnection(bool shutdown = false); // shutdown is set to true if IIRC is shutting down.
       void setActiveInfo(QString *wn, int *ac);
       char getCuLetter(char l);
       bool isValidCuMode(char mode);
@@ -108,7 +108,7 @@ private:
       QHash<QString,subwindow_t> winlist; // Windows assosciated with this connection.
       QString *activeWname;
       int *activeConn;
-      bool CloseChildren;
+      bool ShuttingDown;
       bool tryingConnect;
       IChannelList **chanlistPtr;
       bool listInDialog;

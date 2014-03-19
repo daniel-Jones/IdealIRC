@@ -93,6 +93,7 @@ public:
       void doGfx(e_painting command, QStringList param);
       QStringList getSelectedMembers(); // Returns a list of selected nicknames.
       void updateTitleHost(); // for WT_PRIVMSG, set hostname in titlebar
+      TPictureWindow* picwinPtr() { return picwin; }
 
 private:
       Ui::IWin *ui;
@@ -156,6 +157,7 @@ private slots:
       void settingsClosed();
       void on_actionChannel_settings_triggered();
       void listboxDoubleClick(QListWidgetItem *item);
+      void mouseDoubleClick();
       void on_actionGive_op_triggered();
       void on_actionTake_op_triggered();
       void on_actionGive_voice_triggered();

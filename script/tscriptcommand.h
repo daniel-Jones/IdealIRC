@@ -46,8 +46,25 @@ private:
     QHash<int,subwindow_t> *winlist;
     int *activeConn;
     int *activeWid;
-
     subwindow_t getCustomWindow(QString name);
+
+
+    // Error messages
+    QString InvalidParameterCount(QString cmd)
+    {
+        return tr("/%1: Invalid parameter count").arg(cmd);
+    }
+
+    QString NoSuchWindow(QString cmd)
+    {
+        return tr("/%1: No such window").arg(cmd);
+    }
+
+    QString NotAPaintWindow(QString cmd)
+    {
+        return tr("/%1: Not a paint window");
+    }
+
 
 signals:
     void RequestWindow(QString name, int type, int parent, bool activate);

@@ -26,6 +26,7 @@
 #include <QVector>
 #include <QHash>
 #include <QAction>
+#include <QMenu>
 
 #include "config.h"
 #include "tscript.h"
@@ -96,6 +97,10 @@ private slots:
     void echo(QString text, int type) { cmdhndl.echo("STATUS", text, type); }
     void echo(QString target, QString text, int type) { cmdhndl.echo(target, text, type); }
     bool loader(TScript *script, int *errcode = NULL);
+    QMenu nicklistMenu;
+    QMenu channelMenu;
+    QMenu statusMenu;
+    QMenu privmsgMenu;
 };
 
 #endif // TSCRIPTPARENT_H

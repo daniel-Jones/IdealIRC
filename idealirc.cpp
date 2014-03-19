@@ -196,6 +196,7 @@ void IdealIRC::closeEvent(QCloseEvent *e)
         }
     }
 
+    // Save config prior to exit.
     conf.showToolBar = ui->toolBar->isVisible();
     conf.maximized = isMaximized();
     conf.save();
@@ -220,8 +221,11 @@ void IdealIRC::closeEvent(QCloseEvent *e)
         }
     }
 
+    readyToClose = false;
     for (int i = 0; i <= cl.count()-1; i++)
-        cl[i]->closeConnection(false);
+        cl[i]->closeConnection(true);
+    readyToClose = true;
+    close(); // final close attempt
 }
 
 void IdealIRC::resizeEvent(QResizeEvent *e)
@@ -653,6 +657,9 @@ void IdealIRC::connectionClosed()
     }
 
     if (connectionsRemaining == -1)
+        return;
+
+    if (! readyToClose)
         return;
 
     if (connectionsRemaining != -1)

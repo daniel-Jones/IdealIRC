@@ -24,13 +24,15 @@
 #include <QListIterator>
 #include <QVector>
 #include <QDebug>
+#include <QMenu>
 
 #include "tscriptparent.h"
 #include "tscript.h"
 #include "iconnection.h"
 
 TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
-                 QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn) :
+                 QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn/*,
+                 QMenu *nicklist, QMenu *channel, QMenu *status, QMenu *privmsg*/) :
     QObject(parent),
     dlgParent(dialogParent),
     scriptParent(sp),
@@ -121,6 +123,93 @@ QString TScript::setRelativePath(QString folder, QString file)
     }
 
     return dir + file;
+}
+
+void TScript::createMenu(int &pos, char type, QMenu *parent)
+{
+    /*
+
+      menu type {
+        item name = function
+        submenu name {
+          item name = function
+        }
+      }
+
+*/
+    enum {
+        st_ItemName = 1,
+        st_FunctionName = 2
+    };
+    QString itemname;
+    QString fnctname;
+    int state = st_ItemName;
+    for (; pos <= scriptstr.length()-1; ++pos) {
+        QChar c = scriptstr[pos];
+
+        if (c == '\\') {
+            QChar add = '\\';
+            if (pos < scriptstr.length()-1) {
+                add = scriptstr[pos];
+                ++pos;
+            }
+            if (state == st_ItemName)
+                itemname += add;
+            if (state == st_FunctionName)
+                fnctname += add;
+        }
+
+        if (c == '}')
+            break;
+
+        if (state == st_ItemName) {
+            if (c == '=') {
+                if (itemname.endsWith(' '))
+                    itemname = itemname.left(itemname.length()-1);
+                state = st_FunctionName;
+                continue;
+            }
+
+            if (c == '{') {
+                QMenu *menu = parent->addMenu(itemname);
+                createMenu(pos, type, menu);
+                continue;
+            }
+
+            if (c == '\n') {
+                itemname.clear();
+                continue;
+            }
+
+            itemname += c;
+        }
+
+        if (state == st_FunctionName) {
+            if (c == ' ')
+                continue;
+            if (c == '\n') {
+                if (type == 'n') {
+                    QAction *a = parent->addAction(itemname);
+                    nicklistMenuMapper.setMapping(a, fnctname);
+                    connect(a, SIGNAL(triggered()),
+                            &nicklistMenuMapper, SLOT(map()));
+                }
+
+                else if (type == 'c') {
+                    QAction *a = parent->addAction(itemname);
+                    channelMenuMapper.setMapping(a, fnctname);
+                    connect(a, SIGNAL(triggered()),
+                            &channelMenuMapper, SLOT(map()));
+                }
+                itemname.clear();
+                fnctname.clear();
+                state = st_ItemName;
+                continue;
+            }
+            fnctname += c;
+            continue;
+        }
+    }
 }
 
 void TScript::resetMenu(QList<QAction*> &menu)
@@ -439,12 +528,19 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                 }
 
                 if (ex == ex_MenuType) {
+
+                    qDebug() << "Parse menu type" << keyword;
+
+                    state = st_None;
+                    ex = ex_Block;
+                    /*
+
                     temp[0] = keyword;
                     ex = ex_Brace;
                     keyword.clear();
                     temp[1].clear();
                     temp[2].clear();
-
+*/
                     continue;
                 }
 
@@ -1121,8 +1217,6 @@ bool TScript::solveBool(QString &data)
 
     extract(Q1);
     extract(Q2);
-
-    qDebug() << "Q1=" << Q1 << " Q2=" << Q2;
 
     QString Q1u = Q1.toUpper();
     QString Q2u = Q2.toUpper();
@@ -3410,6 +3504,9 @@ e_iircevent TScript::getEvent(QString event)
 
     else if (evt == "IALHOSTGET")
         return te_ialhostget;
+
+    else if (evt == "INPUT")
+        return te_input;
 
     else
         return te_noevent;

@@ -24,6 +24,7 @@
 #include <QResizeEvent>
 #include <iostream>
 #include <QHashIterator>
+#include <QMutableHashIterator>
 
 TPictureWindow::TPictureWindow(QWidget *parent) :
   QWidget(parent),
@@ -42,9 +43,36 @@ void TPictureWindow::clear()
     lw = width();
     lh = height();
 
+    // clear current layer
     delete pixmap;
     pixmap = new QPixmap(width(), height());
-    pixmap->fill(Qt::white);
+    pixmap->fill(Qt::transparent);
+    layers.insert(currentLayer, pixmap);
+
+    update();
+}
+
+void TPictureWindow::clearAll()
+{
+    lw = width();
+    lh = height();
+
+    // clear all layers
+
+    QMutableHashIterator<QString,QPixmap*> i(layers);
+    while (i.hasNext()) {
+        i.next();
+        QString name = i.key();
+        QPixmap *p = i.value();
+
+        delete p;
+        p = new QPixmap(width(), height());
+        p->fill(Qt::transparent);
+        layers.insert(name, p);
+
+        if (name == currentLayer)
+            pixmap = p;
+    }
 
     update();
 }
@@ -67,26 +95,30 @@ void TPictureWindow::resizeEvent(QResizeEvent *e)
         lh = h;
 
     QPixmap pm(w, h);
+    pm.fill(Qt::transparent);
 
     QPainter paint(&pm);
-    paint.fillRect(0,0,lw,lh,Qt::white);
     paint.drawPixmap(0, 0, *pixmap);
     paint.end();
 
+    delete pixmap;
     pixmap = new QPixmap(pm);
 }
 
 void TPictureWindow::showEvent(QShowEvent *)
 {
+    // If "pixmap" is set, this means we're already constructed.
     if (pixmap != NULL)
         return;
 
+    // First time showing TPictureWindow, construct the main layer.
     lw = width();
     lh = height();
 
     pixmap = new QPixmap(width(), height());
-    pixmap->fill(Qt::white);
-
+    pixmap->fill(Qt::transparent);
+    layers.insert("MAIN", pixmap);
+    currentLayer = "MAIN";
     update();
 }
 
@@ -98,9 +130,13 @@ void TPictureWindow::paintEvent(QPaintEvent *)
     if (! viewBuffer)
         return;
 
-    QPainter p(this);
-
-    p.drawPixmap(0,0,*pixmap);
+    QPainter painter(this);
+    painter.fillRect(0, 0, width(), height(), Qt::white);
+    QHashIterator<QString,QPixmap*> i(layers);
+    while (i.hasNext()) {
+        QPixmap *p = i.next().value();
+        painter.drawPixmap(0,0,*p);
+    }
 }
 
 void TPictureWindow::mousePressEvent(QMouseEvent *event)
@@ -120,7 +156,7 @@ void TPictureWindow::mouseMoveEvent(QMouseEvent *event)
 {
     int x = event->pos().x();
     int y = event->pos().y();
-  emit mouseEvent(te_mousemove, x, y);
+    emit mouseEvent(te_mousemove, x, y);
 }
 
 void TPictureWindow::mouseReleaseEvent(QMouseEvent *event)
@@ -274,4 +310,24 @@ void TPictureWindow::setViewBuffer(bool b)
 
     if (viewBuffer)
         update();
+}
+
+void TPictureWindow::setLayer(QString name)
+{
+    pixmap = layers.value(name.toUpper(), NULL);
+    if (pixmap == NULL) {
+        pixmap = new QPixmap(width(), height());
+        layers.insert(name.toUpper(), pixmap);
+    }
+    currentLayer = name.toUpper();
+}
+
+void TPictureWindow::delLayer(QString name)
+{
+    if (name.toUpper() == "MAIN")
+        return; // not allowed
+
+    layers.remove(name.toUpper());
+    pixmap = layers.value("MAIN", NULL);
+    currentLayer = "MAIN";
 }

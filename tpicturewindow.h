@@ -29,7 +29,7 @@
 #include <QShowEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
-
+#include <QList>
 #include <QPen>
 #include <QBrush>
 #include <QHash>
@@ -42,9 +42,11 @@ class TPictureWindow : public QWidget
 
 public:
     explicit TPictureWindow(QWidget *parent = 0);
-    void clear();
+    void clear(); // clear current layer
+    void clearAll(); // clear all layers
     void setBrush(QBrush b) { brush = b; }
     void setPen(QPen p) { pen = p; }
+    void setBrushPen(QBrush b, QPen p) { brush = b; pen = p; }
     void drawTest();
     void paintDot(int x, int y);
     void paintLine(int x1, int y1, int x2, int y2);
@@ -54,6 +56,8 @@ public:
     void paintFill(int x, int y, int w = -1, int h = -1);
     void clearImageBuffer() { imgList.clear(); }
     void setViewBuffer(bool b);
+    void setLayer(QString name); // Set to other layer for painting. If it doesn't exist, it will be created.
+    void delLayer(QString name); // Deletes layer. Cannot delete "MAIN" layer. Sets active layer to MAIN.
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -66,8 +70,10 @@ protected:
     void wheelEvent(QWheelEvent *event);
   
 private:
-    QPixmap *pixmap;
+    QPixmap *pixmap; // active layer
+    QHash<QString,QPixmap*> layers;
     QHash<QString,QImage*> imgList; // String is file path to image, then image itself.
+    QString currentLayer;
     QPen pen;
     QBrush brush;
     int lw;

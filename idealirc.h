@@ -62,6 +62,7 @@ private:
       Ui::IdealIRC *ui;
       bool firstShow; // True on startup. See showEvent();
       bool windowIsActive;
+      bool readyToClose;
       QHash<int,subwindow_t> winlist; // Windows list
       QHash<int,IConnection*> conlist; // Connections list. int is "parent" from CreateSubWindow.
       int activeWid;

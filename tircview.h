@@ -27,6 +27,7 @@
 #include <QColor>
 #include <QContextMenuEvent>
 #include <QClipboard>
+#include <QMouseEvent>
 
 #include "constants.h"
 #include "config.h"
@@ -61,6 +62,7 @@ private:
 protected:
     void focusInEvent(QFocusEvent *e);
     void contextMenuEvent(QContextMenuEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e);
 
 private slots:
     void textSelected();
@@ -69,6 +71,7 @@ signals:
     void joinChannel(QString channel);
     void gotFocus();
     void menuRequested(QPoint point);
+    void mouseDblClick();
 };
 
 #endif // TIRCVIEW_H

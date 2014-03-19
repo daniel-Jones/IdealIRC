@@ -57,7 +57,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "ECHO") {
         // Echo a text to active window.
         if (token.count() == 1) {
-            echo("STATUS", tr("/Echo: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Echo"), PT_LOCALINFO);
             return true;
         }
 
@@ -78,7 +78,7 @@ bool TScriptCommand::parse(QString &command)
         // Create a custom @window
 
         if (token.count() == 1) {
-            echo("STATUS", tr("/Window: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Window"), PT_LOCALINFO);
             return true;
         }
 
@@ -99,41 +99,91 @@ bool TScriptCommand::parse(QString &command)
 
     if (acmd == "CLEAR") {
         // Clear active window or @window
-        subwindow_t sw;
+        subwindow_t subwin;
         if (token.count() == 1) {
             // No parameters (clear active window)
-            sw = winlist->value(*activeWid);
+            subwin = winlist->value(*activeWid);
         }
-        else {
-            sw = getCustomWindow(token[1]);
-            if (sw.type == WT_NOTHING) {
-                echo("STATUS", tr("/Clear: No such window"), PT_LOCALINFO);
+        if (token.count() == 2) {
+            // /clear window
+            subwin = getCustomWindow(token[1]);
+            if (subwin.type == WT_NOTHING) {
+                echo("STATUS", NoSuchWindow("Clear"), PT_LOCALINFO);
+                return true;
+            }
+            if (subwin.type >= WT_GRAPHIC) {
+                subwin.widget->picwinPtr()->clearAll();
+                return true;
+            }
+        }
+        if (token.count() == 3) {
+            // /clear -switch @window
+            QString sw = token[1];
+            subwin = getCustomWindow(token[2]);
+
+            bool layer = false;
+
+            for (int i = 0; i <= sw.length()-1; ++i) {
+                QChar c = sw[i];
+                switch (c.toLatin1()) {
+                    case '-':
+                        continue;
+
+                    case 'l':
+                        layer = true;
+                        continue;
+                }
+            }
+
+            if ((layer) && (subwin.type < WT_GRAPHIC)) {
+                echo("STATUS", NotAPaintWindow("Clear"), PT_LOCALINFO);
+                return true;
+            }
+
+            if ((layer) && (subwin.type >= WT_GRAPHIC)) {
+                subwin.widget->picwinPtr()->clear();
+                return true;
+            }
+
+            if ((! layer) && (subwin.type >= WT_GRAPHIC)) {
+                subwin.widget->picwinPtr()->clearAll();
                 return true;
             }
         }
 
-        sw.widget->clear();
+        subwin.widget->clear();
         return true;
     }
 
     if (acmd == "PAINTDOT") {
         // Paints a dot in @window
         if (token.count() != 6) {
-            echo("STATUS", tr("/Paintdot: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Paintdot"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Paintdot: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Paintdot"), PT_LOCALINFO);
             return true;
         }
 
-        QString X = token[2];
-        QString Y = token[3];
-        QString Size = token[4];
-        QString Color = token[5];
-        wt.widget->doGfx(pc_paintdot, QStringList()<<X<<Y<<Size<<Color);
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintdot"), PT_LOCALINFO);
+            return true;
+        }
+
+        int X = floor(token[2].toFloat());
+        int Y = floor(token[3].toFloat());
+        int size = token[4].toInt();
+
+        QColor color(token[5]);
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(size);
+
+        wt.widget->picwinPtr()->setBrushPen(br, pn);
+        wt.widget->picwinPtr()->paintDot(X, Y);
 
         return true;
     }
@@ -141,23 +191,34 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTLINE") {
         // Paints a line in @window
         if (token.count() != 8) {
-            echo("STATUS", tr("/Paintline: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Paintline"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Paintline: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Paintline"), PT_LOCALINFO);
             return true;
         }
 
-        QString X1 = token[2];
-        QString Y1 = token[3];
-        QString X2 = token[4];
-        QString Y2 = token[5];
-        QString Size = token[6];
-        QString Color = token[7];
-        wt.widget->doGfx(pc_paintline, QStringList()<<X1<<Y1<<X2<<Y2<<Size<<Color);
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintline"), PT_LOCALINFO);
+            return true;
+        }
+
+        int X1 = floor(token[2].toFloat());
+        int Y1 = floor(token[3].toFloat());
+        int X2 = floor(token[4].toFloat());
+        int Y2 = floor(token[5].toFloat());
+
+        int size = token[6].toInt();
+        QColor color(token[7]);
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(size);
+
+        wt.widget->picwinPtr()->setBrushPen(br, pn);
+        wt.widget->picwinPtr()->paintLine(X1, Y1, X2, Y2);
 
         return true;
     }
@@ -165,24 +226,34 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTRECT") {
         // Paints a rectangle in @window
         if (token.count() != 8) {
-            echo("STATUS", tr("/Paintrect: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Paintrect"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Paintrect: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Paintrect"), PT_LOCALINFO);
             return true;
         }
 
-        QString X = token[2];
-        QString Y = token[3];
-        QString W = token[4];
-        QString H = token[5];
-        QString Size = token[6];
-        QString Color = token[7];
-        wt.widget->doGfx(pc_paintrect, QStringList()<<X<<Y<<W<<H<<Size<<Color);
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintrect"), PT_LOCALINFO);
+            return true;
+        }
 
+        int X = floor(token[2].toFloat());
+        int Y = floor(token[3].toFloat());
+        int W = floor(token[4].toFloat());
+        int H = floor(token[5].toFloat());
+
+        int size = token[6].toInt();
+        QColor color(token[7]);
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+        pn.setWidth(size);
+
+        wt.widget->picwinPtr()->setBrushPen(br, pn);
+        wt.widget->picwinPtr()->paintRect(X, Y, W, H);
         return true;
     }
 
@@ -190,14 +261,10 @@ bool TScriptCommand::parse(QString &command)
         // Paints an image in @window
         // This will also keep the image in buffer of IIRC so you can do fast re-drawing
         // for GUI, games and such.
-        if (token.count() != 4) {
-            echo("STATUS", tr("/Paintimage: Invalid parameter count"), PT_LOCALINFO);
-            return true;
-        }
+        // /paintimage -u @win x y path
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Paintimage: No such window"), PT_LOCALINFO);
+        if (token.count() < 5) {
+            echo("STATUS", InvalidParameterCount("Paintimage"), PT_LOCALINFO);
             return true;
         }
 
@@ -207,15 +274,28 @@ bool TScriptCommand::parse(QString &command)
             token.removeAt(1);
         }
 
+        subwindow_t wt = getCustomWindow(token[1]);
+        if (wt.type == WT_NOTHING) {
+            echo("STATUS", NoSuchWindow("Paintimage"), PT_LOCALINFO);
+            return true;
+        }
+
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintimage"), PT_LOCALINFO);
+            return true;
+        }
+
+
         // length to skip to get filename
         int skip = 0;
         for (int i = 0; i <= 3; i++)
             skip += token[i].length() + 1;
 
-        QString X = token[2];
-        QString Y = token[3];
         QString File = command.mid(skip);
-        wt.widget->doGfx(pc_paintimage, QStringList()<<X<<Y<<File<<buffered);
+        int X = floor(token[2].toFloat());
+        int Y = floor(token[3].toFloat());
+
+        wt.widget->picwinPtr()->paintImage(File, X, Y);
 
         return true;
     }
@@ -223,21 +303,28 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTTEXT") {
         // Paints a text in @window
         if (token.count() < 8) {
-            echo("STATUS", tr("/Painttext: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Painttext"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Painttext: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Painttext"), PT_LOCALINFO);
             return true;
         }
 
-        QString X = token[2];
-        QString Y = token[3];
-        QString Size = token[4];
-        QString Color = token[5];
-        QString Font = token[6].replace('_', ' '); // Fonts with space in name, use underscore
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Painttext"), PT_LOCALINFO);
+            return true;
+        }
+
+        int X = floor(token[2].toFloat());
+        int Y = floor(token[3].toFloat());
+
+        QColor Color(token[5]);
+        QString FontName = token[6].replace('_', ' ');
+        QFont Font(FontName);
+        Font.setPixelSize(token[4].toInt());
 
         // Length to skip to text
         int skip = 0;
@@ -246,7 +333,11 @@ bool TScriptCommand::parse(QString &command)
 
         QString Text = command.mid(skip);
 
-        wt.widget->doGfx(pc_painttext, QStringList()<<X<<Y<<Size<<Color<<Font<<Text);
+        QBrush br(Color, Qt::SolidPattern);
+        QPen pn(Color);
+
+        wt.widget->picwinPtr()->setBrushPen(br, pn);
+        wt.widget->picwinPtr()->paintText(X, Y, Font, Text);
 
         return true;
     }
@@ -254,40 +345,55 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTFILL") {
         // Fill a @window with a color
         if (token.count() != 7) {
-            echo("STATUS", tr("/Paintfill: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Paintfill"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Paintfill: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Paintfill"), PT_LOCALINFO);
             return true;
         }
 
-        QString X = token[2];
-        QString Y = token[3];
-        QString W = token[4];
-        QString H = token[5];
-        QString Color = token[6];
-        wt.widget->doGfx(pc_paintfill, QStringList()<<X<<Y<<W<<H<<Color);
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintfill"), PT_LOCALINFO);
+            return true;
+        }
+
+        int X = floor(token[2].toFloat());
+        int Y = floor(token[3].toFloat());
+        int W = floor(token[4].toFloat());
+        int H = floor(token[5].toFloat());
+
+        QColor color(token[6]);
+        QBrush br(color, Qt::SolidPattern);
+        QPen pn(color);
+
+        wt.widget->picwinPtr()->setBrushPen(br, pn);
+        wt.widget->picwinPtr()->paintFill(X, Y, W, H);
 
         return true;
     }
 
     if (acmd == "CLEARIMGBUF") {
         // Clear the image buffer used by /paintimage
-        if (token.count() != 6) {
-            echo("STATUS", tr("/Clearimgbuf: Invalid parameter count"), PT_LOCALINFO);
+        if (token.count() != 2) {
+            echo("STATUS", InvalidParameterCount("Clearimgbuf"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Clearimgbuf: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Clearimgbuf"), PT_LOCALINFO);
             return true;
         }
 
-        wt.widget->doGfx(pc_clearimagebuffer, QStringList());
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Clearimgbuf"), PT_LOCALINFO);
+            return true;
+        }
+
+        wt.widget->picwinPtr()->clearImageBuffer();
 
         return true;
     }
@@ -296,19 +402,71 @@ bool TScriptCommand::parse(QString &command)
         // Used to turn on/off instant painting in a @window
         // Useful if there's a lot to redraw during a timer (e.g. games, gui)
         if (token.count() != 3) {
-            echo("STATUS", tr("/Paintbuffer: Invalid parameter count"), PT_LOCALINFO);
+            echo("STATUS", InvalidParameterCount("Paintbuffer"), PT_LOCALINFO);
             return true;
         }
 
         subwindow_t wt = getCustomWindow(token[1]);
         if (wt.type == WT_NOTHING) {
-            echo("STATUS", tr("/Paintbuffer: No such window"), PT_LOCALINFO);
+            echo("STATUS", NoSuchWindow("Paintbuffer"), PT_LOCALINFO);
             return true;
         }
 
-        QString Set = token[2];
-        wt.widget->doGfx(pc_buffer, QStringList()<<Set);
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintbuffer"), PT_LOCALINFO);
+            return true;
+        }
 
+        int set = token[2].toInt();
+        bool state = (bool)set;
+
+        wt.widget->picwinPtr()->setViewBuffer(state);
+
+        return true;
+    }
+
+    if (acmd == "PAINTSETLAYER") {
+        // Sets current layer / creates a new layer to draw on.
+        if (token.count() != 3) {
+            echo("STATUS", InvalidParameterCount("Paintsetlayer"), PT_LOCALINFO);
+            return true;
+        }
+
+        subwindow_t wt = getCustomWindow(token[1]);
+        if (wt.type == WT_NOTHING) {
+            echo("STATUS", NoSuchWindow("Paintsetlayer"), PT_LOCALINFO);
+            return true;
+        }
+
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintsetlayer"), PT_LOCALINFO);
+            return true;
+        }
+
+        wt.widget->picwinPtr()->setLayer(token[2]);
+
+        return true;
+    }
+
+    if (acmd == "PAINTDELLAYER") {
+        // Delete layer from a paint window
+        if (token.count() != 3) {
+            echo("STATUS", InvalidParameterCount("Paintdellayer"), PT_LOCALINFO);
+            return true;
+        }
+
+        subwindow_t wt = getCustomWindow(token[1]);
+        if (wt.type == WT_NOTHING) {
+            echo("STATUS", NoSuchWindow("Paintdellayer"), PT_LOCALINFO);
+            return true;
+        }
+
+        if (wt.type < WT_GRAPHIC) {
+            echo("STATUS", NotAPaintWindow("Paintdellayer"), PT_LOCALINFO);
+            return true;
+        }
+
+        wt.widget->picwinPtr()->delLayer(token[2]);
         return true;
     }
 
@@ -393,7 +551,7 @@ void TScriptCommand::window(QString name, QString sw)
     }
 
     if ((drawable == false) && (withinput == true))
-          t = WT_PRIVMSG; // WT_PRIVMSG -- still a custom window though, but we get text with input.
+          t = WT_TXTINPUT;
 
      emit RequestWindow(name, t, -1, activate);
 

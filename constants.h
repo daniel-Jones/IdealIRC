@@ -112,13 +112,15 @@
 #define C_LIGHTGRAY       QColor(0xC6, 0xC6, 0xC6)
 
 /* Window type */
-#define WT_NOTHING 0  // Nothing to view (usually default value, displaying an error)
-#define WT_STATUS  1  // Text display with input box (Only for status windows, if its the only status window, it cannot be closed)
-#define WT_CHANNEL 2  // Text display with input box and list box
-#define WT_PRIVMSG 3  // Text display with input box
-#define WT_GRAPHIC 4  // Graphic window
-#define WT_GWINPUT 5  // Graphic window with input box
-#define WT_TXTONLY 6  // Text display only
+#define WT_NOTHING  0  // Nothing to view (usually default value, displaying an error)
+#define WT_STATUS   1  // Text display with input box (Only for status windows, if its the only status window, it cannot be closed)
+#define WT_CHANNEL  2  // Text display with input box and list box
+#define WT_PRIVMSG  3  // Text display with input box
+// Custom windows:
+#define WT_TXTONLY  4  // Text display only
+#define WT_TXTINPUT 5  // Text display with input
+#define WT_GRAPHIC  6  // Graphic window
+#define WT_GWINPUT  7  // Graphic window with input box
 
 /* Print type */
 #define PT_NORMAL     0  // Normal text
@@ -157,7 +159,9 @@ enum e_painting {
     pc_paintcircle,
     pc_painttext,
     pc_paintfill,
-    pc_buffer
+    pc_buffer,
+    pc_setlayer = 10,
+    pc_dellayer
 };
 
 /* Script events */
@@ -189,7 +193,8 @@ enum e_iircevent {
     te_urlclick,
     te_dbuttonclick = 25,
     te_dlistboxselect,
-    te_ialhostget
+    te_ialhostget,
+    te_input
 };
 
 enum e_scriptresult {
