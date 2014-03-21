@@ -99,59 +99,16 @@ bool TScriptCommand::parse(QString &command)
 
     if (acmd == "CLEAR") {
         // Clear active window or @window
-        subwindow_t subwin;
-        if (token.count() == 1) {
-            // No parameters (clear active window)
-            subwin = winlist->value(*activeWid);
-        }
-        if (token.count() == 2) {
-            // /clear window
-            subwin = getCustomWindow(token[1]);
-            if (subwin.type == WT_NOTHING) {
-                echo("STATUS", NoSuchWindow("Clear"), PT_LOCALINFO);
-                return true;
-            }
-            if (subwin.type >= WT_GRAPHIC) {
-                subwin.widget->picwinPtr()->clearAll();
-                return true;
-            }
-        }
-        if (token.count() == 3) {
-            // /clear -switch @window
-            QString sw = token[1];
-            subwin = getCustomWindow(token[2]);
 
-            bool layer = false;
+        if (token.count() == 1) // No parameters (clear active window)
+            clear();
 
-            for (int i = 0; i <= sw.length()-1; ++i) {
-                QChar c = sw[i];
-                switch (c.toLatin1()) {
-                    case '-':
-                        continue;
+        if (token.count() == 2) // /clear window
+            clear(token[1]);
 
-                    case 'l':
-                        layer = true;
-                        continue;
-                }
-            }
+        if (token.count() == 3)
+            clear(token[2], token[1]);
 
-            if ((layer) && (subwin.type < WT_GRAPHIC)) {
-                echo("STATUS", NotAPaintWindow("Clear"), PT_LOCALINFO);
-                return true;
-            }
-
-            if ((layer) && (subwin.type >= WT_GRAPHIC)) {
-                subwin.widget->picwinPtr()->clear();
-                return true;
-            }
-
-            if ((! layer) && (subwin.type >= WT_GRAPHIC)) {
-                subwin.widget->picwinPtr()->clearAll();
-                return true;
-            }
-        }
-
-        subwin.widget->clear();
         return true;
     }
 
@@ -162,29 +119,7 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintdot"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintdot"), PT_LOCALINFO);
-            return true;
-        }
-
-        int X = floor(token[2].toFloat());
-        int Y = floor(token[3].toFloat());
-        int size = token[4].toInt();
-
-        QColor color(token[5]);
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(size);
-
-        wt.widget->picwinPtr()->setBrushPen(br, pn);
-        wt.widget->picwinPtr()->paintDot(X, Y);
-
+        paintdot(token[1], token[2], token[3], token[4], token[5]);
         return true;
     }
 
@@ -195,31 +130,7 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintline"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintline"), PT_LOCALINFO);
-            return true;
-        }
-
-        int X1 = floor(token[2].toFloat());
-        int Y1 = floor(token[3].toFloat());
-        int X2 = floor(token[4].toFloat());
-        int Y2 = floor(token[5].toFloat());
-
-        int size = token[6].toInt();
-        QColor color(token[7]);
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(size);
-
-        wt.widget->picwinPtr()->setBrushPen(br, pn);
-        wt.widget->picwinPtr()->paintLine(X1, Y1, X2, Y2);
-
+        paintline(token[1], token[2], token[3], token[4], token[5], token[6], token[7]);
         return true;
     }
 
@@ -230,30 +141,7 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintrect"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintrect"), PT_LOCALINFO);
-            return true;
-        }
-
-        int X = floor(token[2].toFloat());
-        int Y = floor(token[3].toFloat());
-        int W = floor(token[4].toFloat());
-        int H = floor(token[5].toFloat());
-
-        int size = token[6].toInt();
-        QColor color(token[7]);
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(size);
-
-        wt.widget->picwinPtr()->setBrushPen(br, pn);
-        wt.widget->picwinPtr()->paintRect(X, Y, W, H);
+        paintrect(token[1], token[2], token[3], token[4], token[5], token[6], token[7]);
         return true;
     }
 
@@ -267,36 +155,21 @@ bool TScriptCommand::parse(QString &command)
             echo("STATUS", InvalidParameterCount("Paintimage"), PT_LOCALINFO);
             return true;
         }
+        // length to skip to get filename
 
-        QString buffered; // for the -u switch
+        bool dontBuffer = false;
         if (token[1] == "-u") {
-            buffered = "U";
+            dontBuffer = true;
             token.removeAt(1);
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintimage"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintimage"), PT_LOCALINFO);
-            return true;
-        }
-
-
-        // length to skip to get filename
         int skip = 0;
         for (int i = 0; i <= 3; i++)
             skip += token[i].length() + 1;
 
-        QString File = command.mid(skip);
-        int X = floor(token[2].toFloat());
-        int Y = floor(token[3].toFloat());
+        QString path = command.mid(skip);
 
-        wt.widget->picwinPtr()->paintImage(File, X, Y);
-
+        paintimage(token[1], token[2], token[3], path, dontBuffer);
         return true;
     }
 
@@ -307,37 +180,13 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Painttext"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Painttext"), PT_LOCALINFO);
-            return true;
-        }
-
-        int X = floor(token[2].toFloat());
-        int Y = floor(token[3].toFloat());
-
-        QColor Color(token[5]);
-        QString FontName = token[6].replace('_', ' ');
-        QFont Font(FontName);
-        Font.setPixelSize(token[4].toInt());
-
         // Length to skip to text
         int skip = 0;
         for (int i = 0; i <= 6; i++)
             skip += token[i].length() + 1;
-
         QString Text = command.mid(skip);
 
-        QBrush br(Color, Qt::SolidPattern);
-        QPen pn(Color);
-
-        wt.widget->picwinPtr()->setBrushPen(br, pn);
-        wt.widget->picwinPtr()->paintText(X, Y, Font, Text);
+        painttext(token[1], token[2], token[3], token[4], token[5], token[6].replace('_', ' '), Text);
 
         return true;
     }
@@ -349,29 +198,29 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintfill"), PT_LOCALINFO);
+        paintfill(token[1], token[2], token[3], token[4], token[5], token[6]);
+        return true;
+    }
+
+    if (acmd == "PAINTSETLAYER") {
+        // Sets current layer / creates a new layer to draw on.
+        if (token.count() != 3) {
+            echo("STATUS", InvalidParameterCount("Paintsetlayer"), PT_LOCALINFO);
             return true;
         }
 
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintfill"), PT_LOCALINFO);
+        paintsetlayer(token[1], token[2]);
+        return true;
+    }
+
+    if (acmd == "PAINTDELLAYER") {
+        // Delete layer from a paint window
+        if (token.count() != 3) {
+            echo("STATUS", InvalidParameterCount("Paintdellayer"), PT_LOCALINFO);
             return true;
         }
 
-        int X = floor(token[2].toFloat());
-        int Y = floor(token[3].toFloat());
-        int W = floor(token[4].toFloat());
-        int H = floor(token[5].toFloat());
-
-        QColor color(token[6]);
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-
-        wt.widget->picwinPtr()->setBrushPen(br, pn);
-        wt.widget->picwinPtr()->paintFill(X, Y, W, H);
-
+        paintdellayer(token[1], token[2]);
         return true;
     }
 
@@ -382,19 +231,7 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Clearimgbuf"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Clearimgbuf"), PT_LOCALINFO);
-            return true;
-        }
-
-        wt.widget->picwinPtr()->clearImageBuffer();
-
+        clearimgbuf(token[1]);
         return true;
     }
 
@@ -406,67 +243,10 @@ bool TScriptCommand::parse(QString &command)
             return true;
         }
 
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintbuffer"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintbuffer"), PT_LOCALINFO);
-            return true;
-        }
-
         int set = token[2].toInt();
         bool state = (bool)set;
 
-        wt.widget->picwinPtr()->setViewBuffer(state);
-
-        return true;
-    }
-
-    if (acmd == "PAINTSETLAYER") {
-        // Sets current layer / creates a new layer to draw on.
-        if (token.count() != 3) {
-            echo("STATUS", InvalidParameterCount("Paintsetlayer"), PT_LOCALINFO);
-            return true;
-        }
-
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintsetlayer"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintsetlayer"), PT_LOCALINFO);
-            return true;
-        }
-
-        wt.widget->picwinPtr()->setLayer(token[2]);
-
-        return true;
-    }
-
-    if (acmd == "PAINTDELLAYER") {
-        // Delete layer from a paint window
-        if (token.count() != 3) {
-            echo("STATUS", InvalidParameterCount("Paintdellayer"), PT_LOCALINFO);
-            return true;
-        }
-
-        subwindow_t wt = getCustomWindow(token[1]);
-        if (wt.type == WT_NOTHING) {
-            echo("STATUS", NoSuchWindow("Paintdellayer"), PT_LOCALINFO);
-            return true;
-        }
-
-        if (wt.type < WT_GRAPHIC) {
-            echo("STATUS", NotAPaintWindow("Paintdellayer"), PT_LOCALINFO);
-            return true;
-        }
-
-        wt.widget->picwinPtr()->delLayer(token[2]);
+        paintbuffer(token[1], state);
         return true;
     }
 
@@ -555,6 +335,250 @@ void TScriptCommand::window(QString name, QString sw)
 
      emit RequestWindow(name, t, -1, activate);
 
+}
+
+void TScriptCommand::clear(QString window, QString sw)
+{
+    subwindow_t subwin;
+    if (window.isEmpty())
+        subwin = winlist->value(*activeWid);
+    else
+        subwin = getCustomWindow(window);
+
+    if (subwin.type == WT_NOTHING) { // Didn't find the window.
+        echo("STATUS", NoSuchWindow("Clear"), PT_LOCALINFO);
+        return;
+    }
+
+    if (subwin.type >= WT_GRAPHIC) { // Window is a graphic window.
+        if (sw == "-l")
+            subwin.widget->picwinPtr()->clear(); // clear current layer
+        else
+            subwin.widget->picwinPtr()->clearAll(); // clear all layers
+        return;
+    }
+
+    // Reaching here means a text window to clear.
+    subwin.widget->clear();
+}
+
+void TScriptCommand::paintdot(QString Window, QString X, QString Y, QString Size, QString Color)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintdot"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintdot"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+    int iSize = Size.toInt();
+
+    QColor iColor(Color);
+    QBrush br(iColor, Qt::SolidPattern);
+    QPen pn(iColor);
+    pn.setWidth(iSize);
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintDot(iX, iY);
+}
+
+void TScriptCommand::paintline(QString Window, QString X1, QString Y1, QString X2, QString Y2, QString Size, QString Color)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintline"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintline"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX1 = floor(X1.toFloat());
+    int iY1 = floor(Y1.toFloat());
+    int iX2 = floor(X2.toFloat());
+    int iY2 = floor(Y2.toFloat());
+
+    int iSize = Size.toInt();
+    QColor iColor(Color);
+    QBrush br(iColor, Qt::SolidPattern);
+    QPen pn(iColor);
+    pn.setWidth(iSize);
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintLine(iX1, iY1, iX2, iY2);
+}
+
+void TScriptCommand::paintrect(QString Window, QString X, QString Y, QString W, QString H, QString Size, QString Color)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintrect"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintrect"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+    int iW = floor(W.toFloat());
+    int iH = floor(H.toFloat());
+
+    int iSize = Size.toInt();
+    QColor iColor(Color);
+    QBrush br(iColor, Qt::SolidPattern);
+    QPen pn(iColor);
+    pn.setWidth(iSize);
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintRect(iX, iY, iW, iH);
+}
+
+void TScriptCommand::paintimage(QString Window, QString X, QString Y, QString File, bool dontBuffer)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintimage"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintimage"), PT_LOCALINFO);
+        return;
+    }
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+
+    wt.widget->picwinPtr()->paintImage(File, iX, iY, dontBuffer);
+}
+
+void TScriptCommand::painttext(QString Window, QString X, QString Y, QString FontSize, QString Color, QString FontName, QString Text)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Painttext"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Painttext"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+
+    QColor iColor(Color);
+    QFont Font(FontName);
+    Font.setPixelSize(FontSize.toInt());
+
+    QBrush br(iColor, Qt::SolidPattern);
+    QPen pn(iColor);
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintText(iX, iY, Font, Text);
+}
+
+void TScriptCommand::paintfill(QString Window, QString X, QString Y, QString W, QString H, QString Color)
+{
+
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintfill"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintfill"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+    int iW = floor(W.toFloat());
+    int iH = floor(H.toFloat());
+
+    QColor iColor(Color);
+    QBrush br(iColor, Qt::SolidPattern);
+    QPen pn(iColor);
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintFill(iX, iY, iW, iH);
+
+}
+
+void TScriptCommand::paintsetlayer(QString Window, QString Layer)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintsetlayer"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintsetlayer"), PT_LOCALINFO);
+        return;
+    }
+
+    wt.widget->picwinPtr()->setLayer(Layer);
+}
+
+void TScriptCommand::paintdellayer(QString Window, QString Layer)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintdellayer"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintdellayer"), PT_LOCALINFO);
+        return;
+    }
+
+    wt.widget->picwinPtr()->delLayer(Layer);
+}
+
+void TScriptCommand::clearimgbuf(QString Window)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Clearimgbuf"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Clearimgbuf"), PT_LOCALINFO);
+        return;
+    }
+
+    wt.widget->picwinPtr()->clearImageBuffer();
+}
+
+void TScriptCommand::paintbuffer(QString Window, bool State)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintbuffer"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintbuffer"), PT_LOCALINFO);
+        return;
+    }
+
+    wt.widget->picwinPtr()->setViewBuffer(State);
 }
 
 void TScriptCommand::sockwrite(QString &data)

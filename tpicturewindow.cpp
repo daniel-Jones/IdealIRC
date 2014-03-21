@@ -246,33 +246,35 @@ void TPictureWindow::paintRect(int x, int y, int w, int h)
     update();
 }
 
-void TPictureWindow::paintImage(QString filename, int x, int y)
+void TPictureWindow::paintImage(QString filename, int x, int y, bool dontBuffer)
 {
     if (pixmap == NULL)
         return;
 
     QImage *image = NULL;
 
-    QHashIterator<QString,QImage*> i(imgList);
-    bool loaded = false;
-    while (i.hasNext()) {
-        i.next();
-        if (i.key() != filename)
-            continue;
+    bool buffered = false;
+    if (dontBuffer) {
+        QHashIterator<QString,QImage*> i(imgList);
+        while (i.hasNext()) {
+            i.next();
+            if (i.key() != filename)
+                continue;
 
-        image = i.value(); // Get buffer of image.
-        loaded = true;
-        break;
+            image = i.value(); // Get buffer of image.
+            buffered = true;
+            break;
+        }
     }
 
-    if (loaded == false) {
+    if (buffered == false) {
         image = new QImage();
-        loaded = image->load(filename);
-        imgList.insert(filename, image); // Save image to our buffer.
-    }
+        if (! image->load(filename))
+            return;
 
-    if (loaded == false)
-        return;
+        if (! dontBuffer)
+            imgList.insert(filename, image); // Save image to our buffer.
+    }
 
     QPainter paint(pixmap);
     paint.setPen(pen);

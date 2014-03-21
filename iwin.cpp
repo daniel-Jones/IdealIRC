@@ -820,7 +820,7 @@ void IWin::doGfx(e_painting command, QStringList param)
         int X = floor(param[0].toFloat());
         int Y = floor(param[1].toFloat());
         QString fn = param[2];
-        picwin->paintImage(fn, X, Y);
+        picwin->paintImage(fn, X, Y, false);
         return;
     }
 

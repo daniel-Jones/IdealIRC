@@ -52,7 +52,7 @@ public:
     void paintLine(int x1, int y1, int x2, int y2);
     void paintText(int x, int y, QFont font, QString text);
     void paintRect(int x, int y, int w, int h);
-    void paintImage(QString filename, int x, int y);
+    void paintImage(QString filename, int x, int y, bool dontBuffer);
     void paintFill(int x, int y, int w = -1, int h = -1);
     void clearImageBuffer() { imgList.clear(); }
     void setViewBuffer(bool b);

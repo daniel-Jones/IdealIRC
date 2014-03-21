@@ -37,6 +37,17 @@ public:
 
     void echo(QString target, QString text, int type = PT_NORMAL);
     void window(QString name, QString sw);
+    void clear(QString window = "$ACTIVE$", QString sw = "");
+    void paintdot(QString Window, QString X, QString Y, QString Size, QString Color);
+    void paintline(QString Window, QString X1, QString Y1, QString X2, QString Y2, QString Size, QString Color);
+    void paintrect(QString Window, QString X, QString Y, QString W, QString H, QString Size, QString Color);
+    void paintimage(QString Window, QString X, QString Y, QString File, bool dontBuffer);
+    void painttext(QString Window, QString X, QString Y, QString FontSize, QString Color, QString FontName, QString Text);
+    void paintfill(QString Window, QString X, QString Y, QString W, QString H, QString Color);
+    void paintsetlayer(QString Window, QString Layer);
+    void paintdellayer(QString Window, QString Layer);
+    void clearimgbuf(QString Window);
+    void paintbuffer(QString Window, bool State);
 
     // For writing to current connection, NOT custom sockets!
     void sockwrite(QString &data);
