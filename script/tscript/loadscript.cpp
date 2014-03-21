@@ -324,8 +324,6 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                 }
 
                 if (ex == ex_MenuType) {
-
-                    qDebug() << "Parse menu type" << keyword;
                     temp[0] = keyword.toUpper();
                     state = st_Menu;
                     ex = ex_Brace;
@@ -577,14 +575,11 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                 }
 
                 if (state == st_Menu) {
-                    qDebug() << "enter i=" << i;
                     if (ex == ex_Statement) {
                         if (temp[0] == "NICKLIST")
                             createMenu(i, 'n');
                         if (temp[0] == "CHANNEL")
                             createMenu(i, 'c');
-
-                        qDebug() << "done i=" << i;
 
                         --i;
                         temp[0].clear();

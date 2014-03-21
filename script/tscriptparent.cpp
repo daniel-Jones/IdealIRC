@@ -460,6 +460,11 @@ QList<scriptmenu_t> TScriptParent::getCustomChannelMenu()
 
 void TScriptParent::populateMenu(QMenu *menu, char type)
 {
+    QListIterator<QMenu*> si(menuPtrList);
+    while (si.hasNext())
+        si.next()->deleteLater();
+    menuPtrList.clear();
+
     QVectorIterator<TScript*> i(scriptlist);
     while (i.hasNext()) {
         TScript *script = i.next();
@@ -483,13 +488,12 @@ void TScriptParent::populateMenuIterate(QMenu *menu, char type, QList<scriptmenu
             continue;
 
         if (sm.haveChildren) {
-            qDebug() << sm.action->text() << "got children, BEGIN:";
-            populateMenuIterate(menu, type, items, idx);
-            qDebug() << sm.action->text() << "END.";
+            QMenu *subMenu = menu->addMenu(sm.action->text());
+            menuPtrList << subMenu;
+            populateMenuIterate(subMenu, type, items, idx);
         }
-        else {
-            qDebug() << "- Item:" << sm.action->text();
-        }
+        else
+            menu->addAction(sm.action);
     }
 }
 

@@ -90,6 +90,7 @@ private slots:
     int *activeWid;
     int *activeConn;
     QVector<TScript*> scriptlist;
+    QList<QMenu*> menuPtrList; // delete these before populating a menu.
     QHash<QString,toolbar_t> toolbar;
     QHash<int,IConnection*> *conlist;
     QHash<int,subwindow_t> *winlist;
