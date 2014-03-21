@@ -60,8 +60,9 @@ public:
     void loadAllScripts();
     void getToolbarPtr(QHash<QString,toolbar_t> **tb) { *tb = &toolbar; }
     void runScriptFunction(QString script, QString function);
-    QList<QAction*> getCustomNicklistMenu(); // Get items from all scripts.
-    QList<QAction*> getCustomChannelMenu(); // Get items from all scripts.
+    QList<scriptmenu_t> getCustomNicklistMenu(); // Get items from all scripts.
+    QList<scriptmenu_t> getCustomChannelMenu(); // Get items from all scripts.
+    void populateMenu(QMenu *menu, char type);
     QStringList getCurrentNickSelection(); // Gets selected nicknames in active window (used for custom nicklist menu items)
     QString getCurrentWindow(); // Gets the current window that's active
 
@@ -97,6 +98,7 @@ private slots:
     void echo(QString text, int type) { cmdhndl.echo("STATUS", text, type); }
     void echo(QString target, QString text, int type) { cmdhndl.echo(target, text, type); }
     bool loader(TScript *script, int *errcode = NULL);
+    void populateMenuIterate(QMenu *menu, char type, QList<scriptmenu_t> *items, int parent);
     QMenu nicklistMenu;
     QMenu channelMenu;
     QMenu statusMenu;

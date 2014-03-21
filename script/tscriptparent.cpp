@@ -24,6 +24,7 @@
 #include <QDesktopServices>
 #include <QApplication>
 #include <QVectorIterator>
+#include <QDebug>
 #include "tscriptparent.h"
 #include "iconnection.h"
 #include "icommand.h"
@@ -433,10 +434,10 @@ void TScriptParent::runScriptFunction(QString script, QString function)
     }
 }
 
-QList<QAction*> TScriptParent::getCustomNicklistMenu()
+QList<scriptmenu_t> TScriptParent::getCustomNicklistMenu()
 {
     QVectorIterator<TScript*> i(scriptlist);
-    QList<QAction*> items;
+    QList<scriptmenu_t> items;
     while (i.hasNext()) {
         TScript *script = i.next();
         items << *(script->getCustomNicklistMenu());
@@ -445,10 +446,10 @@ QList<QAction*> TScriptParent::getCustomNicklistMenu()
     return items;
 }
 
-QList<QAction*> TScriptParent::getCustomChannelMenu()
+QList<scriptmenu_t> TScriptParent::getCustomChannelMenu()
 {
     QVectorIterator<TScript*> i(scriptlist);
-    QList<QAction*> items;
+    QList<scriptmenu_t> items;
     while (i.hasNext()) {
         TScript *script = i.next();
         items << *(script->getCustomChannelMenu());
@@ -457,6 +458,40 @@ QList<QAction*> TScriptParent::getCustomChannelMenu()
     return items;
 }
 
+void TScriptParent::populateMenu(QMenu *menu, char type)
+{
+    QVectorIterator<TScript*> i(scriptlist);
+    while (i.hasNext()) {
+        TScript *script = i.next();
+        QList<scriptmenu_t> *child;
+
+        if (type == 'n')
+            child = script->getCustomNicklistMenu();
+        if (type == 'c')
+            child = script->getCustomChannelMenu();
+
+        populateMenuIterate(menu, type, child, -1);
+    }
+}
+
+void TScriptParent::populateMenuIterate(QMenu *menu, char type, QList<scriptmenu_t> *items, int parent)
+{
+    QListIterator<scriptmenu_t> i(*items);
+    for (int idx = 0; i.hasNext(); ++idx) {
+        scriptmenu_t sm = i.next();
+        if (sm.parent != parent)
+            continue;
+
+        if (sm.haveChildren) {
+            qDebug() << sm.action->text() << "got children, BEGIN:";
+            populateMenuIterate(menu, type, items, idx);
+            qDebug() << sm.action->text() << "END.";
+        }
+        else {
+            qDebug() << "- Item:" << sm.action->text();
+        }
+    }
+}
 
 QStringList TScriptParent::getCurrentNickSelection()
 {

@@ -90,7 +90,6 @@ public:
       void setFont(const QFont &font);
       void reloadCSS(); // Runs only if TIRCVIEW is present.
       void clear(); // Clear contents
-      void doGfx(e_painting command, QStringList param);
       QStringList getSelectedMembers(); // Returns a list of selected nicknames.
       void updateTitleHost(); // for WT_PRIVMSG, set hostname in titlebar
       TPictureWindow* picwinPtr() { return picwin; }
@@ -135,6 +134,7 @@ private:
       bool sortLargerThan(const QString s1, const QString s2);
       void setModeViaList(char set, char mode);
       QString stripModeChar(QString nickname);
+      void regenChannelMenus();
 
 protected:
       void closeEvent(QCloseEvent *e);

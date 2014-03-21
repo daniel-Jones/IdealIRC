@@ -52,6 +52,7 @@ SOURCES += main.cpp\
     ifavourites.cpp \
     ichannellist.cpp \
     imotdview.cpp \
+    ial.cpp \
     script/tsockfactory.cpp \
     script/tsock.cpp \
     script/tsdialog.cpp \
@@ -65,7 +66,16 @@ SOURCES += main.cpp\
     script/editor/iscripteditor.cpp \
     script/editor/tscripteditorhighlighter.cpp \
     script/editor/editorwidget.cpp \
-    ial.cpp
+    script/tscript/commands.cpp \
+    script/tscript/containers.cpp \
+    script/tscript/dialogs.cpp \
+    script/tscript/events.cpp \
+    script/tscript/extracters.cpp \
+    script/tscript/loadscript.cpp \
+    script/tscript/menu.cpp \
+    script/tscript/runf.cpp \
+    script/tscript/solvers.cpp \
+    script/tscript/utils.cpp
 
 #iaddresslist.cpp
 
@@ -98,6 +108,7 @@ HEADERS  += idealirc.h \
     ifavourites.h \
     ichannellist.h \
     imotdview.h \
+    ial.h \
     script/tsock.h \
     script/tsdialog.h \
     script/tscriptparent.h \
@@ -111,8 +122,7 @@ HEADERS  += idealirc.h \
     script/iscriptmanager.h \
     script/editor/iscripteditor.h \
     script/editor/tscripteditorhighlighter.h \
-    script/editor/editorwidget.h \
-    ial.h
+    script/editor/editorwidget.h
 
 #iaddresslist.h
 

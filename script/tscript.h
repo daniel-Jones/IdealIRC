@@ -41,10 +41,18 @@ typedef struct T_SCRIPT
     QString path;
 } script_t;
 
-typedef struct T_SCRIPTLINE {
+typedef struct T_SCRIPTLINE
+{
     int linenum;
     QString text;
 } t_scriptline;
+
+struct scriptmenu_t
+{
+    QAction *action;
+    int parent; // -1 for no parent ("top level"). Begins at 0.
+    bool haveChildren;
+};
 
 class TScriptParent;
 
@@ -67,8 +75,8 @@ public:
     QString getPath() { return filename; }
     QString getErrorKeyword() { return errorKeyword; }
     int getCurrentLine() { return curLine; }
-    QList<QAction*> *getCustomNicklistMenu() { return &customNicklistMenu; }
-    QList<QAction*> *getCustomChannelMenu() { return &customChannelMenu; }
+    QList<scriptmenu_t> *getCustomNicklistMenu() { return &customNicklistMenu; }
+    QList<scriptmenu_t> *getCustomChannelMenu() { return &customChannelMenu; }
 
     QString lm(int line); // Line map.
 
@@ -93,10 +101,13 @@ private:
     QHash<QString,QByteArray> binVars;
     QMap<int,QString> lineMap; // key: internal line, value: line number with filename
 
-    QList<QAction*> customNicklistMenu;
-    QList<QAction*> customChannelMenu;
-    void createMenu(int &pos, char type, QMenu *parent); // position is where the given menu block starts in script (byte pos). (after {)
-    void resetMenu(QList<QAction *> &menu); // Use for re-parsing the menu structure
+    QAction *rootNicklistMenu;
+    QAction *rootChannelMenu;
+    QList<scriptmenu_t> customNicklistMenu;
+    QList<scriptmenu_t> customChannelMenu;
+    void createMenu(int &pos, char type);
+    void createMenuIterate(int &pos, char type, int parent); // position is where the given menu block starts in script (byte pos). (after {)
+    void resetMenu(QList<scriptmenu_t> &menu); // Use for re-parsing the menu structure
     QSignalMapper nicklistMenuMapper;
     QSignalMapper channelMenuMapper;
 

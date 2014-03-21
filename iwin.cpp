@@ -41,6 +41,7 @@
 #include "ui_iwin.h"
 #include "iconnection.h"
 #include "script/tscriptparent.h"
+#include "script/tscript.h"
 
 #include <iostream>
 
@@ -169,34 +170,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         connect(listbox, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
                 this, SLOT(listboxDoubleClick(QListWidgetItem*)));
 
-        opMenu = new QMenu(this);
-        opMenu->setTitle("Operator menu");
-        opMenu->addAction(ui->actionGive_op);
-        opMenu->addAction(ui->actionTake_op);
-        opMenu->addSeparator();
-        opMenu->addAction(ui->actionGive_voice);
-        opMenu->addAction(ui->actionTake_voice);
-        opMenu->addSeparator();
-        opMenu->addAction(ui->actionKick);
-        opMenu->addAction(ui->actionKick_ban);
-
-        listboxMenu = new QMenu(this);
-        listboxMenu->addAction(ui->nickmenu_Query);
-        listboxMenu->addSeparator();
-        listboxMenu->addAction(ui->nickmenu_Whois);
-        listboxMenu->addMenu(opMenu);
-
-        connect(listbox, SIGNAL(MenuRequested(QPoint)),
-                this, SLOT(listboxMenuRequested(QPoint)));
-
-
-        connect(textdata, SIGNAL(menuRequested(QPoint)),
-                this, SLOT(textboxMenuRequested(QPoint)));
-
-
-        textboxMenu = new QMenu(this);
-        textboxMenu->addAction(ui->actionChannel_settings);
-
+        regenChannelMenus();
 
         if ((conf->logEnabled == true) && (conf->logChannel == true)) {
             writeToLog(" ");
@@ -502,15 +476,13 @@ void IWin::splitterMoved(int, int)
 
 void IWin::textboxMenuRequested(QPoint p)
 {
-    textboxMenu->addActions( scriptParent->getCustomChannelMenu() );
-
+    scriptParent->populateMenu( textboxMenu, 'c' );
     textboxMenu->popup(p);
 }
 
 void IWin::listboxMenuRequested(QPoint p)
 {
-    listboxMenu->addActions( scriptParent->getCustomNicklistMenu() );
-
+    scriptParent->populateMenu( listboxMenu, 'n' );
     listboxMenu->popup(p);
 }
 
@@ -752,139 +724,6 @@ void IWin::clear()
         picwin->clear();
 }
 
-void IWin::doGfx(e_painting command, QStringList param)
-{
-    // DEPRECATED FUNCTION.
-
-    // There is no need to check if param has correct count in this function
-    // because the check has been done before this function was called.
-
-    if (picwin == NULL)
-        return;
-
-    if (command == pc_clear) {
-        picwin->clear();
-        return;
-    }
-
-    if (command == pc_paintdot) {
-        int X = floor(param[0].toFloat());
-        int Y = floor(param[1].toFloat());
-        int size = param[2].toInt();
-        QColor color(param[3]);
-
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(size);
-        picwin->setBrush(br);
-        picwin->setPen(pn);
-        picwin->paintDot(X, Y);
-        return;
-    }
-
-    if (command == pc_paintline) {
-        int X1 = floor(param[0].toFloat());
-        int Y1 = floor(param[1].toFloat());
-        int X2 = floor(param[2].toFloat());
-        int Y2 = floor(param[3].toFloat());
-        int size = param[4].toInt();
-        QColor color(param[5]);
-
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(size);
-        picwin->setBrush(br);
-        picwin->setPen(pn);
-        picwin->paintLine(X1, Y1, X2, Y2);
-        return;
-    }
-
-    if (command == pc_paintrect) {
-        int X = floor(param[0].toFloat());
-        int Y = floor(param[1].toFloat());
-        int W = floor(param[2].toFloat());
-        int H = floor(param[3].toFloat());
-        int size = param[4].toInt();
-        QColor color(param[5]);
-
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(size);
-        picwin->setBrush(br);
-        picwin->setPen(pn);
-        picwin->paintRect(X, Y, W, H);
-        return;
-    }
-
-    if (command == pc_paintimage) {
-        int X = floor(param[0].toFloat());
-        int Y = floor(param[1].toFloat());
-        QString fn = param[2];
-        picwin->paintImage(fn, X, Y, false);
-        return;
-    }
-
-    if (command == pc_clearimagebuffer) {
-        picwin->clearImageBuffer();
-        return;
-    }
-
-    if (command == pc_painttext) {
-        int X = floor(param[0].toFloat());
-        int Y = floor(param[1].toFloat());
-        int size = param[2].toInt();
-        QColor color(param[3]);
-
-        QString font = param[4];
-        QString text = param[5];
-
-        QFont f(font);
-        f.setPixelSize(size);
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-
-        picwin->setBrush(br);
-        picwin->setPen(pn);
-        picwin->paintText(X, Y, f, text);
-
-        return;
-    }
-
-    if (command == pc_paintfill) {
-        int X = floor(param[0].toFloat());
-        int Y = floor(param[1].toFloat());
-        int W = floor(param[2].toFloat());
-        int H = floor(param[3].toFloat());
-        QColor color(param[4]);
-
-        QBrush br(color, Qt::SolidPattern);
-        QPen pn(color);
-        pn.setWidth(0);
-        picwin->setBrush(br);
-        picwin->setPen(pn);
-        picwin->paintFill(X, Y, W, H);
-
-        return;
-    }
-
-    if (command == pc_buffer) {
-        bool state = (bool*)param[0].toInt();
-        picwin->setViewBuffer(state);
-
-        return;
-    }
-
-    if (command == pc_setlayer) {
-        picwin->setLayer(param[0]);
-        return;
-    }
-
-    if (command == pc_dellayer) {
-        picwin->delLayer(param[0]);
-        return;
-    }
-}
-
 QStringList IWin::getSelectedMembers()
 {
     const QList<QListWidgetItem*> sel = listbox->selectedItems();
@@ -999,6 +838,46 @@ QString IWin::stripModeChar(QString nickname)
     if (connection->isValidCuLetter(m))
         nickname = nickname.mid(1); // Nickname have a modechar, skip it.
     return nickname;
+}
+
+void IWin::regenChannelMenus()
+{
+    if (opMenu != NULL)
+        delete opMenu;
+    opMenu = new QMenu(this);
+
+    opMenu->setTitle("Operator menu");
+    opMenu->addAction(ui->actionGive_op);
+    opMenu->addAction(ui->actionTake_op);
+    opMenu->addSeparator();
+    opMenu->addAction(ui->actionGive_voice);
+    opMenu->addAction(ui->actionTake_voice);
+    opMenu->addSeparator();
+    opMenu->addAction(ui->actionKick);
+    opMenu->addAction(ui->actionKick_ban);
+
+    if (listboxMenu != NULL)
+        delete listboxMenu;
+    listboxMenu = new QMenu(this);
+
+    listboxMenu->addAction(ui->nickmenu_Query);
+    listboxMenu->addSeparator();
+    listboxMenu->addAction(ui->nickmenu_Whois);
+    listboxMenu->addMenu(opMenu);
+
+    connect(listbox, SIGNAL(MenuRequested(QPoint)),
+            this, SLOT(listboxMenuRequested(QPoint)));
+
+
+    connect(textdata, SIGNAL(menuRequested(QPoint)),
+            this, SLOT(textboxMenuRequested(QPoint)));
+
+
+    if (textboxMenu != NULL)
+        delete textboxMenu;
+    textboxMenu = new QMenu(this);
+
+    textboxMenu->addAction(ui->actionChannel_settings);
 }
 
 void IWin::mouseDoubleClick()
