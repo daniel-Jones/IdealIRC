@@ -1,3 +1,22 @@
+0.3.7 - March 23rd 2014
+ * Cancelling kick (nicklist menu) performed a kick anyway. Fixed.
+ * Scripts handle relative paths to CONF_PATH (where iirc.ini resides).
+ * IAL runs garbage collecting on nicknames w/o channels every 5 minutes now.
+ * New command: /ban [channel] nickname
+   Channel is optional, if not specified, current channel will be set.
+   This will set a *!*@host.name mask.
+ * The /kick command is changed, channel is optional (like /ban).
+ * INVITE message had a colon (:) prepended to channel name. Fixed.
+ * Changed looks of CTCP messages.
+ * The crash on exiting IdealIRC should be gone now.
+ * Paint @windows does now have layers (consider them as gimp/photoshop layers).
+ * /paintsetlayer @window layername (creates and) sets layer to do /paint commands on.
+   Use layer name "main" for the main layer (cannot be deleted).
+ * /paintdellayer @window layername deletes a layer.
+ * Added -l switch to /clear (/clear -l @window). Clears the current layer in a paint @window.
+ * Custom/scripted menus are now done.
+ * New function $BuildType returns "PACKAGED" or "STANDALONE", whichever is compiled.
+
 0.3.6 - March 15th 2014
  * Fixed bug where you could not select ServerInfo color in customization.
  * Fixed so menu types won't be considered an event.
