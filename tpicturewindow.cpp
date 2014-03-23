@@ -306,6 +306,19 @@ void TPictureWindow::paintFill(int x, int y, int w, int h)
     update();
 }
 
+void TPictureWindow::paintFillPath(QPainterPath path)
+{
+    if (pixmap == NULL)
+        return;
+
+    QPainter paint(pixmap);
+    paint.setBrush(brush);
+    paint.setPen(pen);
+    paint.fillPath(path, brush);
+
+    update();
+}
+
 void TPictureWindow::setViewBuffer(bool b)
 {
     viewBuffer = b;

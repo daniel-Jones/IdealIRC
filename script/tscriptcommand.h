@@ -22,7 +22,7 @@
 #define TSCRIPTCOMMAND_H
 
 #include <QObject>
-
+#include <QPainterPath>
 #include "constants.h"
 
 class IConnection;
@@ -44,6 +44,7 @@ public:
     void paintimage(QString Window, QString X, QString Y, QString File, bool dontBuffer);
     void painttext(QString Window, QString X, QString Y, QString FontSize, QString Color, QString FontName, QString Text);
     void paintfill(QString Window, QString X, QString Y, QString W, QString H, QString Color);
+    void paintfillpath(QString Window, QString Color, QPainterPath Path);
     void paintsetlayer(QString Window, QString Layer);
     void paintdellayer(QString Window, QString Layer);
     void clearimgbuf(QString Window);

@@ -202,6 +202,31 @@ bool TScriptCommand::parse(QString &command)
         return true;
     }
 
+    if (acmd == "PAINTFILLPATH") {
+        // create a filled shape.
+        // /paintfillpath @window color x y x y x y ...
+        if ((token.count() < 9) || (((token.count()-3)%2) != 0)) {
+            // parameter count of x y x y etc must be dividable by two.
+            echo("STATUS", InvalidParameterCount("Paintfill"), PT_LOCALINFO);
+            return true;
+        }
+
+        // start points:
+        int x = floor(token[3].toFloat());
+        int y = floor(token[4].toInt());
+        QPainterPath path( QPoint(x, y) );
+
+        for (int i = 5; i <= token.count()-1; ++i) {
+            x = floor(token[i].toFloat());
+            ++i;
+            y = floor(token[i].toFloat());
+            path.lineTo(x, y);
+        }
+
+        paintfillpath(token[1], token[2], path);
+        return true;
+    }
+
     if (acmd == "PAINTSETLAYER") {
         // Sets current layer / creates a new layer to draw on.
         if (token.count() != 3) {
@@ -514,7 +539,27 @@ void TScriptCommand::paintfill(QString Window, QString X, QString Y, QString W, 
 
     wt.widget->picwinPtr()->setBrushPen(br, pn);
     wt.widget->picwinPtr()->paintFill(iX, iY, iW, iH);
+}
 
+void TScriptCommand::paintfillpath(QString Window, QString Color, QPainterPath Path)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintfillpath"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintfillpath"), PT_LOCALINFO);
+        return;
+    }
+
+    QColor iColor(Color);
+    QBrush br(iColor, Qt::SolidPattern);
+    QPen pn(iColor);
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintFillPath(Path);
 }
 
 void TScriptCommand::paintsetlayer(QString Window, QString Layer)

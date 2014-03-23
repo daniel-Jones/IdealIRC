@@ -54,6 +54,7 @@ public:
     void paintRect(int x, int y, int w, int h);
     void paintImage(QString filename, int x, int y, bool dontBuffer);
     void paintFill(int x, int y, int w = -1, int h = -1);
+    void paintFillPath(QPainterPath path);
     void clearImageBuffer() { imgList.clear(); }
     void setViewBuffer(bool b);
     void setLayer(QString name); // Set to other layer for painting. If it doesn't exist, it will be created.
