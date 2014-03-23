@@ -93,6 +93,16 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "BUILDTYPE") {
+#ifdef STANDALONE
+        result = "STANDALONE";
+#endif
+#ifdef PACKAGED
+        result = "PACKAGED";
+#endif
+        return true;
+    }
+
     if (fn == "CALC") {
         // Calculate an expression (e.g. 5+5)
         if (param.length() == 0)
