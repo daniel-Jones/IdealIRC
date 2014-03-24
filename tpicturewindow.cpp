@@ -119,6 +119,7 @@ void TPictureWindow::showEvent(QShowEvent *)
     pixmap = new QPixmap(width(), height());
     pixmap->fill(Qt::transparent);
     layers.insert("MAIN", pixmap);
+    layerOrder << "MAIN";
     currentLayer = "MAIN";
     update();
 }
@@ -133,10 +134,17 @@ void TPictureWindow::paintEvent(QPaintEvent *)
 
     QPainter painter(this);
     painter.fillRect(0, 0, width(), height(), Qt::white);
-    QHashIterator<QString,QPixmap*> i(layers);
+    /*QHashIterator<QString,QPixmap*> i(layers);
     while (i.hasNext()) {
         QPixmap *p = i.next().value();
         painter.drawPixmap(0,0,*p);
+    }*/
+
+    for (int i = 0; i <= layerOrder.length()-1; ++i) {
+        QPixmap *p = layers.value( layerOrder[i], NULL );
+        if (p == NULL)
+            continue;
+        painter.drawPixmap(0, 0, *p);
     }
 }
 
@@ -334,6 +342,7 @@ void TPictureWindow::setLayer(QString name)
     if (pixmap == NULL) {
         pixmap = new QPixmap(width(), height());
         layers.insert(name.toUpper(), pixmap);
+        layerOrder << name.toUpper();
     }
     currentLayer = name.toUpper();
 }
@@ -346,6 +355,21 @@ void TPictureWindow::delLayer(QString name)
     layers.remove(name.toUpper());
     pixmap = layers.value("MAIN", NULL);
     currentLayer = "MAIN";
+}
+
+void TPictureWindow::orderLayers(QStringList list)
+{
+    QStringList add;
+    for (int i = 0; i <= list.length()-1; ++i) {
+        QString item = list[i].toUpper();
+        layerOrder.removeAll(item);
+        add.push_back(item);
+    }
+
+    layerOrder << add;
+    layerOrder.removeDuplicates();
+
+    qDebug() << "Reorder layers:" << layerOrder;
 }
 
 QString TPictureWindow::colorAt(QString layer, int x, int y)

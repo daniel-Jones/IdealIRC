@@ -47,6 +47,7 @@ public:
     void paintfillpath(QString Window, QString Color, QPainterPath Path);
     void paintsetlayer(QString Window, QString Layer);
     void paintdellayer(QString Window, QString Layer);
+    void paintlayerorder(QString Window, QStringList Layers);
     void clearimgbuf(QString Window);
     void paintbuffer(QString Window, bool State);
 

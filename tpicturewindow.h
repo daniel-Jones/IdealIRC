@@ -59,6 +59,7 @@ public:
     void setViewBuffer(bool b);
     void setLayer(QString name); // Set to other layer for painting. If it doesn't exist, it will be created.
     void delLayer(QString name); // Deletes layer. Cannot delete "MAIN" layer. Sets active layer to MAIN.
+    void orderLayers(QStringList list);
     QString colorAt(QString layer, int x, int y);
 
 protected:
@@ -74,6 +75,7 @@ protected:
 private:
     QPixmap *pixmap; // active layer
     QHash<QString,QPixmap*> layers;
+    QStringList layerOrder;
     QHash<QString,QImage*> imgList; // String is file path to image, then image itself.
     QString currentLayer;
     QPen pen;

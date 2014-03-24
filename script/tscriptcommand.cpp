@@ -249,6 +249,21 @@ bool TScriptCommand::parse(QString &command)
         return true;
     }
 
+    if (acmd == "PAINTLAYERORDER") {
+        if (token.count() < 4) { // /paintlayerorder @win layer1 layer2 ... (at least 2 layers)
+            echo("STATUS", InvalidParameterCount("Paintlayerorder"), PT_LOCALINFO);
+            return true;
+        }
+
+        QString window = token[1];
+        QStringList list = token;
+        list.removeFirst(); // removes /paintlayerorder
+        list.removeFirst(); // remoes @window
+
+        paintlayerorder(window, list);
+        return true;
+    }
+
     if (acmd == "CLEARIMGBUF") {
         // Clear the image buffer used by /paintimage
         if (token.count() != 2) {
@@ -592,6 +607,22 @@ void TScriptCommand::paintdellayer(QString Window, QString Layer)
     }
 
     wt.widget->picwinPtr()->delLayer(Layer);
+}
+
+void TScriptCommand::paintlayerorder(QString Window, QStringList Layers)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", NoSuchWindow("Paintlayerorder"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", NotAPaintWindow("Paintlayerorder"), PT_LOCALINFO);
+        return;
+    }
+
+    wt.widget->picwinPtr()->orderLayers(Layers);
 }
 
 void TScriptCommand::clearimgbuf(QString Window)
