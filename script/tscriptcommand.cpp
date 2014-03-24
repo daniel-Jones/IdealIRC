@@ -645,9 +645,8 @@ subwindow_t TScriptCommand::getCustomWindow(QString name)
     QHashIterator<int,subwindow_t> i(*winlist);
     while (i.hasNext()) {
         subwindow_t sw = i.next().value();
-        if ((sw.type >= WT_GRAPHIC) && (sw.widget->objectName().toUpper() == name.toUpper()))
+        if (sw.widget->objectName().toUpper() == name.toUpper())
             return sw;
-
     }
 
     return error;

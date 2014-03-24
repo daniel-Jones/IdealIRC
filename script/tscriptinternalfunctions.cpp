@@ -126,6 +126,25 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "COLORAT") { // $ColorAt(@window, layer, x, y)
+        if (param.length() < 3)
+            return false;
+        QString layer = "main";
+        if (param.length() > 3) {
+            layer = param[1];
+            param.removeAt(1);
+        }
+
+        subwindow_t sw = getCustomWindow(param[0]);
+        if (sw.type == WT_NOTHING)
+            return false;
+        int x = floor( param[1].toFloat() );
+        int y = floor( param[2].toFloat() );
+
+        result = sw.widget->picwinPtr()->colorAt(layer, x, y);
+        return true;
+    }
+
     if (fn == "CURWINTYPE") {
         // Returns the current target type (msg or channel)
         subwindow_t sw = winList->value(*activeWid);
@@ -502,6 +521,22 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
     // No functions were matching, return false as error.
     return false;
 }
+
+subwindow_t TScriptInternalFunctions::getCustomWindow(QString name)
+{
+    subwindow_t error;
+    error.type = WT_NOTHING; // Indicates an error.
+
+    QHashIterator<int,subwindow_t> i(*winList);
+    while (i.hasNext()) {
+        subwindow_t sw = i.next().value();
+        if (sw.widget->objectName().toUpper() == name.toUpper())
+            return sw;
+    }
+
+    return error;
+}
+
 
 QString TScriptInternalFunctions::calc(QString expr)
 {

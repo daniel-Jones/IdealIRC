@@ -71,6 +71,7 @@ private:
     int *activeConn;
     QHash<int,subwindow_t> *winList;
     QHash<int,IConnection*> *conList;
+    subwindow_t getCustomWindow(QString name);
 
     // ALL functions, I mean -ALL-, even those with integer results, MUST return QString.
     QString sstr(QString text, int start, int stop = -1);

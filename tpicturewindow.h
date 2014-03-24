@@ -59,6 +59,7 @@ public:
     void setViewBuffer(bool b);
     void setLayer(QString name); // Set to other layer for painting. If it doesn't exist, it will be created.
     void delLayer(QString name); // Deletes layer. Cannot delete "MAIN" layer. Sets active layer to MAIN.
+    QString colorAt(QString layer, int x, int y);
 
 protected:
     void paintEvent(QPaintEvent *e);

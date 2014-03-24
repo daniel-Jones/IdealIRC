@@ -74,7 +74,7 @@ private:
 
     QString NotAPaintWindow(QString cmd)
     {
-        return tr("/%1: Not a paint window");
+        return tr("/%1: Not a paint window").arg(cmd);
     }
 
 

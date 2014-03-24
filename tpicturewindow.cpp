@@ -25,6 +25,7 @@
 #include <iostream>
 #include <QHashIterator>
 #include <QMutableHashIterator>
+#include <QDebug>
 
 TPictureWindow::TPictureWindow(QWidget *parent) :
   QWidget(parent),
@@ -345,4 +346,14 @@ void TPictureWindow::delLayer(QString name)
     layers.remove(name.toUpper());
     pixmap = layers.value("MAIN", NULL);
     currentLayer = "MAIN";
+}
+
+QString TPictureWindow::colorAt(QString layer, int x, int y)
+{
+    if (! layers.contains(layer.toUpper()))
+        return "#000000";
+    QPixmap *pm = layers.value(layer.toUpper());
+    QRgb rgb = pm->toImage().pixel(x, y);
+
+    return QColor(rgb).name();
 }
