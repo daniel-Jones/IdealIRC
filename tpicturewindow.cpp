@@ -124,7 +124,7 @@ void TPictureWindow::showEvent(QShowEvent *)
     update();
 }
 
-void TPictureWindow::paintEvent(QPaintEvent *)
+void TPictureWindow::paintEvent(QPaintEvent *e)
 {
     if (pixmap == NULL)
         return;
@@ -134,18 +134,14 @@ void TPictureWindow::paintEvent(QPaintEvent *)
 
     QPainter painter(this);
     painter.fillRect(0, 0, width(), height(), Qt::white);
-    /*QHashIterator<QString,QPixmap*> i(layers);
-    while (i.hasNext()) {
-        QPixmap *p = i.next().value();
-        painter.drawPixmap(0,0,*p);
-    }*/
-
     for (int i = 0; i <= layerOrder.length()-1; ++i) {
         QPixmap *p = layers.value( layerOrder[i], NULL );
         if (p == NULL)
             continue;
         painter.drawPixmap(0, 0, *p);
     }
+
+    e->accept();
 }
 
 void TPictureWindow::mousePressEvent(QMouseEvent *event)
@@ -368,8 +364,6 @@ void TPictureWindow::orderLayers(QStringList list)
 
     layerOrder << add;
     layerOrder.removeDuplicates();
-
-    qDebug() << "Reorder layers:" << layerOrder;
 }
 
 QString TPictureWindow::colorAt(QString layer, int x, int y)

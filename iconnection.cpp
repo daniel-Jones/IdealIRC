@@ -58,7 +58,8 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     cmA("b"),
     cmB("k"),
     cmC("l"),
-    cmD("imnpstr")
+    cmD("imnpstr"),
+    checkState(0)
 {
 
     cmdhndl.setWinList(&winlist);
@@ -75,6 +76,11 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
 
     connect(&socket, SIGNAL(readyRead()),
             this, SLOT(onSocketReadyRead()));
+
+    connect(&checkConnection, SIGNAL(timeout()),
+            this, SLOT(checkConnectionTimeout()));
+
+    checkConnection.setInterval(180000); // 3 min.
 }
 
 //                          server:port   optional, server passwd.
@@ -196,6 +202,8 @@ void IConnection::onSocketDisconnected()
     cmB = "k";
     cmC = "l";
     cmD = "imnpstr";
+    checkConnection.setInterval(180000);
+    checkConnection.stop();
 
     QHashIterator<QString, subwindow_t> i(winlist);
     while (i.hasNext()) {
@@ -259,11 +267,33 @@ void IConnection::onSocketReadyRead()
           std::cout << "[in] " << text.toStdString().c_str() << std::endl;
           parse( text );
           linedata.clear();
+
+          if (checkState == 0)
+              checkConnection.start(); // (re-)start the timer that checks if our TCP connection's still alive.
+
           continue;
       }
 
       // By default, add data to linedata.
       linedata += in.at(i);
+    }
+}
+
+void IConnection::checkConnectionTimeout()
+{
+    if (checkState == 0) {
+        checkState = 1;
+        sockwrite("PING :ALIVE");
+        checkConnection.setInterval(30000); // 30 seconds to get a response.
+        return;
+    }
+
+    if (checkState == 1) {
+        checkState = 0;
+        checkConnection.setInterval(180000); // set back to default 3 min.
+        print("STATUS", tr("Ping timeout."), PT_LOCALINFO);
+        socket.close(); // close socket, connection's dead.
+        return;
     }
 }
 
@@ -499,8 +529,16 @@ void IConnection::parse(QString &data)
 
     else if (token1up == "PONG") {
         bool ok = false;
+        QString msg = getMsg(data);
+
+        if (msg == "ALIVE") {
+            checkState = 0;
+            checkConnection.start(); // restart.
+            return;
+        }
+
         qint64 ms_now = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qint64 ms_pong = getMsg(data).toULongLong(&ok);
+        qint64 ms_pong = msg.toULongLong(&ok);
         if (! ok)
             print( activewin(), tr("PONG from server: %1")
                                  .arg(getMsg(data)),

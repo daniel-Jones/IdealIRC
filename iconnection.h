@@ -134,6 +134,9 @@ private:
 
       IChanConfig* getChanConfigPtr(QString channel);
 
+      QTimer checkConnection; // Run every 3 minutes. Restart timer on every data we receive.
+      int checkState; // 0: on timeout, send ping to server. 1: on timeout, close socket (took too long to receive pong).
+
       QString getMsg(QString &data);
       IWin* getWinObj(QString name); // Returns NULL if no matches.
 
@@ -150,6 +153,7 @@ private slots:
       void onSocketConnected();
       void onSocketDisconnected();
       void onSocketReadyRead();
+      void checkConnectionTimeout();
 
 signals:
       void RequestTrayMsg(QString title, QString message);
