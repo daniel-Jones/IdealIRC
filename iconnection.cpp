@@ -283,8 +283,8 @@ void IConnection::checkConnectionTimeout()
 {
     if (checkState == 0) {
         checkState = 1;
-        sockwrite("PING :ALIVE");
         checkConnection.setInterval(30000); // 30 seconds to get a response.
+        sockwrite("PING :ALIVE");
         return;
     }
 
@@ -485,7 +485,7 @@ QString IConnection::getMsg(QString &data)
     return data.mid(l);
 }
 
-void IConnection::parse(QString &data)
+void IConnection::  parse(QString &data)
 {
 /*
   format
@@ -533,6 +533,7 @@ void IConnection::parse(QString &data)
 
         if (msg == "ALIVE") {
             checkState = 0;
+            checkConnection.setInterval(180000);
             checkConnection.start(); // restart.
             return;
         }

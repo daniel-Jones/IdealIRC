@@ -842,6 +842,7 @@ QString IWin::stripModeChar(QString nickname)
 
 void IWin::regenChannelMenus()
 {
+    /*
     if (opMenu != NULL)
         delete opMenu;
     opMenu = new QMenu(this);
@@ -855,15 +856,25 @@ void IWin::regenChannelMenus()
     opMenu->addSeparator();
     opMenu->addAction(ui->actionKick);
     opMenu->addAction(ui->actionKick_ban);
-
+*/
     if (listboxMenu != NULL)
         delete listboxMenu;
     listboxMenu = new QMenu(this);
 
+    /*
     listboxMenu->addAction(ui->nickmenu_Query);
     listboxMenu->addSeparator();
     listboxMenu->addAction(ui->nickmenu_Whois);
     listboxMenu->addMenu(opMenu);
+
+
+
+*/
+    if (textboxMenu != NULL)
+        delete textboxMenu;
+    textboxMenu = new QMenu(this);
+
+    //textboxMenu->addAction(ui->actionChannel_settings);
 
     connect(listbox, SIGNAL(MenuRequested(QPoint)),
             this, SLOT(listboxMenuRequested(QPoint)));
@@ -871,13 +882,6 @@ void IWin::regenChannelMenus()
 
     connect(textdata, SIGNAL(menuRequested(QPoint)),
             this, SLOT(textboxMenuRequested(QPoint)));
-
-
-    if (textboxMenu != NULL)
-        delete textboxMenu;
-    textboxMenu = new QMenu(this);
-
-    textboxMenu->addAction(ui->actionChannel_settings);
 }
 
 void IWin::mouseDoubleClick()
