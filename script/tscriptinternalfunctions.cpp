@@ -127,6 +127,14 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "CHAR") {
+        if (param.length() == 0)
+            return false;
+
+        result = QChar( param[0].toInt() );
+        return true;
+    }
+
     if (fn == "COS") {
         if (param.length() < 1)
             return false;

@@ -31,6 +31,7 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
     int state = st_Add;
     QString result;
     QString vname;
+    bool MergeEOL = false;
 
     for (int i = 0; i <= text.length()-1; ++i) {
         QChar c = text[i];
@@ -67,12 +68,11 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
             result += c;
             continue;
         }
-
         if (state == st_Variable) {
             if ((c == ' ') || (c == '%') || (i == text.length()-1)) {
                 // got var name
 
-                if ((i == text.length()-1) && (c != ' ') && (c != '%'))
+                if (((i == text.length()-1) && (c != ' ') && (c != '%')) && (MergeEOL == false))
                     vname += c; // variable is on end of line, add last character to vname.
 
                 if (c == ' ')
@@ -84,6 +84,30 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
                 state = st_Add;
                 continue;
             }
+
+            if (c == '+') {
+                // merge variable names
+                QString merge;
+                for (++i; i <= text.length()-1; ++i) {
+                    QChar cc = text[i];
+                    if (cc == ' ') {
+                        break;
+                        --i;
+                    }
+                    merge += cc;
+                }
+                if (i > text.length()-1) {
+                    i -= 2;
+                    MergeEOL = true;
+                }
+
+                e_scriptresult r = extract(merge);
+                if (r != se_None)
+                    return r;
+                vname += merge;
+                continue;
+            }
+
             vname += c;
             continue;
         }
