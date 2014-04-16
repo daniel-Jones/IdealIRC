@@ -42,8 +42,7 @@
 #include "tscript/dialogs.cpp"
 
 TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
-                 QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn/*,
-                 QMenu *nicklist, QMenu *channel, QMenu *status, QMenu *privmsg*/) :
+                 QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn) :
     QObject(parent),
     dlgParent(dialogParent),
     scriptParent(sp),
@@ -51,6 +50,8 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
     filename(fname),
     rootNicklistMenu(NULL),
     rootChannelMenu(NULL),
+    rootQueryMenu(NULL),
+    rootStatusMenu(NULL),
     activeWid(aWid),
     activeConn(aConn),
     winList(wl),
@@ -62,11 +63,18 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
     connect(&sockets, SIGNAL(runEvent(e_iircevent,QStringList)),
             this, SLOT(runEvent(e_iircevent,QStringList)));
 
+
     connect(&nicklistMenuMapper, SIGNAL(mapped(QString)),
             this, SLOT(nicklistMenuItemTriggered(QString)));
 
     connect(&channelMenuMapper, SIGNAL(mapped(QString)),
             this, SLOT(channelMenuItemTriggered(QString)));
+
+    connect(&queryMenuMapper, SIGNAL(mapped(QString)),
+            this, SLOT(queryMenuItemTriggered(QString)));
+
+    connect(&statusMenuMapper, SIGNAL(mapped(QString)),
+            this, SLOT(statusMenuItemTriggered(QString)));
 }
 
 void TScript::timerTimeout(QString fn)

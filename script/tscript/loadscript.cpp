@@ -163,6 +163,8 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     // Reset the custom menues, they'll be set up later on in here...
     resetMenu(customNicklistMenu);
     resetMenu(customChannelMenu);
+    resetMenu(customQueryMenu);
+    resetMenu(customStatusMenu);
 
     for (int i = 0; i <= scriptstr.length()-1; ++i) {
         QChar cc = scriptstr[i];
@@ -580,6 +582,10 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                             createMenu(i, 'n');
                         if (temp[0] == "CHANNEL")
                             createMenu(i, 'c');
+                        if (temp[0] == "QUERY")
+                            createMenu(i, 'q');
+                        if (temp[0] == "STATUS")
+                            createMenu(i, 's');
 
                         --i;
                         temp[0].clear();

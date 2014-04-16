@@ -154,20 +154,6 @@ bool TScriptParent::reloadScript(QString name)
 
     if (c == -1)
         return false;
-    /*
-    bool ok = script->loadScript(); // load is also reload.
-    if (! ok) {
-        gotScriptError("Unable to reload script '"+name+"'.");
-        disconnect(script,    SIGNAL(error(QString)),
-                   this, SLOT(gotScriptError(QString)));
-    }
-    else {
-        // echo("Script reloaded: " + name, PT_LOCALINFO);
-        QStringList para;
-        para.push_back("1"); // 1 -> reload script
-        script->runEvent(te_load, para);
-    }
-    */
 
     return loader(script);
 }
@@ -458,6 +444,30 @@ QList<scriptmenu_t> TScriptParent::getCustomChannelMenu()
     return items;
 }
 
+QList<scriptmenu_t> TScriptParent::getCustomQueryMenu()
+{
+    QVectorIterator<TScript*> i(scriptlist);
+    QList<scriptmenu_t> items;
+    while (i.hasNext()) {
+        TScript *script = i.next();
+        items << *(script->getCustomQueryMenu());
+    }
+
+    return items;
+}
+
+QList<scriptmenu_t> TScriptParent::getCustomStatusMenu()
+{
+    QVectorIterator<TScript*> i(scriptlist);
+    QList<scriptmenu_t> items;
+    while (i.hasNext()) {
+        TScript *script = i.next();
+        items << *(script->getCustomStatusMenu());
+    }
+
+    return items;
+}
+
 void TScriptParent::populateMenu(QMenu *menu, char type)
 {
     QListIterator<QMenu*> si(menuPtrList);
@@ -474,6 +484,10 @@ void TScriptParent::populateMenu(QMenu *menu, char type)
             child = script->getCustomNicklistMenu();
         if (type == 'c')
             child = script->getCustomChannelMenu();
+        if (type == 'q')
+            child = script->getCustomQueryMenu();
+        if (type == 's')
+            child = script->getCustomStatusMenu();
 
         populateMenuIterate(menu, type, child, -1);
     }

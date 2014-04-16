@@ -62,6 +62,8 @@ public:
     void runScriptFunction(QString script, QString function);
     QList<scriptmenu_t> getCustomNicklistMenu(); // Get items from all scripts.
     QList<scriptmenu_t> getCustomChannelMenu(); // Get items from all scripts.
+    QList<scriptmenu_t> getCustomQueryMenu(); // Get items from all scripts.
+    QList<scriptmenu_t> getCustomStatusMenu(); // Get items from all scripts.
     void populateMenu(QMenu *menu, char type);
     QStringList getCurrentNickSelection(); // Gets selected nicknames in active window (used for custom nicklist menu items)
     QString getCurrentWindow(); // Gets the current window that's active

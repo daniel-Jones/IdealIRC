@@ -33,6 +33,16 @@ void TScript::createMenu(int &pos, char type)
             delete rootChannelMenu;
         rootChannelMenu = new QAction(this);
     }
+    else if (type == 'q') {
+        if (rootQueryMenu)
+            delete rootQueryMenu;
+        rootQueryMenu = new QAction(this);
+    }
+    else if (type == 's') {
+        if (rootStatusMenu)
+            delete rootStatusMenu;
+        rootStatusMenu = new QAction(this);
+    }
     else
         return;
 
@@ -51,6 +61,8 @@ void TScript::createMenuIterate(int &pos, char type, int parent)
         item name = function
         submenu name {
           item name = function
+          sep
+          another item = function
         }
       }
 
@@ -89,7 +101,6 @@ void TScript::createMenuIterate(int &pos, char type, int parent)
             }
 
             if (c == '{') {
-//                QMenu *menu = parent->addMenu(itemname);
                 scriptmenu_t st;
                 st.action = new QAction(itemname, this);
                 st.parent = parent;
@@ -105,11 +116,39 @@ void TScript::createMenuIterate(int &pos, char type, int parent)
                     childParent = customChannelMenu.count();
                     customChannelMenu.push_back(st);
                 }
+                if (type == 'q') {
+                    childParent = customQueryMenu.count();
+                    customQueryMenu.push_back(st);
+                }
+                if (type == 's') {
+                    childParent = customStatusMenu.count();
+                    customStatusMenu.push_back(st);
+                }
                 createMenuIterate(++pos, type, childParent);
                 continue;
             }
 
             if (c == '\n') {
+                if (itemname.toUpper() == "SEP") {
+                    scriptmenu_t st;
+                    st.action = new QAction(this);
+                    st.action->setSeparator(true);
+                    st.parent = parent;
+                    st.haveChildren = false;
+
+                    if (type == 'n') // nicklist
+                        customNicklistMenu.push_back(st);
+
+                    if (type == 'c') // channel
+                        customChannelMenu.push_back(st);
+
+                    if (type == 'q') // query
+                        customQueryMenu.push_back(st);
+
+                    if (type == 's') // status
+                        customStatusMenu.push_back(st);
+                }
+
                 itemname.clear();
                 continue;
             }
@@ -121,12 +160,12 @@ void TScript::createMenuIterate(int &pos, char type, int parent)
             if (c == ' ')
                 continue;
             if (c == '\n') {
-                if (type == 'n') { // nicklist
-                    scriptmenu_t st;
-                    st.action = new QAction(itemname, this);
-                    st.parent = parent;
-                    st.haveChildren = false;
+                scriptmenu_t st;
+                st.action = new QAction(itemname, this);
+                st.parent = parent;
+                st.haveChildren = false;
 
+                if (type == 'n') { // nicklist
                     nicklistMenuMapper.setMapping(st.action, fnctname);
                     customNicklistMenu.push_back(st);
 
@@ -134,18 +173,30 @@ void TScript::createMenuIterate(int &pos, char type, int parent)
                             &nicklistMenuMapper, SLOT(map()));
                 }
 
-                else if (type == 'c') { // channel
-                    scriptmenu_t st;
-                    st.action = new QAction(itemname, this); //parent->addAction(itemname);
-                    st.parent = parent;
-                    st.haveChildren = false;
-
+                if (type == 'c') { // channel
                     channelMenuMapper.setMapping(st.action, fnctname);
                     customChannelMenu.push_back(st);
 
                     connect(st.action, SIGNAL(triggered()),
                             &channelMenuMapper, SLOT(map()));
                 }
+
+                if (type == 'q') { // query
+                    queryMenuMapper.setMapping(st.action, fnctname);
+                    customQueryMenu.push_back(st);
+
+                    connect(st.action, SIGNAL(triggered()),
+                            &queryMenuMapper, SLOT(map()));
+                }
+
+                if (type == 's') { // status
+                    statusMenuMapper.setMapping(st.action, fnctname);
+                    customStatusMenu.push_back(st);
+
+                    connect(st.action, SIGNAL(triggered()),
+                            &statusMenuMapper, SLOT(map()));
+                }
+
                 itemname.clear();
                 fnctname.clear();
                 state = st_ItemName;
@@ -180,4 +231,16 @@ void TScript::channelMenuItemTriggered(QString function)
 {
     QString r;
     runf(function, QStringList()<<scriptParent->getCurrentWindow(), r, true);
+}
+
+void TScript::queryMenuItemTriggered(QString function)
+{
+    QString r;
+    runf(function, QStringList()<<scriptParent->getCurrentWindow(), r, true);
+}
+
+void TScript::statusMenuItemTriggered(QString function)
+{
+    QString r;
+    runf(function, QStringList(), r, true);
 }

@@ -128,10 +128,12 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         setTabOrder(input, textdata);
         if (WindowType == WT_STATUS) {
             target = "status";
+            regenStatusMenu();
             statusCount++;
         }
         else {
             target = wname;
+            regenQueryMenu();
             if ((conf->logEnabled == true) && (conf->logPM == true)) {
                 writeToLog(" ");
                 writeToLog("QUERY WINDOW OPENED AT: " + QDateTime::currentDateTime().toString("ddd MMMM d yyyy"));
@@ -476,13 +478,25 @@ void IWin::splitterMoved(int, int)
 
 void IWin::textboxMenuRequested(QPoint p)
 {
-    scriptParent->populateMenu( textboxMenu, 'c' );
+    if (WindowType == WT_CHANNEL)
+        scriptParent->populateMenu( textboxMenu, 'c' );
+    else if (WindowType == WT_STATUS)
+        scriptParent->populateMenu( textboxMenu, 's' );
+    else if (WindowType == WT_PRIVMSG)
+        scriptParent->populateMenu( textboxMenu, 'q' );
+    else
+        return;
+
     textboxMenu->popup(p);
 }
 
 void IWin::listboxMenuRequested(QPoint p)
 {
-    scriptParent->populateMenu( listboxMenu, 'n' );
+    if (WindowType == WT_CHANNEL)
+        scriptParent->populateMenu( listboxMenu, 'n' );
+    else
+        return;
+
     listboxMenu->popup(p);
 }
 
@@ -784,57 +798,6 @@ void IWin::listboxDoubleClick(QListWidgetItem *item)
     emit RequestWindow(stripModeChar(item->text()), WT_PRIVMSG, connection->getCid(), true);
 }
 
-void IWin::setModeViaList(char set, char mode)
-{
-    const QList<QListWidgetItem*> sel = listbox->selectedItems();
-
-    int count = 1;
-    QString modes = QString(set);
-    QString nicks = "";
-    QString data;
-    for (int i = 0; i <= sel.length()-1; ++i) {
-        QString nick = sel[i]->text();
-        if (connection->isValidCuLetter(nick[0].toLatin1()))
-            nick = nick.mid(1);
-
-        if (nicks.length() > 0)
-            nicks.append(' ');
-
-        modes.append(mode);
-        nicks.append(nick);
-        ++count;
-        if (count > connection->maxModes) {
-            QString w = QString("MODE %1 %2 %3")
-                          .arg(target)
-                          .arg(modes)
-                          .arg(nicks);
-            if (data.length() > 0)
-                data.append("\r\n");
-
-            data += w;
-
-            modes = QString(set);
-            nicks.clear();
-            count = 1;
-        }
-    }
-
-    if (count > 1) {
-        QString w = QString("MODE %1 %2 %3")
-                      .arg(target)
-                      .arg(modes)
-                      .arg(nicks);
-        if (data.length() > 0)
-            data.append("\r\n");
-
-        data += w;
-    }
-
-    listbox->clearSelection();
-
-    connection->sockwrite(data);
-}
-
 QString IWin::stripModeChar(QString nickname)
 {
     char m = nickname[0].toLatin1();
@@ -845,43 +808,36 @@ QString IWin::stripModeChar(QString nickname)
 
 void IWin::regenChannelMenus()
 {
-    /*
-    if (opMenu != NULL)
-        delete opMenu;
-    opMenu = new QMenu(this);
-
-    opMenu->setTitle("Operator menu");
-    opMenu->addAction(ui->actionGive_op);
-    opMenu->addAction(ui->actionTake_op);
-    opMenu->addSeparator();
-    opMenu->addAction(ui->actionGive_voice);
-    opMenu->addAction(ui->actionTake_voice);
-    opMenu->addSeparator();
-    opMenu->addAction(ui->actionKick);
-    opMenu->addAction(ui->actionKick_ban);
-*/
     if (listboxMenu != NULL)
         delete listboxMenu;
     listboxMenu = new QMenu(this);
 
-    /*
-    listboxMenu->addAction(ui->nickmenu_Query);
-    listboxMenu->addSeparator();
-    listboxMenu->addAction(ui->nickmenu_Whois);
-    listboxMenu->addMenu(opMenu);
-
-
-
-*/
     if (textboxMenu != NULL)
         delete textboxMenu;
     textboxMenu = new QMenu(this);
 
-    //textboxMenu->addAction(ui->actionChannel_settings);
-
     connect(listbox, SIGNAL(MenuRequested(QPoint)),
             this, SLOT(listboxMenuRequested(QPoint)));
 
+    connect(textdata, SIGNAL(menuRequested(QPoint)),
+            this, SLOT(textboxMenuRequested(QPoint)));
+}
+
+void IWin::regenQueryMenu()
+{
+    if (textboxMenu != NULL)
+        delete textboxMenu;
+    textboxMenu = new QMenu(this);
+
+    connect(textdata, SIGNAL(menuRequested(QPoint)),
+            this, SLOT(textboxMenuRequested(QPoint)));
+}
+
+void IWin::regenStatusMenu()
+{
+    if (textboxMenu != NULL)
+        delete textboxMenu;
+    textboxMenu = new QMenu(this);
 
     connect(textdata, SIGNAL(menuRequested(QPoint)),
             this, SLOT(textboxMenuRequested(QPoint)));
@@ -891,65 +847,4 @@ void IWin::mouseDoubleClick()
 {
     if (WindowType == WT_CHANNEL)
         execChanSettings();
-}
-
-void IWin::on_actionGive_op_triggered()
-{
-    setModeViaList('+', 'o');
-}
-
-void IWin::on_actionTake_op_triggered()
-{
-    setModeViaList('-', 'o');
-}
-
-void IWin::on_actionGive_voice_triggered()
-{
-    setModeViaList('+', 'v');
-}
-
-void IWin::on_actionTake_voice_triggered()
-{
-    setModeViaList('-', 'v');
-}
-
-void IWin::on_nickmenu_Query_triggered()
-{
-    QListWidgetItem *item = listbox->currentItem();
-    if (item == 0)
-        return;
-
-    emit RequestWindow(stripModeChar(item->text()), WT_PRIVMSG, connection->getCid(), true);
-}
-
-void IWin::on_nickmenu_Whois_triggered()
-{
-    QListWidgetItem *item = listbox->currentItem();
-    if (item == 0)
-        return;
-
-    QString nickname = stripModeChar(item->text());
-    sockwrite(QString("WHOIS %1")
-              .arg(nickname));
-}
-
-void IWin::on_actionKick_triggered()
-{
-    QListWidgetItem *item = listbox->currentItem();
-    if (item == 0)
-        return;
-
-    bool ok = false;
-    QString reason = QInputDialog::getText(this, tr("Kick reason"), tr("Type a reson for the kick:"),
-                                           QLineEdit::Normal, "", &ok);
-
-    if (! ok)
-        return;
-
-    QString nickname = stripModeChar(item->text());
-    sockwrite(QString("KICK %1 %2 :%3")
-                .arg(target)
-                .arg(nickname)
-                .arg(reason)
-              );
 }

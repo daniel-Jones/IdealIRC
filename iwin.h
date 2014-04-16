@@ -133,9 +133,10 @@ private:
       void writeToLog(QString text); // Writes to a log file under logdir and filename is target.txt
       void sortList(QList<char> *lst);
       bool sortLargerThan(const QString s1, const QString s2);
-      void setModeViaList(char set, char mode);
       QString stripModeChar(QString nickname);
       void regenChannelMenus();
+      void regenQueryMenu();
+      void regenStatusMenu();
 
 protected:
       void closeEvent(QCloseEvent *e);
@@ -158,13 +159,6 @@ private slots:
       void settingsClosed();
       void listboxDoubleClick(QListWidgetItem *item);
       void mouseDoubleClick();
-      void on_actionGive_op_triggered();
-      void on_actionTake_op_triggered();
-      void on_actionGive_voice_triggered();
-      void on_actionTake_voice_triggered();
-      void on_nickmenu_Query_triggered();
-      void on_nickmenu_Whois_triggered();
-      void on_actionKick_triggered();
 
 signals:
       void closed(int wid);

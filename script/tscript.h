@@ -62,8 +62,7 @@ class TScript : public QObject
 
 public:
     TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QString fname,
-            QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn/*,
-            QMenu *nicklist, QMenu *channel, QMenu *status, QMenu *privmsg*/);
+            QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn);
 
     e_scriptresult loadScript2(QString includeFile = "", QString parent = "");
     e_scriptresult runf(QString function, QStringList param, QString &result, bool ignoreParamCount = false);
@@ -77,6 +76,8 @@ public:
     int getCurrentLine() { return curLine; }
     QList<scriptmenu_t> *getCustomNicklistMenu() { return &customNicklistMenu; }
     QList<scriptmenu_t> *getCustomChannelMenu() { return &customChannelMenu; }
+    QList<scriptmenu_t> *getCustomQueryMenu() { return &customQueryMenu; }
+    QList<scriptmenu_t> *getCustomStatusMenu() { return &customStatusMenu; }
 
     QString lm(int line); // Line map.
 
@@ -103,13 +104,19 @@ private:
 
     QAction *rootNicklistMenu;
     QAction *rootChannelMenu;
+    QAction *rootQueryMenu;
+    QAction *rootStatusMenu;
     QList<scriptmenu_t> customNicklistMenu;
     QList<scriptmenu_t> customChannelMenu;
+    QList<scriptmenu_t> customQueryMenu;
+    QList<scriptmenu_t> customStatusMenu;
     void createMenu(int &pos, char type);
     void createMenuIterate(int &pos, char type, int parent); // position is where the given menu block starts in script (byte pos). (after {)
     void resetMenu(QList<scriptmenu_t> &menu); // Use for re-parsing the menu structure
     QSignalMapper nicklistMenuMapper;
     QSignalMapper channelMenuMapper;
+    QSignalMapper queryMenuMapper;
+    QSignalMapper statusMenuMapper;
 
     int *activeWid;
     int *activeConn;
@@ -155,6 +162,8 @@ public slots:
 private slots:
     void nicklistMenuItemTriggered(QString function);
     void channelMenuItemTriggered(QString function);
+    void queryMenuItemTriggered(QString function);
+    void statusMenuItemTriggered(QString function);
 
 signals:
     void execCmdSignal(QString cmd); // command param param2 ...

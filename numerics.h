@@ -180,7 +180,8 @@ enum reserved_e {
     RPL_WHOISACTUALHOST   = 378,
     RPL_WHOISMODES        = 379,
     RPL_WHOISIDENTIFIED   = 307,
-    RPL_WHOISLOGGEDIN     = 330
+    RPL_WHOISLOGGEDIN     = 330,
+    RPL_WHOISHELP         = 310
 
     /// @note these - or one or more of these numerics, may be removed.
     ///       some may be added if needed.

@@ -1652,9 +1652,12 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(nickname)
                          .arg(getMsg(data));
 
-        print("STATUS", text);
-        if (windowExist(nickname.toUpper()) == true)
-            print(nickname.toUpper(), text);
+        print(activewin(), text);
+        if (activewin() == nickname.toUpper())
+            return;
+
+        if (windowExist(nickname) == true)
+            print(nickname, text);
         return;
     }
 
@@ -1701,6 +1704,22 @@ void IConnection::parseNumeric(int numeric, QString &data)
         return;
     }
 
+    else if (numeric == RPL_WHOISHELP) {
+        QString nick, text;
+        nick = token[3];
+        text = getMsg(data);
+
+        QString target = "STATUS";
+        if (conf->showWhois)
+            target = activewin();
+
+        print( target, tr("%1 %2")
+                         .arg(nick)
+                         .arg(text)
+              );
+        return;
+    }
+
     else if (numeric == RPL_WHOISOPERATOR) {
         QString nickname = token[3];
 
@@ -1712,7 +1731,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print("STATUS", text);
+        print(target, text);
         return;
     }
 
