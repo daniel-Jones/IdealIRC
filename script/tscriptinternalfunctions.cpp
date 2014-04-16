@@ -28,6 +28,8 @@
 #include <QFontMetrics>
 #include <QDebug>
 #include <QApplication>
+#include <QInputDialog>
+#include <QMessageBox>
 
 TScriptInternalFunctions::TScriptInternalFunctions(TSockFactory *sf, QHash<QString,int> *functionindex,
                                                    QHash<QString,TCustomScriptDialog*> *dlgs, QHash<int,t_sfile> *fl,
@@ -100,6 +102,19 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
 #ifdef PACKAGED
         result = "PACKAGED";
 #endif
+        return true;
+    }
+
+    if (fn == "BUTTON") {
+        if (lastbtn == QMessageBox::Ok)
+            result = "OK";
+        if (lastbtn == QMessageBox::Cancel)
+            result = "CANCEL";
+        if (lastbtn == QMessageBox::Yes)
+            result = "YES";
+        if (lastbtn == QMessageBox::No)
+            result = "NO";
+
         return true;
     }
 
@@ -353,6 +368,24 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "INPUT") {
+        // $input(caption, label)
+        if (param.count() != 2) {
+            return false;
+        }
+        bool ok = false;
+        QString input = QInputDialog::getText(0, param[0], param[1],
+                                              QLineEdit::Normal, "", &ok);
+
+        if (ok)
+            lastbtn = QMessageBox::Ok;
+        else
+            lastbtn = QMessageBox::Cancel;
+
+        result = input;
+        return true;
+    }
+
     if (fn == "LEN") {
         // Counts amount of letters in a given text
         if (param.count() == 0) {
@@ -360,6 +393,62 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             return true;
         }
         result = QString::number( param.at(0).length() );
+        return true;
+    }
+
+    if (fn == "MSGBOX") {
+        // $msgbox(type, caption, label[, buttons])
+        // types: critical, info, question, warning
+        // buttons default: ok|cancel
+        // buttons argument: o=ok, c=cancel, q=yes|no
+        QMessageBox::StandardButtons btn = 0;
+        if (param.count() == 3) {
+            // no buttons, set default (ok|cancel)
+            btn = QMessageBox::Ok | QMessageBox::Cancel;
+        }
+        else if (param.count() == 4) {
+            for (int i = 0; i <= param[3].count()-1; ++i) {
+                char c = param[3][i].toLatin1();
+                switch (c) {
+                    case 'o':
+                        btn |= QMessageBox::Ok;
+                        break;
+                    case 'c':
+                        btn |= QMessageBox::Cancel;
+                        break;
+                    case 'q':
+                        btn |= (QMessageBox::Yes | QMessageBox::No);
+                        break;
+                }
+            }
+        }
+        else
+            return false;
+
+        int b;
+        if (param[0].toUpper() == "CRITICAL")
+            b = QMessageBox::critical(0, param[1], param[2], btn);
+
+        else if (param[0].toUpper() == "INFO")
+            b = QMessageBox::information(0, param[1], param[2], btn);
+
+        else if (param[0].toUpper() == "QUESTION")
+            b = QMessageBox::question(0, param[1], param[2], btn);
+
+        else if (param[0].toUpper() == "WARNING")
+            b = QMessageBox::warning(0, param[1], param[2], btn);
+
+        if (b == QMessageBox::Ok)
+            result = "OK";
+        if (b == QMessageBox::Cancel)
+            result = "CANCEL";
+        if (b == QMessageBox::Yes)
+            result = "YES";
+        if (b == QMessageBox::No)
+            result = "NO";
+
+        lastbtn = b;
+
         return true;
     }
 
@@ -536,7 +625,6 @@ subwindow_t TScriptInternalFunctions::getCustomWindow(QString name)
 
     return error;
 }
-
 
 QString TScriptInternalFunctions::calc(QString expr)
 {

@@ -50,6 +50,8 @@ public:
     void raw(QString data);
     void charset(QString newCodec = ""); // Adding no parameters echoes out current charset.
     void ping(); // Issue a PING to the server (see if we or them is still alive)
+    void query(QString nickname); // Open a query window for "nickname"
+    void chansettings();
 
 public slots:
     // Primarily we should use parse. You can tie it to a signal aswell.
@@ -72,6 +74,9 @@ private:
     QString NotConnectedToServer(QString command) { return tr("%1: Not connected to server.").arg(command); }
     QString InsufficientParameters(QString command) { return tr("%1: Insufficient parameters.").arg(command); }
     QString NotInAChannel(QString command) { return tr("%1: Not in a channel.").arg(command); }
+
+signals:
+    void requestWindow(QString name, int type, int parent, bool activate = true);
 };
 
 #endif // ICOMMAND_H

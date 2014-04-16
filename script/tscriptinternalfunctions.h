@@ -73,6 +73,8 @@ private:
     QHash<int,IConnection*> *conList;
     subwindow_t getCustomWindow(QString name);
 
+    int lastbtn;
+
     // ALL functions, I mean -ALL-, even those with integer results, MUST return QString.
     QString sstr(QString text, int start, int stop = -1);
     QString token(QString text, int pos, QChar delim);

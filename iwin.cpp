@@ -760,8 +760,11 @@ void IWin::settingsClosed()
     settings = NULL; // assign a null pointer to indicate settings not open
 }
 
-void IWin::on_actionChannel_settings_triggered()
+void IWin::execChanSettings()
 {
+    if (WindowType != WT_CHANNEL)
+        return;
+
     connection->FillSettings = true;
 
     settings = new IChanConfig(connection, target, this);
@@ -887,7 +890,7 @@ void IWin::regenChannelMenus()
 void IWin::mouseDoubleClick()
 {
     if (WindowType == WT_CHANNEL)
-        on_actionChannel_settings_triggered();
+        execChanSettings();
 }
 
 void IWin::on_actionGive_op_triggered()

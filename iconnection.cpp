@@ -61,9 +61,11 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     cmD("imnpstr"),
     checkState(0)
 {
-
     cmdhndl.setWinList(&winlist);
     cmdhndl.setCid(&cid);
+
+    connect(&cmdhndl, SIGNAL(requestWindow(QString,int,int,bool)),
+            this, SIGNAL(RequestWindow(QString,int,int,bool)));
 
     std::cout << "Connection class ID: " << cid << std::endl;
     resetSortRules();
@@ -485,7 +487,7 @@ QString IConnection::getMsg(QString &data)
     return data.mid(l);
 }
 
-void IConnection::  parse(QString &data)
+void IConnection::parse(QString &data)
 {
 /*
   format

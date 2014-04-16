@@ -243,6 +243,21 @@ bool ICommand::parse(QString command)
         return true;
     }
 
+    if (t1 == "QUERY") {
+        if (token.count() < 2) {
+            localMsg(InsufficientParameters("/Query"));
+            return true;
+        }
+
+        query(token[1]);
+        return true;
+    }
+
+    if (t1 == "CHANSETTINGS") {
+        chansettings();
+        return true;
+    }
+
     return false; // Command wasn't found.
 }
 
@@ -416,6 +431,17 @@ void ICommand::ping()
     sockwrite( QString("PING :%1")
                  .arg(ms)
               );
+}
+
+void ICommand::query(QString nickname)
+{
+    emit requestWindow(nickname, WT_PRIVMSG, *cid, true);
+}
+
+void ICommand::chansettings()
+{
+    subwindow_t sw = winlist->value(activewin());
+    sw.widget->execChanSettings();
 }
 
 /// -------------------------------------------------------------

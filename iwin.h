@@ -93,6 +93,7 @@ public:
       QStringList getSelectedMembers(); // Returns a list of selected nicknames.
       void updateTitleHost(); // for WT_PRIVMSG, set hostname in titlebar
       TPictureWindow* picwinPtr() { return picwin; }
+      void execChanSettings();
 
 private:
       Ui::IWin *ui;
@@ -155,7 +156,6 @@ private slots:
       void textboxMenuRequested(QPoint p);
       void listboxMenuRequested(QPoint p);
       void settingsClosed();
-      void on_actionChannel_settings_triggered();
       void listboxDoubleClick(QListWidgetItem *item);
       void mouseDoubleClick();
       void on_actionGive_op_triggered();
