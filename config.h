@@ -112,7 +112,7 @@ public:
     int bti(bool b); // bool to int, true=1, false=0
     bool itb(int i); // int to bool, true>=1, false<=0
     bool stb(QString s); // string to bool, '1'=true, else false
-
+    void copyDir(QString path, QString target);
 };
 
 #endif // CONFIG_H

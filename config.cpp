@@ -33,8 +33,11 @@ config::config(QObject *parent) :
 {
 
 #ifdef PACKAGED
-    if (! QDir(CONF_PATH).exists())
+    if (! QDir(CONF_PATH).exists()) {
+        // get stuff from skeleton path
         QDir().mkdir(CONF_PATH);
+        copyDir(SKEL_PATH, CONF_PATH);
+    }
 #endif
 
     ini = new IniFile(CONF_FILE);
@@ -44,6 +47,30 @@ config::~config()
 {
   delete ini;
 }
+
+void config::copyDir(QString path, QString target)
+{
+    QDir dir(path);
+    QStringList list = dir.entryList();
+
+    for (int i = 0; i <= list.length()-1; ++i) {
+        if (list[i] == ".")
+            continue;
+        if (list[i] == "..")
+            continue;
+
+        bool isPath = QDir(path+'/'+list[i]).exists();
+
+        if (isPath) {
+            QDir().mkdir(target+'/'+list[i]);
+            copyDir(path+'/'+list[i], target+'/'+list[i]);
+            continue;
+        }
+
+        QFile::copy(path+'/'+list[i], target+'/'+list[i]);
+    }
+}
+
 
 void config::rehash()
 {
