@@ -74,12 +74,12 @@
 
 #ifdef PACKAGED
   #include <QStandardPaths>
-  #define CONF_PATH QString("%1/.idealirc").arg(QStandardPaths::writableLocation(QStandardPaths::HomeLocation))
-  #ifdef Q_OS_WI32
+  #ifdef Q_OS_WIN32
     #include <QApplication>
-    #define CONF_PATH QString("%1/idealirc").arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+    #define CONF_PATH QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
     #define COMMON_PATH QApplication::applicationDirPath()
   #else
+    #define CONF_PATH QString("%1/.idealirc").arg(QStandardPaths::writableLocation(QStandardPaths::HomeLocation))
     #define COMMON_PATH "/usr/share/idealirc"
   #endif
   #define SKEL_PATH QString("%1/skel").arg(COMMON_PATH)
