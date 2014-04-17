@@ -475,12 +475,14 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         QString type = param[0].toUpper();
         if (type == "CONFIG")
             result = CONF_PATH;
+#ifdef PACKAGED
         if (type == "COMMON")
             result = COMMON_PATH;
-        if (type == "EXEC")
-            result = QApplication::applicationDirPath();
         if (type == "SKEL")
             result = SKEL_PATH;
+#endif
+        if (type == "EXEC")
+            result = QApplication::applicationDirPath();
 
         return true;
     }

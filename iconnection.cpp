@@ -149,6 +149,7 @@ bool IConnection::sockwrite(QString data)
         outData.append(data);
         outData.append("\r\n");
         socket.write(outData);
+        qDebug() << "[out]" << outData;
     }
     return true;
 }
