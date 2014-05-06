@@ -282,7 +282,7 @@ void IWin::showEvent(QShowEvent *)
 
         int leftw = width - conf->listboxWidth;
         sizes[0] = leftw;
-        sizes[1] = conf->listboxWidth;;
+        sizes[1] = conf->listboxWidth;
 
         split->setSizes(sizes);
     }
@@ -303,7 +303,7 @@ void IWin::resizeEvent(QResizeEvent *)
 
         int leftw = width - conf->listboxWidth;;
         sizes[0] = leftw;
-        sizes[1] = conf->listboxWidth;;
+        sizes[1] = conf->listboxWidth;
 
         split->setSizes(sizes);
     }
