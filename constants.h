@@ -114,17 +114,20 @@
 /* Window type */
 #define WT_NOTHING  0  // Nothing to view (usually default value, displaying an error)
 #define WT_STATUS   1  // Text display with input box (Only for status windows, if its the only status window, it cannot be closed)
-#define WT_CHANNEL  2  // Text display with input box and list box
-#define WT_PRIVMSG  3  // Text display with input box
+#define WT_DCCSEND  2  // Custom widget for file sending
+#define WT_DCCRECV  3  // Custom widget for file receiving
+#define WT_DCCCHAT  4  // Text display with input box
+#define WT_CHANNEL  5  // Text display with input box and list box
+#define WT_PRIVMSG  6  // Text display with input box
 // Custom windows:
-#define WT_TXTONLY  4  // Text display only
-#define WT_TXTINPUT 5  // Text display with input
-#define WT_GRAPHIC  6  // Graphic window
-#define WT_GWINPUT  7  // Graphic window with input box
+#define WT_TXTONLY  7  // Text display only
+#define WT_TXTINPUT 8  // Text display with input
+#define WT_GRAPHIC  9  // Graphic window
+#define WT_GWINPUT  10 // Graphic window with input box
 
 /* Print type */
 #define PT_NORMAL     0  // Normal text
-#define PT_LOCALINFO  1  // Information text from TIRC
+#define PT_LOCALINFO  1  // Information text from IIRC
 #define PT_SERVINFO   2  // Information text from server
 #define PT_NOTICE     3  // Notice from server, user, user:channel
 #define PT_ACTION     4  // ACTION style message (/me is afk)

@@ -75,7 +75,11 @@ SOURCES += main.cpp\
     script/tscript/menu.cpp \
     script/tscript/runf.cpp \
     script/tscript/solvers.cpp \
-    script/tscript/utils.cpp
+    script/tscript/utils.cpp \
+    dcc/dccsend.cpp \
+    dcc/dccchat.cpp \
+    dcc/dcc.cpp \
+    dcc/dccrecv.cpp
 
 #iaddresslist.cpp
 
@@ -122,7 +126,12 @@ HEADERS  += idealirc.h \
     script/iscriptmanager.h \
     script/editor/iscripteditor.h \
     script/editor/tscripteditorhighlighter.h \
-    script/editor/editorwidget.h
+    script/editor/editorwidget.h \
+    dcc/dccsend.h \
+    dcc/dccchat.h \
+    dcc/dcc.h \
+    dcc/dccrecv.h \
+    dcc/dcc_protocols.h
 
 #iaddresslist.h
 

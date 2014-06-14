@@ -41,6 +41,7 @@
 #include "config.h"
 #include "ichanconfig.h"
 #include "icommand.h"
+#include "dcc/dcc.h"
 
 namespace Ui {
     class IWin;
@@ -64,7 +65,7 @@ class IWin : public QWidget
     Q_OBJECT
 
 public:
-      explicit IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp);
+      explicit IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp, IConnection *p = NULL);
       ~IWin();
       int getId() { return winid; }
       int getType() { return WindowType; }
@@ -103,6 +104,7 @@ private:
       static int statusCount; // count of status windows.
       int winid;
       IConnection *connection;
+      DCC *dcc;
       TScriptParent *scriptParent;
 
       QString iname;

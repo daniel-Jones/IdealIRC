@@ -74,6 +74,8 @@ public:
       QStringList getAcList() { return acList; }
       bool windowExist(QString name);
       void print(const QString window, const QString &line, const int ptype = PT_NORMAL);
+      unsigned int ipv4toint(QString addr);
+      QString intipv4toStr(unsigned int addr);
       int maxBanList; // From isupport. Default is 3
       int maxExceptList; // Same as above ^
       int maxInviteList; // Same as above ^
@@ -88,6 +90,8 @@ public:
       QString getcmD() { return cmD; }
 
       IAL ial;
+
+      QString dccinfo; // passes instructions to dcc derived classes
 
 private:
       // for accessing the IAL with a GUI.

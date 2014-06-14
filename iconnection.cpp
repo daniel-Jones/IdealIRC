@@ -402,6 +402,46 @@ void IConnection::print(const QString window, const QString &line, const int pty
     w->print(line, ptype); // Do printing
 }
 
+unsigned int IConnection::ipv4toint(QString addr)
+{
+    QStringList token = addr.split('.');
+
+    unsigned int byte[4];
+    for (int i = 0; i <= 3; ++i)
+        byte[i] = token[i].toUInt();
+
+    unsigned int r = 0;
+    r += byte[0] << 24;
+    r += byte[1] << 16;
+    r += byte[2] << 8;
+    r += byte[3];
+
+    return r;
+}
+
+QString IConnection::intipv4toStr(unsigned int addr)
+{
+    unsigned int byte[4];
+
+    int bc = 0; // bit count
+
+    for (int i = 0; i <= 3; ++i) {
+        unsigned int b = addr;
+        if (bc > 0)
+            b <<= bc; // push our desired byte of the integer to the left.
+        b = b >> 24; // push our desired byte to the right, filling unused bytes with 0's.
+        byte[i] = b;
+
+        bc += 8;
+    }
+
+    return QString("%1.%2.%3.%4")
+            .arg(byte[0])
+            .arg(byte[1])
+            .arg(byte[2])
+            .arg(byte[3]);
+}
+
 void IConnection::resetSortRules()
 {
     // sortrule is a QList of char that is inserted in what order we like it to be.
@@ -565,6 +605,8 @@ void IConnection::parse(QString &data)
 
         // CTCP check, ACTION check
         if (text[0] != ' ') {
+            bool ctcpReceived = false;
+
             QString request;
             QStringList tx = text.split(" ");
 
@@ -574,13 +616,12 @@ void IConnection::parse(QString &data)
                 // ACTION
                 text.remove(0x01);
                 text = text.mid(7);
-                QString chan = token[2];
-                if (isValidChannel(chan))
-                    emit RequestWindow(chan, WT_CHANNEL, cid, false);
-                else
-                    emit RequestWindow(chan, WT_PRIVMSG, cid, false);
+                QString target = token[2]; // Might be a #channel or our nickname.
+                if (! isValidChannel(target))
+                    target = u.nick; // Target was not a channel, but a private message. Write action to own window for u.nick
 
-                print( chan.toUpper(), QString("%1 %2")
+                emit RequestWindow(target, WT_PRIVMSG, cid, false);
+                print( target.toUpper(), QString("%1 %2")
                                         .arg(u.nick)
                                         .arg(text),
                        PT_ACTION
@@ -598,6 +639,7 @@ void IConnection::parse(QString &data)
                                    .arg(u.nick),
                        PT_CTCP
                       );
+                ctcpReceived = true;
             }
             request.clear();
 
@@ -656,6 +698,39 @@ void IConnection::parse(QString &data)
                 return;
             }
             request.clear();
+
+            request.append(0x01);
+            request.append("DCC");
+            if (tx.at(0).toUpper() == request) { /// DCC
+                // DCC
+                /*
+
+mirc
+[in] :Tom!Tom@148.46.164.82.customer.cdi.no PRIVMSG Tomatix :DCC CHAT chat 1386491540 1024
+[in] :Tom!Tom@148.46.164.82.customer.cdi.no PRIVMSG Tomatix :DCC SEND urls.ini 1386491540 1024 163
+xchat
+[in] :Tomatix_!tomatix@148.46.164.82.customer.cdi.no PRIVMSG tomatix :DCC CHAT chat 3232235943 60809
+[in] :Tomatix_!tomatix@148.46.164.82.customer.cdi.no PRIVMSG Tomatix :DCC SEND "01 - Logo.png" 199 0 18980 1
+*/
+
+                if (token[4] == "CHAT") {
+                    unsigned int ip = token[6].toUInt();
+                    QString sip = intipv4toStr(ip);
+                    print( activewin(), "CHAT ip: " + sip);
+                    print( activewin(), "CHAT intip: " + QString::number(ipv4toint(sip)));
+
+                    dccinfo = text.replace(char(0x01), ""); // delete 0x01 (ctcp indicators)
+                    dccinfo = dccinfo.mid(4, dccinfo.length());
+                    dccinfo.prepend(activeNick + " " + u.nick + " ");
+
+                    emit RequestWindow(u.nick, WT_DCCCHAT, cid);
+                }
+
+                return;
+            }
+
+            if (ctcpReceived)
+                return; // We've showed a CTCP message. stop.
         }
 
         QString name = u.nick;

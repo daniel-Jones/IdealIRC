@@ -43,17 +43,19 @@
 #include "script/tscriptparent.h"
 #include "script/tscript.h"
 
+#include "dcc/dcc_protocols.h"
+
 #include <iostream>
 
 int IWin::winidCount = 1;
 int IWin::statusCount = 0; // IdealIRC always starts with no windows, but the init function increments so this should be okay.
 
-IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp) :
+IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp, IConnection *c) :
     QWidget(parent),
     settings(NULL),
     ui(new Ui::IWin),
     WindowType(WinType),
-    connection(NULL),
+    connection(c),
     scriptParent(sp),
     split(NULL),
     textdata(NULL),
@@ -79,6 +81,8 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     // This one will be redefined if required.
     // Default is a custom window
     target = wname;
+
+    dcc = NULL;
 
     std::cout << "Adding window with type " << WindowType << std::endl;
 
@@ -194,6 +198,33 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         ui->gridLayout->addWidget(textdata, 0, 0);
     }
 
+    if (WindowType == WT_DCCSEND) {
+        dcc = new DCCSend(DCC_SEND, this, connection->dccinfo);
+        DCCSend *dsock = (DCCSend*)dcc;
+
+    }
+
+    if (WindowType == WT_DCCRECV) {
+        dcc = new DCCRecv(DCC_RECV, this, connection->dccinfo);
+        DCCRecv *dsock = (DCCRecv*)dcc;
+
+    }
+
+    if (WindowType == WT_DCCCHAT) {
+        dcc = new DCCChat(DCC_CHAT, this, connection->dccinfo);
+        DCCChat *dsock = (DCCChat*)dcc;
+
+        connect(dsock, SIGNAL(Highlight()),
+                this, SIGNAL(Highlight(winid,HL_MSG)));
+
+        textdata = new TIRCView(conf);
+
+        input = new QMyLineEdit(this, conf);
+        ui->gridLayout->addWidget(textdata, 0, 0);
+        ui->gridLayout->addWidget(input, 1, 0);
+        setTabOrder(input, textdata);
+    }
+
 
     /// Bind our widgets if it's set up:
 
@@ -229,17 +260,27 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     if (split != NULL) {
         connect(split, SIGNAL(splitterMoved(int,int)),
                 this, SLOT(splitterMoved(int,int)));
+
+        split->setStretchFactor(0,8);
+        split->setStretchFactor(1,1);
     }
 
     iname = wname.toUpper();
     setObjectName(wname);
 
+    // if this is a DCC window, we should init it now.
+    if (dcc != NULL)
+        dcc->initialize();
 }
 
 IWin::~IWin()
 {
     textdata = NULL;
     delete ui;
+
+    if (dcc != NULL) {
+        delete dcc;
+    }
 }
 
 void IWin::closeEvent(QCloseEvent *e)
@@ -276,6 +317,7 @@ void IWin::closeEvent(QCloseEvent *e)
 void IWin::showEvent(QShowEvent *)
 {
     if (WindowType == WT_CHANNEL) {
+        /*
         QList<int> sizes = split->sizes();
 
         int width = sizes[0] + sizes[1];
@@ -285,6 +327,7 @@ void IWin::showEvent(QShowEvent *)
         sizes[1] = conf->listboxWidth;
 
         split->setSizes(sizes);
+        */
     }
     emit activeWin(target);
 }
@@ -297,6 +340,7 @@ void IWin::hideEvent(QHideEvent *)
 void IWin::resizeEvent(QResizeEvent *)
 {
     if (WindowType == WT_CHANNEL) {
+        /*
         QList<int> sizes = split->sizes();
 
         int width = sizes[0] + sizes[1];
@@ -306,6 +350,7 @@ void IWin::resizeEvent(QResizeEvent *)
         sizes[1] = conf->listboxWidth;
 
         split->setSizes(sizes);
+        */
     }
 }
 
@@ -338,6 +383,13 @@ void IWin::inputEnterPushed()
     QString text = input->text();
     if (text.length() == 0)
         return; // Do nothing if there's no text.
+
+    if (WindowType == WT_DCCCHAT) {
+        DCCChat *dsock = (DCCChat*)dcc;
+        dsock->inputEnterPushed(input->text());
+        input->clear();
+        return;
+    }
 
     input->clear();
 

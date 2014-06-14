@@ -163,6 +163,8 @@ void IdealIRC::showEvent(QShowEvent *)
 
     scriptParent.loadAllScripts();
     scriptParent.runevent(te_start);
+
+    CreateSubWindow("#Test", WT_CHANNEL, 1, true);
 }
 
 void IdealIRC::closeEvent(QCloseEvent *e)
@@ -339,6 +341,9 @@ void IdealIRC::subWinClosed(int wid)
 
 // Returns -1 if failed, otherwise window id.
 // ID 0 is reserved to define "no parents" under 'int parent'.
+// DCC windows sets their parent to the IConnection that created it. It won't become the parent of this IConnection though!
+//   This is a parentless window.
+//
 //                       Name in treeview   Window type  wid parent    activate on creation
 int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
 {
@@ -348,7 +353,16 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
 
     qDebug() << "Creating new subwindow type " << type << " name " << name;
 
-    IWin *s = new IWin(ui->mdiArea, name, type, &conf, &scriptParent);
+    IWin *s;
+
+    if ((type >= WT_DCCSEND) && (type <= WT_DCCCHAT)) {
+        IConnection *c = conlist.value(parent, NULL);
+        s = new IWin(ui->mdiArea, name, type, &conf, &scriptParent, c);
+
+        parent = 0;
+    }
+    else
+        s = new IWin(ui->mdiArea, name, type, &conf, &scriptParent);
 
     IConnection *connection = conlist.value(parent, NULL);
     if (type == WT_STATUS) {
