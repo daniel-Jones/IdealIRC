@@ -57,6 +57,8 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     WindowType(WinType),
     connection(c),
     scriptParent(sp),
+    tstar("***"),
+    sstar("*"),
     split(NULL),
     textdata(NULL),
     conf(cfg),
@@ -124,7 +126,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
 
 
     if ((WindowType == WT_PRIVMSG) || (WindowType == WT_STATUS)) {
-        textdata = new TIRCView(conf);
+        textdata = new IIRCView(conf);
 
         input = new QMyLineEdit(this, conf);
         ui->gridLayout->addWidget(textdata, 0, 0);
@@ -146,7 +148,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     }
 
     if (WindowType == WT_CHANNEL) {
-        textdata = new TIRCView(conf);
+        textdata = new IIRCView(conf);
 
         input = new QMyLineEdit(this, conf);
         listbox = new QMyListWidget(this, conf);
@@ -185,7 +187,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     }
 
     if (WindowType == WT_TXTINPUT) {
-        textdata = new TIRCView(conf);
+        textdata = new IIRCView(conf);
 
         input = new QMyLineEdit(this, conf);
         ui->gridLayout->addWidget(textdata, 0, 0);
@@ -194,7 +196,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     }
 
     if (WindowType == WT_TXTONLY) {
-        textdata = new TIRCView(conf);
+        textdata = new IIRCView(conf);
         ui->gridLayout->addWidget(textdata, 0, 0);
     }
 
@@ -217,7 +219,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         connect(dsock, SIGNAL(Highlight()),
                 this, SIGNAL(Highlight(winid,HL_MSG)));
 
-        textdata = new TIRCView(conf);
+        textdata = new IIRCView(conf);
 
         input = new QMyLineEdit(this, conf);
         ui->gridLayout->addWidget(textdata, 0, 0);
@@ -249,7 +251,7 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
         connect(textdata, SIGNAL(gotFocus()),
                 this, SLOT(GiveFocus()));
 
-        textdata->reloadCSS();
+        textdata->changeFont(conf->fontName, conf->fontSize);
     }
 
     if (picwin != NULL) {
@@ -410,7 +412,7 @@ void IWin::inputEnterPushed()
 
         if ((! commandOk) && (connection->isSocketOpen() == false)) {
             // We're disconnected and command wasn't found in ICommand nor as custom.
-            print(tr("Not connected to server."), PT_LOCALINFO);
+            print(tstar, tr("Not connected to server."), PT_LOCALINFO);
         }
 
         // Do nothing if command wasn't found neither in ICommand or the server.
@@ -419,7 +421,7 @@ void IWin::inputEnterPushed()
     }
 
     if ((WindowType == WT_STATUS) && (text.at(0) != '/')) {
-        print(tr("You're not in a chat window!"), PT_LOCALINFO);
+        print(tstar, tr("You're not in a chat window!"), PT_LOCALINFO);
         return;
     }
 
@@ -437,12 +439,11 @@ void IWin::inputEnterPushed()
                 mode += m.mode[0];
         }
 
-        print( QString("<%1%2> %3")
-                 .arg(mode)
-                 .arg(connection->getActiveNickname())
-                 .arg(text),
-               PT_OWNTEXT
-              );
+        QString sender = connection->getActiveNickname();
+        if (conf->showUsermodeMsg)
+            sender.prepend(mode);
+
+        print(sender, text, PT_OWNTEXT);
     }
 
     scriptParent->runevent(te_input, QStringList()<<objectName()<<text);
@@ -572,7 +573,7 @@ void IWin::writeToLog(QString text)
     f.close();
 }
 
-void IWin::print(const QString &text, const int ptype)
+void IWin::print(const QString &sender, const QString &text, const int ptype)
 {
     if (textdata == NULL)
         return;
@@ -597,7 +598,8 @@ void IWin::print(const QString &text, const int ptype)
         msg.prepend(stamp);
     }
 
-    textdata->addLine(msg, ptype);   
+    //textdata->addLine(msg, ptype);
+    textdata->addLine(sender, text, ptype);
 
     if ((WindowType == WT_CHANNEL) || (WindowType == WT_PRIVMSG))
         writeToLog(msg);
@@ -772,8 +774,9 @@ void IWin::setFont(const QFont &font)
 
 void IWin::reloadCSS()
 {
-    if (textdata != NULL)
-        textdata->reloadCSS();
+    // TODO Update color scheme for textdata.
+    //if (textdata != NULL)
+        //textdata->reloadCSS();
 
     if (input != NULL)
         input->updateCSS();
@@ -784,8 +787,9 @@ void IWin::reloadCSS()
 
 void IWin::clear()
 {
-    if (textdata != NULL)
-        textdata->clear();
+    // TODO: clear textdata
+  //  if (textdata != NULL)
+  //      textdata->clear();
     if (picwin != NULL)
         picwin->clear();
 }

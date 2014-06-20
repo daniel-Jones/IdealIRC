@@ -35,7 +35,7 @@
 
 #include "constants.h"
 #include "tpicturewindow.h"
-#include "tircview.h"
+#include "iircview.h"
 #include "qmylistwidget.h"
 #include "qmylineedit.h"
 #include "config.h"
@@ -50,8 +50,6 @@ namespace Ui {
 class TScriptParent;
 class IConnection;
 class IWin;
-
-
 
 typedef struct T_MEMBER {
   QString nickname;
@@ -70,7 +68,7 @@ public:
       int getId() { return winid; }
       int getType() { return WindowType; }
       QString getTarget() { return target; }
-      void print(const QString &text, const int ptype = 0);
+      void print(const QString &sender, const QString &text, const int ptype = 0);
       void insertMember(QString nickname, member_t mt, bool sort = true);
       void removeMember(QString nickname, bool sort = true);
       bool memberExist(QString nickname);
@@ -107,9 +105,12 @@ private:
       DCC *dcc;
       TScriptParent *scriptParent;
 
+      const QString tstar; // triple stars
+      const QString sstar; // single star
+
       QString iname;
       QSplitter *split;
-      TIRCView *textdata;
+      IIRCView *textdata;
       config *conf;
       int WinType;
       TPictureWindow *picwin;

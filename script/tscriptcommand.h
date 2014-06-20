@@ -35,7 +35,7 @@ public:
     explicit TScriptCommand(QObject *parent, QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aConn, int *aWid);
     bool parse(QString &command);
 
-    void echo(QString target, QString text, int type = PT_NORMAL);
+    void echo(QString target, QString sender, QString text, int type = PT_NORMAL);
     void window(QString name, QString sw);
     void clear(QString window = "$ACTIVE$", QString sw = "");
     void paintdot(QString Window, QString X, QString Y, QString Size, QString Color);
@@ -61,7 +61,7 @@ private:
     int *activeConn;
     int *activeWid;
     subwindow_t getCustomWindow(QString name);
-
+    QString tstar;
 
     // Error messages
     QString InvalidParameterCount(QString cmd)

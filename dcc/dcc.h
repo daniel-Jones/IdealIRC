@@ -17,7 +17,7 @@ class DCC : public QObject
 public:
     explicit DCC(IWin *sWin, QString dcc_details, QObject *parent = 0);
 
-    void print(QString text, int type = PT_NORMAL);
+    void print(QString sender, QString text, int type = PT_NORMAL);
 
     DCCType get_type() { return type; }
     DCCType type;
@@ -25,7 +25,10 @@ public:
 
     QString details; // the dcc message in dcc-ctcp
 
-    virtual void initialize() {} // Re-implement this in deriving classes.
+    virtual void initialize() = 0; // Implement this in deriving classes.
+
+protected:
+    QString tstar;
 };
 
 #endif // DCC_H

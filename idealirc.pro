@@ -79,7 +79,8 @@ SOURCES += main.cpp\
     dcc/dccsend.cpp \
     dcc/dccchat.cpp \
     dcc/dcc.cpp \
-    dcc/dccrecv.cpp
+    dcc/dccrecv.cpp \
+    iircview.cpp
 
 #iaddresslist.cpp
 
@@ -131,7 +132,8 @@ HEADERS  += idealirc.h \
     dcc/dccchat.h \
     dcc/dcc.h \
     dcc/dccrecv.h \
-    dcc/dcc_protocols.h
+    dcc/dcc_protocols.h \
+    iircview.h
 
 #iaddresslist.h
 

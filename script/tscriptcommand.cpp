@@ -29,7 +29,8 @@ TScriptCommand::TScriptCommand(QObject *parent, QHash<int,IConnection*> *cl, QHa
     conlist(cl),
     winlist(wl),
     activeConn(aConn),
-    activeWid(aWid)
+    activeWid(aWid),
+    tstar("***")
 {
 }
 
@@ -57,7 +58,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "ECHO") {
         // Echo a text to active window.
         if (token.count() == 1) {
-            echo("STATUS", InvalidParameterCount("Echo"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Echo"), PT_LOCALINFO);
             return true;
         }
 
@@ -69,7 +70,7 @@ bool TScriptCommand::parse(QString &command)
             text = text.mid( target.length()+1 );
         }
 
-        echo(target, text);
+        echo(target, tstar, text);
 
         return true;
     }
@@ -78,7 +79,7 @@ bool TScriptCommand::parse(QString &command)
         // Create a custom @window
 
         if (token.count() == 1) {
-            echo("STATUS", InvalidParameterCount("Window"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Window"), PT_LOCALINFO);
             return true;
         }
 
@@ -115,7 +116,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTDOT") {
         // Paints a dot in @window
         if (token.count() != 6) {
-            echo("STATUS", InvalidParameterCount("Paintdot"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintdot"), PT_LOCALINFO);
             return true;
         }
 
@@ -126,7 +127,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTLINE") {
         // Paints a line in @window
         if (token.count() != 8) {
-            echo("STATUS", InvalidParameterCount("Paintline"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintline"), PT_LOCALINFO);
             return true;
         }
 
@@ -137,7 +138,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTRECT") {
         // Paints a rectangle in @window
         if (token.count() != 8) {
-            echo("STATUS", InvalidParameterCount("Paintrect"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintrect"), PT_LOCALINFO);
             return true;
         }
 
@@ -152,7 +153,7 @@ bool TScriptCommand::parse(QString &command)
         // /paintimage -u @win x y path
 
         if (token.count() < 5) {
-            echo("STATUS", InvalidParameterCount("Paintimage"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintimage"), PT_LOCALINFO);
             return true;
         }
         // length to skip to get filename
@@ -176,7 +177,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTTEXT") {
         // Paints a text in @window
         if (token.count() < 8) {
-            echo("STATUS", InvalidParameterCount("Painttext"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Painttext"), PT_LOCALINFO);
             return true;
         }
 
@@ -194,7 +195,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTFILL") {
         // Fill a @window with a color
         if (token.count() != 7) {
-            echo("STATUS", InvalidParameterCount("Paintfill"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintfill"), PT_LOCALINFO);
             return true;
         }
 
@@ -207,7 +208,7 @@ bool TScriptCommand::parse(QString &command)
         // /paintfillpath @window color x y x y x y ...
         if ((token.count() < 9) || (((token.count()-3)%2) != 0)) {
             // parameter count of x y x y etc must be dividable by two.
-            echo("STATUS", InvalidParameterCount("Paintfill"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintfill"), PT_LOCALINFO);
             return true;
         }
 
@@ -230,7 +231,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTSETLAYER") {
         // Sets current layer / creates a new layer to draw on.
         if (token.count() != 3) {
-            echo("STATUS", InvalidParameterCount("Paintsetlayer"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintsetlayer"), PT_LOCALINFO);
             return true;
         }
 
@@ -241,7 +242,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "PAINTDELLAYER") {
         // Delete layer from a paint window
         if (token.count() != 3) {
-            echo("STATUS", InvalidParameterCount("Paintdellayer"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintdellayer"), PT_LOCALINFO);
             return true;
         }
 
@@ -251,7 +252,7 @@ bool TScriptCommand::parse(QString &command)
 
     if (acmd == "PAINTLAYERORDER") {
         if (token.count() < 4) { // /paintlayerorder @win layer1 layer2 ... (at least 2 layers)
-            echo("STATUS", InvalidParameterCount("Paintlayerorder"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintlayerorder"), PT_LOCALINFO);
             return true;
         }
 
@@ -267,7 +268,7 @@ bool TScriptCommand::parse(QString &command)
     if (acmd == "CLEARIMGBUF") {
         // Clear the image buffer used by /paintimage
         if (token.count() != 2) {
-            echo("STATUS", InvalidParameterCount("Clearimgbuf"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Clearimgbuf"), PT_LOCALINFO);
             return true;
         }
 
@@ -279,7 +280,7 @@ bool TScriptCommand::parse(QString &command)
         // Used to turn on/off instant painting in a @window
         // Useful if there's a lot to redraw during a timer (e.g. games, gui)
         if (token.count() != 3) {
-            echo("STATUS", InvalidParameterCount("Paintbuffer"), PT_LOCALINFO);
+            echo("STATUS", tstar, InvalidParameterCount("Paintbuffer"), PT_LOCALINFO);
             return true;
         }
 
@@ -294,7 +295,7 @@ bool TScriptCommand::parse(QString &command)
     return false;
 }
 
-void TScriptCommand::echo(QString target, QString text, int type)
+void TScriptCommand::echo(QString target, QString sender, QString text, int type)
 {
     // Target is custom window
     if (target[0] == '@') {
@@ -303,7 +304,7 @@ void TScriptCommand::echo(QString target, QString text, int type)
         while (i.hasNext()) {
             sw = i.next().value();
             if (sw.widget->objectName().toUpper() == target.toUpper())
-                sw.widget->print(text, type);
+                sw.widget->print(sender, text, type);
         }
 
         return;
@@ -313,7 +314,7 @@ void TScriptCommand::echo(QString target, QString text, int type)
         subwindow_t sw = winlist->value(*activeWid);
         if (sw.type >= WT_GRAPHIC)
             sw = winlist->value(*activeConn); // active connection is the previous active one.
-        sw.widget->print(text);
+        sw.widget->print(sender, text);
         return;
     }
 
@@ -322,7 +323,7 @@ void TScriptCommand::echo(QString target, QString text, int type)
     if (c == NULL)
         return;
     else
-        c->print(target, text, type);
+        c->print(target, sender, text, type);
 }
 
 void TScriptCommand::window(QString name, QString sw)
@@ -333,12 +334,12 @@ void TScriptCommand::window(QString name, QString sw)
     bool activate = true;
 
     if (name.left(1) != "@") {
-        echo("STATUS", tr("/Window: Window name must be prepended with @"), PT_LOCALINFO);
+        echo("STATUS", tstar, tr("/Window: Window name must be prepended with @"), PT_LOCALINFO);
         return;
     }
 
     if (name.length() == 1) {
-        echo("STATUS", tr("/Window: Invalid name"), PT_LOCALINFO);
+        echo("STATUS", tstar, tr("/Window: Invalid name"), PT_LOCALINFO);
         return;
     }
 
@@ -357,7 +358,7 @@ void TScriptCommand::window(QString name, QString sw)
           case '-':
               continue;
           default:
-              echo("STATUS", tr("/Window: Unknown switch '%1'").arg(s), PT_LOCALINFO);
+              echo("STATUS", tstar, tr("/Window: Unknown switch '%1'").arg(s), PT_LOCALINFO);
               return;
         }
     }
@@ -386,7 +387,7 @@ void TScriptCommand::clear(QString window, QString sw)
         subwin = getCustomWindow(window);
 
     if (subwin.type == WT_NOTHING) { // Didn't find the window.
-        echo("STATUS", NoSuchWindow("Clear"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Clear"), PT_LOCALINFO);
         return;
     }
 
@@ -406,12 +407,12 @@ void TScriptCommand::paintdot(QString Window, QString X, QString Y, QString Size
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintdot"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintdot"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintdot"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintdot"), PT_LOCALINFO);
         return;
     }
 
@@ -432,12 +433,12 @@ void TScriptCommand::paintline(QString Window, QString X1, QString Y1, QString X
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintline"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintline"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintline"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintline"), PT_LOCALINFO);
         return;
     }
 
@@ -460,12 +461,12 @@ void TScriptCommand::paintrect(QString Window, QString X, QString Y, QString W, 
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintrect"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintrect"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintrect"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintrect"), PT_LOCALINFO);
         return;
     }
 
@@ -488,12 +489,12 @@ void TScriptCommand::paintimage(QString Window, QString X, QString Y, QString Fi
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintimage"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintimage"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintimage"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintimage"), PT_LOCALINFO);
         return;
     }
     int iX = floor(X.toFloat());
@@ -506,12 +507,12 @@ void TScriptCommand::painttext(QString Window, QString X, QString Y, QString Fon
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Painttext"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Painttext"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Painttext"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Painttext"), PT_LOCALINFO);
         return;
     }
 
@@ -534,12 +535,12 @@ void TScriptCommand::paintfill(QString Window, QString X, QString Y, QString W, 
 
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintfill"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintfill"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintfill"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintfill"), PT_LOCALINFO);
         return;
     }
 
@@ -560,12 +561,12 @@ void TScriptCommand::paintfillpath(QString Window, QString Color, QPainterPath P
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintfillpath"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintfillpath"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintfillpath"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintfillpath"), PT_LOCALINFO);
         return;
     }
 
@@ -581,12 +582,12 @@ void TScriptCommand::paintsetlayer(QString Window, QString Layer)
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintsetlayer"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintsetlayer"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintsetlayer"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintsetlayer"), PT_LOCALINFO);
         return;
     }
 
@@ -597,12 +598,12 @@ void TScriptCommand::paintdellayer(QString Window, QString Layer)
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintdellayer"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintdellayer"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintdellayer"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintdellayer"), PT_LOCALINFO);
         return;
     }
 
@@ -613,12 +614,12 @@ void TScriptCommand::paintlayerorder(QString Window, QStringList Layers)
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintlayerorder"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintlayerorder"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintlayerorder"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintlayerorder"), PT_LOCALINFO);
         return;
     }
 
@@ -629,12 +630,12 @@ void TScriptCommand::clearimgbuf(QString Window)
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Clearimgbuf"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Clearimgbuf"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Clearimgbuf"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Clearimgbuf"), PT_LOCALINFO);
         return;
     }
 
@@ -645,12 +646,12 @@ void TScriptCommand::paintbuffer(QString Window, bool State)
 {
     subwindow_t wt = getCustomWindow(Window);
     if (wt.type == WT_NOTHING) {
-        echo("STATUS", NoSuchWindow("Paintbuffer"), PT_LOCALINFO);
+        echo("STATUS", tstar, NoSuchWindow("Paintbuffer"), PT_LOCALINFO);
         return;
     }
 
     if (wt.type < WT_GRAPHIC) {
-        echo("STATUS", NotAPaintWindow("Paintbuffer"), PT_LOCALINFO);
+        echo("STATUS", tstar, NotAPaintWindow("Paintbuffer"), PT_LOCALINFO);
         return;
     }
 

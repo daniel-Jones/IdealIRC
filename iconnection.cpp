@@ -59,6 +59,8 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     cmB("k"),
     cmC("l"),
     cmD("imnpstr"),
+    tstar("***"),
+    sstar("*"),
     checkState(0)
 {
     cmdhndl.setWinList(&winlist);
@@ -102,10 +104,10 @@ void IConnection::tryConnect()
     setServer();
     IWin *s = winlist.value("STATUS").widget;
 
-    s->print( tr("Connecting to %1:%2...")
-                .arg(host)
-                .arg(port),
-                PT_LOCALINFO
+    s->print( tstar, tr("Connecting to %1:%2...")
+                      .arg(host)
+                      .arg(port),
+              PT_LOCALINFO
              );
 
     tryingConnect = true;
@@ -130,7 +132,7 @@ void IConnection::freeWindow(QString name)
 bool IConnection::sockwrite(QString data)
 {
     if (! socket.isOpen()) {
-        print("STATUS", tr("Not connected to server"), PT_LOCALINFO);
+        print("STATUS", tstar, tr("Not connected to server"), PT_LOCALINFO);
         return false;
     }
 
@@ -213,7 +215,7 @@ void IConnection::onSocketDisconnected()
         i.next();
         subwindow_t win = i.value();
 
-        win.widget->print(tr("Disconnected."), PT_LOCALINFO);
+        win.widget->print(tstar, tr("Disconnected."), PT_LOCALINFO);
         if (win.type == WT_CHANNEL) {
             win.widget->resetMemberlist();
         }
@@ -232,7 +234,7 @@ void IConnection::onSocketDisconnected()
 void IConnection::closeConnection(bool shutdown)
 {
     if (tryingConnect == true) {
-        print("STATUS", tr("Disconnected."), PT_LOCALINFO);
+        print("STATUS", tstar, tr("Disconnected."), PT_LOCALINFO);
         socket.close();
         tryingConnect = false;
         return;
@@ -294,7 +296,7 @@ void IConnection::checkConnectionTimeout()
     if (checkState == 1) {
         checkState = 0;
         checkConnection.setInterval(180000); // set back to default 3 min.
-        print("STATUS", tr("Ping timeout."), PT_LOCALINFO);
+        print("STATUS", tstar, tr("Ping timeout."), PT_LOCALINFO);
         socket.close(); // close socket, connection's dead.
         return;
     }
@@ -390,7 +392,7 @@ QString IConnection::trimCtrlCodes(QString &text)
     return result;
 }
 
-void IConnection::print(const QString window, const QString &line, const int ptype)
+void IConnection::print(const QString &window, const QString &sender, const QString &line, const int ptype)
 {
     IWin *w = NULL; // Default value of *w is NULL to make sure we can error-check.
     w = getWinObj(window.toUpper()); // Attempt to get window object...
@@ -399,7 +401,7 @@ void IConnection::print(const QString window, const QString &line, const int pty
     if ((w == NULL) && (window == "STATUS"))
         return; // Nowhere to send this text, ignore silently...
 
-    w->print(line, ptype); // Do printing
+    w->print(sender, line, ptype); // Do printing
 }
 
 unsigned int IConnection::ipv4toint(QString addr)
@@ -558,8 +560,8 @@ void IConnection::parse(QString &data)
         QString text = getMsg(data);
 
         from.prepend("-");
-        from.append("- ");
-        print("STATUS", from+text, PT_NOTICE);
+        from.append("-");
+        print("STATUS", from, text, PT_NOTICE);
         return;
     }
 
@@ -584,13 +586,13 @@ void IConnection::parse(QString &data)
         qint64 ms_now = QDateTime::currentDateTime().toMSecsSinceEpoch();
         qint64 ms_pong = msg.toULongLong(&ok);
         if (! ok)
-            print( activewin(), tr("PONG from server: %1")
-                                 .arg(getMsg(data)),
+            print( activewin(), tstar, tr("PONG from server: %1")
+                                        .arg(getMsg(data)),
                    PT_SERVINFO
                   );
         else
-            print( activewin(), tr("PONG from server: %1ms.")
-                                 .arg(ms_now-ms_pong),
+            print( activewin(), tstar, tr("PONG from server: %1ms.")
+                                        .arg(ms_now-ms_pong),
                    PT_SERVINFO
                   );
         return;
@@ -621,7 +623,7 @@ void IConnection::parse(QString &data)
                     target = u.nick; // Target was not a channel, but a private message. Write action to own window for u.nick
 
                 emit RequestWindow(target, WT_PRIVMSG, cid, false);
-                print( target.toUpper(), QString("%1 %2")
+                print( target.toUpper(), "", QString("* %1 %2")
                                         .arg(u.nick)
                                         .arg(text),
                        PT_ACTION
@@ -634,9 +636,8 @@ void IConnection::parse(QString &data)
                 // CTCP indicator
                 QString ctcp = tx.at(0);
                 ctcp.remove(QChar(0x01));
-                print( "STATUS", tr("[CTCP %1] from %2")
-                                   .arg(ctcp)
-                                   .arg(u.nick),
+                print( "STATUS", u.nick, tr("[CTCP %1]")
+                                   .arg(ctcp),
                        PT_CTCP
                       );
                 ctcpReceived = true;
@@ -716,8 +717,8 @@ xchat
                 if (token[4] == "CHAT") {
                     unsigned int ip = token[6].toUInt();
                     QString sip = intipv4toStr(ip);
-                    print( activewin(), "CHAT ip: " + sip);
-                    print( activewin(), "CHAT intip: " + QString::number(ipv4toint(sip)));
+                    print( activewin(), "", "CHAT ip: " + sip);
+                    print( activewin(), "", "CHAT intip: " + QString::number(ipv4toint(sip)));
 
                     dccinfo = text.replace(char(0x01), ""); // delete 0x01 (ctcp indicators)
                     dccinfo = dccinfo.mid(4, dccinfo.length());
@@ -736,43 +737,44 @@ xchat
         QString name = u.nick;
         if (isValidChannel(token[2].toUpper()) == false) { // Privmsg
             emit RequestWindow(name, WT_PRIVMSG, cid, false);
-            print( name.toUpper(), QString("<%1> %2")
-                                     .arg(name)
-                                     .arg(text)
-                  );
+            print( name.toUpper(), name, text);
             subwindow_t w = winlist.value(name.toUpper());
             emit HighlightWindow(w.wid, HL_MSG);
             emit RequestTrayMsg(tr("Private MSG from %1").arg(name), text);
         }
         else { // Channel
-            QString tx = QString("<%1> %2")
+            QString sender = name;
+            QString chan = token[2];
+            QString traymsg = QString("<%1> %2")
                            .arg(name)
                            .arg(text);
-            QString chan = token[2];
 
             subwindow_t w = winlist.value(chan.toUpper());
             member_t m = w.widget->ReadMember(name);
 
-            if ((conf->showUsermodeMsg == true) && (m.mode.length() > 0))
-                tx = QString("<%1%2> %3")
+            if ((conf->showUsermodeMsg == true) && (m.mode.length() > 0)) {
+                sender.prepend(m.mode[0]);
+
+                traymsg = QString("<%1%2> %3")
                        .arg(m.mode[0])
                        .arg(name)
                        .arg(text);
+            }
 
             emit RequestWindow(chan, WT_CHANNEL, cid, false);
 
             if (text.contains(activeNick, Qt::CaseInsensitive)) {
-                print(chan.toUpper(), tx, PT_HIGHLIGHT);
+                print(chan.toUpper(), sender, text, PT_HIGHLIGHT);
                 emit HighlightWindow(w.wid, HL_HIGHLIGHT);
             }
             else {
-                print(chan.toUpper(), tx);
+                print(chan.toUpper(), sender, text);
                 emit HighlightWindow(w.wid, HL_MSG);
             }
 
             // Check if our nickname is in the text, if so, put up a tray notify
-            if (data.indexOf(activeNick, Qt::CaseInsensitive) > -1)
-                emit RequestTrayMsg(chan, tx);
+            if (text.indexOf(activeNick, Qt::CaseInsensitive) > -1)
+                emit RequestTrayMsg(chan, traymsg);
 
         }
         // privmsg script event
@@ -796,9 +798,8 @@ xchat
             if (ctcp.toUpper() == "PING") {
                 // Parse this.
                 if (msg.length() == 0) {
-                    print( activewin(), tr("[CTCP Reply %1 (? sec)] from %2")
-                                       .arg(ctcp)
-                                       .arg(u.nick),
+                    print( activewin(), u.nick, tr("[CTCP Reply %1 (? sec)]")
+                                       .arg(ctcp),
                            PT_CTCP
                           );
                     return;
@@ -809,10 +810,9 @@ xchat
                 char clag[16];
                 sprintf(clag, "%.2f", lag);
                 QString s_lag(clag);
-                print( activewin(), tr("[CTCP Reply %1 (%2 sec)] from %3")
+                print( activewin(), u.nick, tr("[CTCP Reply %1 (%2 sec)]")
                                    .arg(ctcp)
-                                   .arg(s_lag)
-                                   .arg(u.nick),
+                                   .arg(s_lag),
                        PT_CTCP
                       );
 
@@ -820,17 +820,15 @@ xchat
             }
 
             if (msg.length() > 0)
-                print( activewin(), tr("[CTCP Reply %1 (%2)] from %3")
+                print( activewin(), u.nick, tr("[CTCP Reply %1 (%2)]")
                                    .arg(ctcp)
-                                   .arg(msg)
-                                   .arg(u.nick),
+                                   .arg(msg),
                        PT_CTCP
                       );
 
             if (msg.length() == 0)
-                print( activewin(), tr("[CTCP Reply %1] from %2")
-                                   .arg(ctcp)
-                                   .arg(u.nick),
+                print( activewin(), u.nick, tr("[CTCP Reply %1] from %2")
+                                   .arg(ctcp),
                        PT_CTCP
                       );
 
@@ -841,11 +839,10 @@ xchat
         if (u.nick != serverName)
             target = activewin();
 
-        print( target, QString("-%1- %2")
-                         .arg(u.nick)
-                         .arg(msg),
-               PT_NOTICE
-              );
+        QString sender = u.nick;
+        sender.prepend('-');
+        sender.append('-');
+        print( target, sender, msg, PT_NOTICE );
 
         emit RequestTrayMsg(tr("Notice from %1").arg(u.nick), msg);
         return;
@@ -865,13 +862,13 @@ xchat
 
         if (u.nick == activeNick) { // I am joining a channel
             emit RequestWindow(chan, WT_CHANNEL, cid, true);
-            print( chan, tr("Now talking in %1")
+            print( chan, tstar, tr("Now talking in %1")
                                      .arg(chan),
                    PT_SERVINFO
                   );
         }
         else { // Someone joined a channel I am on
-            print( chan, tr("Joins: %1 (%2@%3)")
+            print( chan, tstar, tr("Joins: %1 (%2@%3)")
                                      .arg(u.nick)
                                      .arg(u.user)
                                      .arg(u.host),
@@ -905,18 +902,18 @@ xchat
             return;
 
         if (msg.length() > 0)
-            print( chan.toUpper(), tr("Parts: %1 (%2@%3) (%4)")
-                                     .arg(u.nick)
-                                     .arg(u.user)
-                                     .arg(u.host)
-                                     .arg(msg),
+            print( chan.toUpper(), tstar, tr("Parts: %1 (%2@%3) (%4)")
+                                            .arg(u.nick)
+                                            .arg(u.user)
+                                            .arg(u.host)
+                                            .arg(msg),
                    PT_SERVINFO
                   );
         else
-            print( chan.toUpper(), tr("Parts: %1 (%2@%3)")
-                                     .arg(u.nick)
-                                     .arg(u.user)
-                                     .arg(u.host),
+            print( chan.toUpper(), tstar, tr("Parts: %1 (%2@%3)")
+                                            .arg(u.nick)
+                                            .arg(u.user)
+                                            .arg(u.host),
                    PT_SERVINFO
                   );
 
@@ -928,7 +925,7 @@ xchat
         if ((u.nick == activeNick) && (e == true)) {
             // Us who left.
             w->resetMemberlist();
-            print(chan.toUpper(), tr("You've left %1").arg(chan), PT_LOCALINFO);
+            print(chan.toUpper(), tstar, tr("You've left %1").arg(chan), PT_LOCALINFO);
         }
         // part script event.
         scriptParent->runevent(te_part, QStringList()<<chan<<u.nick<<getMsg(data));
@@ -943,10 +940,10 @@ xchat
 
         ial.delChannel(u.nick, chan);
 
-        print( chan.toUpper(), tr("%1 kicked %2 (%3)")
-                                 .arg(u.nick)
-                                 .arg(target)
-                                 .arg(msg),
+        print( chan.toUpper(), tstar, tr("%1 kicked %2 (%3)")
+                                        .arg(u.nick)
+                                        .arg(target)
+                                        .arg(msg),
                PT_SERVINFO
               );
 
@@ -976,11 +973,11 @@ xchat
             w.next();
             if (w.value().widget->memberExist(u.nick) == true) { // Member is in here.
                 QString wName = w.value().widget->objectName();
-                print( wName, tr("Quit: %1 (%2@%3) (%4)")
-                                .arg(u.nick)
-                                .arg(u.user)
-                                .arg(u.host)
-                                .arg(msg),
+                print( wName, tstar, tr("Quit: %1 (%2@%3) (%4)")
+                                       .arg(u.nick)
+                                       .arg(u.user)
+                                       .arg(u.host)
+                                       .arg(msg),
                        PT_LOCALINFO
                       );
 
@@ -993,7 +990,7 @@ xchat
     }
 
     else if (token0up == "ERROR") {
-        print("STATUS", tr("Error: %1").arg(getMsg(data)), PT_SERVINFO);
+        print("STATUS", tstar, tr("Error: %1").arg(getMsg(data)), PT_SERVINFO);
         return;
     }
 
@@ -1015,9 +1012,9 @@ xchat
             if (tg->settings)
                 tg->settings->setDefaultMode(mode); // it is safe; this will ignore user-based channel modes like op, voice, ban etc
 
-            print( target.toUpper(), tr("%1 sets mode %2")
-                   .arg(u.nick)
-                   .arg(mode),
+            print( target.toUpper(), tstar, tr("%1 sets mode %2")
+                                              .arg(u.nick)
+                                              .arg(mode),
                    PT_SERVINFO
                   );
 
@@ -1076,7 +1073,7 @@ xchat
         }
 
         if (target.toUpper() == u.nick.toUpper()) // Mode on self!
-            print("STATUS", tr("Your user mode sets to %1").arg(getMsg(data)), PT_SERVINFO);
+            print("STATUS", tstar, tr("Your user mode sets to %1").arg(getMsg(data)), PT_SERVINFO);
 
         return;
     }
@@ -1092,7 +1089,7 @@ xchat
         ial.setNickname(u.nick, newnick);
 
         if (u.nick == activeNick) {
-            print("STATUS", tr("Your nickname is now %1").arg(newnick));
+            print("STATUS", tstar, tr("Your nickname is now %1").arg(newnick));
             activeNick = newnick;
             conf->nickname = newnick;
             conf->save();
@@ -1104,9 +1101,9 @@ xchat
             w.next();
             QString wName = w.value().widget->objectName();
             if (w.value().widget->memberExist(u.nick) == true) { // Member is in here.
-                print(wName, tr("%1 is now known as %2")
-                               .arg(u.nick)
-                               .arg(newnick),
+                print(wName, tstar, tr("%1 is now known as %2")
+                                      .arg(u.nick)
+                                      .arg(newnick),
                        PT_SERVINFO
                       );
                 w.value().widget->memberSetNick(u.nick, newnick);
@@ -1119,9 +1116,9 @@ xchat
         user_t u = parseUserinfo(token[0]);
         QString chan = token[2];
         QString newTopic = getMsg(data);
-        print( chan, tr("%1 set topic to '%2'")
-                       .arg(u.nick)
-                       .arg(newTopic),
+        print( chan, tstar, tr("%1 set topic to '%2'")
+                              .arg(u.nick)
+                              .arg(newTopic),
                PT_SERVINFO
               );
 
@@ -1147,9 +1144,9 @@ xchat
             channel = channel.mid(1);
 
         user_t u = parseUserinfo(token[0]);
-        print( activewin(), tr("%1 invited you to channel %3")
-                             .arg(u.nick)
-                             .arg(channel),
+        print( activewin(), tstar, tr("%1 invited you to channel %3")
+                                    .arg(u.nick)
+                                    .arg(channel),
                PT_SERVINFO
               );
         return;
@@ -1158,11 +1155,11 @@ xchat
     else if (token1up == "KILL") {
         user_t s = parseUserinfo(token[0]);
         QString msg = getMsg(data);
-        print("STATUS", tr("Killed by %1 (%1@%2) (%3)")
-                          .arg(s.nick)
-                          .arg(s.user)
-                          .arg(s.host)
-                          .arg(msg),
+        print("STATUS", tstar, tr("Killed by %1 (%1@%2) (%3)")
+                                 .arg(s.nick)
+                                 .arg(s.user)
+                                 .arg(s.host)
+                                 .arg(msg),
                PT_SERVINFO
               );
         return;
@@ -1179,7 +1176,7 @@ xchat
     if (text[0] == ':')
         text = text.mid(1);
 
-    print("STATUS", text);
+    print("STATUS", "", text);
 }
 
 void IConnection::parseNumeric(int numeric, QString &data)
@@ -1199,7 +1196,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print(activewin(), text);
+        print(activewin(), "", text);
         return;
     }
 
@@ -1207,7 +1204,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1215,7 +1212,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1226,9 +1223,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(token.at(3));
         if (e == true)
-            print(token[3].toUpper(), text);
+            print(token[3].toUpper(), "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1237,7 +1234,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1245,7 +1242,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1253,7 +1250,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print(activewin(), text);
+        print(activewin(), "", text);
         return;
     }
 
@@ -1261,7 +1258,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1269,7 +1266,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1277,7 +1274,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print(activewin(), text);
+        print(activewin(), "", text);
         return;
     }
 
@@ -1285,7 +1282,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1293,7 +1290,8 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print(activewin(), text);
+        print(activewin(), "", text);
+
         if (! registered) {
             // Use alternative nickname
             if ((token[3].toUpper() != conf->altnick.toUpper()) && (conf->altnick.length() > 0)) {
@@ -1315,7 +1313,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1327,9 +1325,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(chan.toUpper());
         if (e == true)
-            print(chan.toUpper(), text);
+            print(chan.toUpper(), "", text);
         else
-            print( "STATUS", QString("%1 (%2)")
+            print( "STATUS", "", QString("%1 (%2)")
                                .arg(text)
                                .arg(chan)
                   );
@@ -1344,9 +1342,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(token[3].toUpper());
         if (e == true)
-            print(token[3], text);
+            print(token[3], "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1357,28 +1355,28 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(chan)
                          .arg(getMsg(data));
 
-        print(chan.toUpper(), text);
+        print(chan.toUpper(), "", text);
         return;
     }
 
     else if (numeric == ERR_NOLOGIN) {
         QString text = token.at(3);
         text += ": "+ getMsg(data);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
     else if (numeric == ERR_NEEDMOREPARAMS) {
         QString text = token.at(3);
         text += ": "+ getMsg(data);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
     else if (numeric == ERR_KEYSET) {
         QString chan = token[3];
         QString text = getMsg(data);
-        print(chan.toUpper(), text);
+        print(chan.toUpper(), "", text);
         return;
     }
 
@@ -1390,9 +1388,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(chan.toUpper());
         if (e == true)
-            print(chan, text);
+            print(chan, "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1402,7 +1400,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(token[3])
                          .arg(getMsg(data));
 
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -1414,9 +1412,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(chan.toUpper());
         if (e == true)
-            print(chan, text);
+            print(chan, "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1429,9 +1427,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(chan.toUpper());
         if (e == true)
-            print(chan, text);
+            print(chan, "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1444,9 +1442,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(chan.toUpper());
         if (e == true)
-            print(chan, text);
+            print(chan, "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1459,9 +1457,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         bool e = windowExist(chan.toUpper());
         if (e == true)
-            print(chan, text);
+            print(chan, "", text);
         else
-            print("STATUS", text);
+            print("STATUS", "", text);
 
         return;
     }
@@ -1472,7 +1470,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1: %2")
                          .arg(chan)
                          .arg(getMsg(data));
-        print(chan, text);
+        print(chan, "", text);
         return;
     }
 
@@ -1578,7 +1576,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         for (int i = 0; i <= 2; i++)
             c += token[i].length() + 1;
 
-        print("STATUS", data.mid(c));
+        print("STATUS", "", data.mid(c));
         return;
     }
 
@@ -1594,7 +1592,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         int c = 0;
         for (int i = 0; i <= 2; i++)
             c += token[i].length() + 1;
-        print("STATUS", data.mid(c));
+        print("STATUS", "", data.mid(c));
 
         for (int i = 3; i <= token.count()-1; i++) {
             QStringList lst = token[i].split('=');
@@ -1728,12 +1726,12 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(nickname)
                          .arg(getMsg(data));
 
-        print(activewin(), text);
+        print(activewin(), "", text);
         if (activewin() == nickname.toUpper())
             return;
 
         if (windowExist(nickname) == true)
-            print(nickname, text);
+            print(nickname, "", text);
         return;
     }
 
@@ -1753,10 +1751,10 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print( target, tr("%1: %2 : %3")
-                         .arg(nick)
-                         .arg(userhost)
-                         .arg(name)
+        print( target, "", tr("%1: %2 : %3")
+                             .arg(nick)
+                             .arg(userhost)
+                             .arg(name)
               );
 
         return;
@@ -1772,10 +1770,10 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print( target, tr("%1: %2 : %3")
-                         .arg(nick)
-                         .arg(server)
-                         .arg(info)
+        print( target, "", tr("%1: %2 : %3")
+                             .arg(nick)
+                             .arg(server)
+                             .arg(info)
               );
         return;
     }
@@ -1789,9 +1787,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print( target, tr("%1 %2")
-                         .arg(nick)
-                         .arg(text)
+        print( target, "", tr("%1 %2")
+                             .arg(nick)
+                             .arg(text)
               );
         return;
     }
@@ -1807,7 +1805,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print(target, text);
+        print(target, "", text);
         return;
     }
 
@@ -1856,9 +1854,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print( target, QString("%1: %2")
-                         .arg(nick)
-                         .arg(msg)
+        print( target, "", QString("%1: %2")
+                             .arg(nick)
+                             .arg(msg)
               );
 
         return;
@@ -1875,7 +1873,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print(target, text);
+        print(target, "", text);
         return;
     }
 
@@ -1890,7 +1888,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print(target, text);
+        print(target, "", text);
         return;
     }
 
@@ -1905,7 +1903,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print(target, text);
+        print(target, "", text);
         return;
     }
 
@@ -1919,7 +1917,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
             else
                 listInDialog = false;
         }
-        print("STATUS", tr("Downloading /LIST..."), PT_LOCALINFO);
+        print("STATUS", tstar, tr("Downloading /LIST..."), PT_LOCALINFO);
 
         return;
     }
@@ -1939,14 +1937,14 @@ void IConnection::parseNumeric(int numeric, QString &data)
                              .arg(users)
                              .arg(topic);
 
-            print("STATUS", text);
+            print("STATUS", "", text);
         }
         return;
     }
 
     else if (numeric == RPL_LISTEND) {
         listInDialog = false;
-        print("STATUS", tr("End of /LIST"), PT_LOCALINFO);
+        print("STATUS", tstar, tr("End of /LIST"), PT_LOCALINFO);
         return;
     }
 
@@ -1960,15 +1958,15 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         IWin *w = getWinObj(chan);
         if (w == NULL) {
-            print("STATUS", tr("Modes for %1: %2")
-                              .arg(chan)
-                              .arg(mode)
+            print("STATUS", tstar, tr("Modes for %1: %2")
+                                  .arg(chan)
+                                  .arg(mode)
                   );
             return;
         }
 
         if (FillSettings == false)
-            print(chan.toUpper(), tr("Modes: %1").arg(mode), PT_SERVINFO);
+            print(chan.toUpper(), tstar, tr("Modes: %1").arg(mode), PT_SERVINFO);
         else {
             if (w->settings != NULL) {
                 w->settings->setDefaultMode(mode);
@@ -1992,7 +1990,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString chan = token[3];
 
         if (FillSettings == false)
-            print(chan.toUpper(), tr("No topic is set."), PT_SERVINFO);
+            print(chan.toUpper(), tstar, tr("No topic is set."), PT_SERVINFO);
         else {
             IWin *w = getWinObj(chan);
             if (w->settings != NULL)
@@ -2009,7 +2007,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         IWin *w = getWinObj(chan);
         if (w == NULL) {
-            print( "STATUS", tr("Topic for %1: %2")
+            print( "STATUS", "", tr("Topic for %1: %2")
                                .arg(chan)
                                .arg(topic)
                   );
@@ -2017,7 +2015,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         }
 
         if (FillSettings == false)
-            print(chan.toUpper(), tr("Topic is: %1").arg(topic), PT_SERVINFO);
+            print(chan.toUpper(), tstar, tr("Topic is: %1").arg(topic), PT_SERVINFO);
         else {
             if (w->settings != NULL) {
                 w->settings->setDefaultTopic(topic);
@@ -2039,7 +2037,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         IWin *w = getWinObj(chan);
         if (w == NULL) {
-            print( "STATUS", tr("%1 Topic set by %2, %3")
+            print( "STATUS", "", tr("%1 Topic set by %2, %3")
                                .arg(chan)
                                .arg(nick)
                                .arg(date)
@@ -2048,7 +2046,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         }
 
         if (w->settings == 0)
-            print(chan, tr("Topic set by %2, %3")
+            print(chan, tstar, tr("Topic set by %2, %3")
                           .arg(nick)
                           .arg(date),
                    PT_SERVINFO
@@ -2064,7 +2062,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (windowExist(chan))
             target = chan;
 
-        print(target, tr("Invited %1 to %2")
+        print(target, tstar, tr("Invited %1 to %2")
                         .arg(nick)
                         .arg(chan),
                PT_SERVINFO
@@ -2078,7 +2076,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(user)
                          .arg(getMsg(data));
 
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2088,7 +2086,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(token[4])
                          .arg(getMsg(data));
 
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2098,14 +2096,14 @@ void IConnection::parseNumeric(int numeric, QString &data)
             l += token[i].length() + 1;
 
         QString text = data.mid(l);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
     else if (numeric == RPL_ENDOFWHO) {
         QString text = token.at(3);
         text += ": "+ getMsg(data);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2166,7 +2164,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
             l += token[i].length() + 1;
 
         QString text = data.mid(l);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2176,12 +2174,12 @@ void IConnection::parseNumeric(int numeric, QString &data)
                 .arg(server)
                 .arg(getMsg(data));
 
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
     else if ((numeric == RPL_MOTDSTART) && (conf->showMotd)) {
-        print("STATUS", tr("Loading MOTD..."), PT_LOCALINFO);
+        print("STATUS", tstar, tr("Loading MOTD..."), PT_LOCALINFO);
         motd.reset();
         return;
     }
@@ -2193,7 +2191,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
     }
 
     else if ((numeric == RPL_ENDOFMOTD) || (numeric == ERR_NOMOTD)) {
-        print("STATUS", getMsg(data));
+        print("STATUS", "", getMsg(data));
 
         if (conf->showMotd)
             motd.show();
@@ -2235,10 +2233,10 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
         if (windowExist(chan) == false)
            // print("STATUS", token.at(4) + " set by " + token.at(5) + ", " + date);
-            print("STATUS", tr("%1 set by %2, %3")
-                              .arg(token[4])
-                              .arg(token[5])
-                              .arg(date)
+            print("STATUS", "", tr("%1 set by %2, %3")
+                                  .arg(token[4])
+                                  .arg(token[5])
+                                  .arg(date)
                   );
         else {
             IWin *w = getWinObj(chan);
@@ -2247,7 +2245,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                 w->settings->addMask(token[4], token[5], date);
 
             if (FillSettings == false)
-                print(chan, tr("%1 set by %2, %3")
+                print(chan, "", tr("%1 set by %2, %3")
                                   .arg(token[4])
                                   .arg(token[5])
                                   .arg(date)
@@ -2260,9 +2258,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
     else if (numeric == RPL_ENDOFBANLIST) {
         QString chan = token[3];
         if (windowExist(chan.toUpper()) == false) {
-            print( "STATUS", QString("%1: %2")
-                               .arg(chan)
-                               .arg(getMsg(data))
+            print( "STATUS", "", QString("%1: %2")
+                                   .arg(chan)
+                                   .arg(getMsg(data))
                   );
             return;
         }
@@ -2289,9 +2287,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
     else if (numeric == RPL_ENDOFEXCEPTLIST) {
         QString chan = token[3];
         if (windowExist(chan.toUpper()) == false) {
-            print( "STATUS", QString("%1: %2")
-                               .arg(chan)
-                               .arg(getMsg(data))
+            print( "STATUS", "", QString("%1: %2")
+                                   .arg(chan)
+                                   .arg(getMsg(data))
                   );
             return;
         }
@@ -2316,9 +2314,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
     else if (numeric == RPL_ENDOFINVITELIST) {
         QString chan = token[3];
         if (windowExist(chan.toUpper()) == false) {
-            print( "STATUS", QString("%1: %2")
-                               .arg(chan)
-                               .arg(getMsg(data))
+            print( "STATUS", "", QString("%1: %2")
+                                   .arg(chan)
+                                   .arg(getMsg(data))
                   );
             return;
         }
@@ -2339,7 +2337,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(token[3])
                          .arg(getMsg(data));
 
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2348,7 +2346,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                          .arg(token[3])
                          .arg(getMsg(data));
 
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2359,7 +2357,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
             l += token[i].length() + 1;
 
         QString text = data.mid(l);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2367,7 +2365,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         /// @note RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS
         QString text = token.at(3);
         text += " "+ getMsg(data);
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2375,7 +2373,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
         QString text = QString("%1 %2")
                          .arg(token[3])
                          .arg(getMsg(data));
-        print("STATUS", text);
+        print("STATUS", "", text);
         return;
     }
 
@@ -2399,7 +2397,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
                 ial.setHostname(nickname, host);
             }
         }
-        print("STATUS", result);
+        print("STATUS", "", result);
         return;
     }
 
@@ -2412,9 +2410,9 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print(target, QString("%1: %2")
-                        .arg(nick)
-                        .arg(text)
+        print(target, "", QString("%1: %2")
+                            .arg(nick)
+                            .arg(text)
               );
         return;
     }
@@ -2428,10 +2426,10 @@ void IConnection::parseNumeric(int numeric, QString &data)
         if (conf->showWhois)
             target = activewin();
 
-        print(target, QString("%1: %2 %3")
-                        .arg(nick)
-                        .arg(text)
-                        .arg(user)
+        print(target, "", QString("%1: %2 %3")
+                            .arg(nick)
+                            .arg(text)
+                            .arg(user)
               );
 
         return;
@@ -2446,5 +2444,5 @@ void IConnection::parseNumeric(int numeric, QString &data)
     if (text[0] == ':')
         text = text.mid(1);
 
-    print("STATUS", text);
+    print("STATUS", "", text);
 }

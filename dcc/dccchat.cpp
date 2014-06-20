@@ -26,10 +26,11 @@ void DCCChat::initialize()
     if (dsplit[2] == "CHAT") {
         unsigned int intipv4 = dsplit[4].toUInt();
         QString ipv4 = subwin->getConnection()->intipv4toStr(intipv4);
-        print( tr("Trying to connect to %1 (%2:%3)...")
-                 .arg(target)
-                 .arg(ipv4)
-                 .arg(dsplit[5])
+        print( tstar, tr("Trying to connect to %1 (%2:%3)...")
+                        .arg(target)
+                        .arg(ipv4)
+                        .arg(dsplit[5]),
+                PT_LOCALINFO
               );
 
         socket = new QTcpSocket();
@@ -46,7 +47,7 @@ void DCCChat::initialize()
         connect(&server, SIGNAL(newConnection()),
                 this, SLOT(newConnection()));
         server.listen(QHostAddress::Any, 4455);
-        print(tr("Waiting for connection..."), PT_LOCALINFO);
+        print(tstar, tr("Waiting for connection..."), PT_LOCALINFO);
     }
 
 }
@@ -56,10 +57,7 @@ void DCCChat::inputEnterPushed(QString line)
     if (! socket->isOpen())
         return;
 
-    print( QString("<%1> %2")
-             .arg(me)
-             .arg(line)
-          );
+    print(me, line);
 
     QByteArray data;
     data.append(line);
@@ -69,7 +67,7 @@ void DCCChat::inputEnterPushed(QString line)
 
 void DCCChat::sockConnected()
 {
-    print(tr("Connected."), PT_LOCALINFO);
+    print(tstar, tr("Connected."), PT_LOCALINFO);
 
     connect(socket, SIGNAL(readyRead()),
             this, SLOT(sockRead()));
@@ -77,7 +75,7 @@ void DCCChat::sockConnected()
 
 void DCCChat::sockDisconnected()
 {
-    print(tr("Disconnected from DCC."), PT_LOCALINFO);
+    print(tstar, tr("Disconnected from DCC."), PT_LOCALINFO);
 }
 
 void DCCChat::sockRead()
@@ -88,10 +86,7 @@ void DCCChat::sockRead()
         if (buf[i] == '\r')
             continue;
         if (buf[i] == '\n') {
-            print( QString("<%1> %2")
-                     .arg(target)
-                     .arg(line)
-                  );
+            print(target, line);
             line.clear();
             emit Highlight();
             continue;

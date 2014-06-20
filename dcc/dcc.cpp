@@ -5,11 +5,12 @@
 DCC::DCC(IWin *sWin, QString dcc_details, QObject *parent) :
     QObject(parent),
     subwin(sWin),
-    details(dcc_details)
+    details(dcc_details),
+    tstar("***")
 {
 }
 
-void DCC::print(QString text, int type)
+void DCC::print(QString sender, QString text, int type)
 {
-    subwin->print(text, type);
+    subwin->print(sender, text, type);
 }

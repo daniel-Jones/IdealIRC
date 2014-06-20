@@ -62,11 +62,12 @@ private:
     QString *activeWname;
     int *activeConn;
     int *cid;
+    QString tstar;
     config *conf;
     IConnection *connection;
     QString activewin();
     void localMsg(QString message);
-    void echo(QString message, int ptype = PT_NORMAL);
+    void echo(QString sender, QString message, int ptype = PT_NORMAL);
     void sockwrite(QString data);
     QString getCurrentTarget();
     QString getCurrentNickname();

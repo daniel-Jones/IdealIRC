@@ -27,6 +27,7 @@
 
 ICommand::ICommand(IConnection *con, config *cfg, QObject *parent) :
     QObject(parent),
+    tstar("***"),
     conf(cfg),
     connection(con)
 {
@@ -297,11 +298,9 @@ void ICommand::notice(QString target, QString message)
                  .arg(message)
               );
 
-    echo( QString(">%1< %2")
-            .arg(target)
-            .arg(message),
-            PT_NOTICE
-         );
+    target.prepend('>');
+    target.append('<');
+    echo( target, message, PT_NOTICE );
 }
 
 void ICommand::msg(QString target, QString message)
@@ -311,10 +310,9 @@ void ICommand::msg(QString target, QString message)
                  .arg(message)
               );
 
-    echo( QString(">%1< %2")
-            .arg(target)
-            .arg(message)
-         );
+    target.prepend('>');
+    target.append('<');
+    echo(target, message);
 }
 
 void ICommand::me(QString target, QString message)
@@ -329,10 +327,10 @@ void ICommand::me(QString target, QString message)
                  .arg(send)
               );
 
-    echo( QString("%1 %2")
-            .arg(getCurrentNickname())
-            .arg(message),
-            PT_ACTION
+    echo( "", QString("* %1 %2")
+                .arg(getCurrentNickname())
+                .arg(message),
+          PT_ACTION
          );
 }
 
@@ -341,7 +339,7 @@ void ICommand::kick(QString channel, QString nickname, QString reason)
     if (channel.isEmpty()) {
         subwindow_t wt = getCurrentSubwin();
         if (wt.type != WT_CHANNEL) {
-            echo(NotInAChannel("/Kick"));
+            echo(tstar, NotInAChannel("/Kick"));
             return;
         }
         channel = wt.widget->getTarget();
@@ -371,15 +369,15 @@ void ICommand::ban(QString channel, QString nickname)
 void ICommand::raw(QString data)
 {
     sockwrite(data); // Send raw data.
-    echo( tr("[RAW] %1")
-            .arg(data)
+    echo( "", tr("[RAW] %1")
+                .arg(data)
          );
 }
 
 void ICommand::ctcp(QString target, QString message)
 {
 
-    echo( QString("[CTCP %1] to %2")
+    echo( "", QString("[CTCP %1] to %2")
             .arg(message)
             .arg(target),
           PT_CTCP
@@ -426,7 +424,7 @@ void ICommand::charset(QString newCodec)
 void ICommand::ping()
 {
     QString ms = QString::number(QDateTime::currentMSecsSinceEpoch());
-    echo(tr("Sending PING to server..."), PT_SERVINFO);
+    echo(tstar, tr("Sending PING to server..."), PT_SERVINFO);
 
     sockwrite( QString("PING :%1")
                  .arg(ms)
@@ -449,13 +447,13 @@ void ICommand::chansettings()
 void ICommand::localMsg(QString message)
 {
     subwindow_t wt = getCurrentSubwin();
-    wt.widget->print(message, PT_LOCALINFO);
+    wt.widget->print(message, tstar, PT_LOCALINFO);
 }
 
-void ICommand::echo(QString message, int ptype)
+void ICommand::echo(QString sender, QString message, int ptype)
 {
     subwindow_t wt = getCurrentSubwin();
-    wt.widget->print(message, ptype);
+    wt.widget->print(sender, message, ptype);
 }
 
 void ICommand::sockwrite(QString data)

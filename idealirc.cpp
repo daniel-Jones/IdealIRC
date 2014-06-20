@@ -163,8 +163,6 @@ void IdealIRC::showEvent(QShowEvent *)
 
     scriptParent.loadAllScripts();
     scriptParent.runevent(te_start);
-
-    CreateSubWindow("#Test", WT_CHANNEL, 1, true);
 }
 
 void IdealIRC::closeEvent(QCloseEvent *e)
@@ -792,19 +790,23 @@ void IdealIRC::chanlistEnabler()
 void IdealIRC::updateTreeViewColor()
 {
     QPalette treePal = ui->treeWidget->palette();
-    treePal.setColor(QPalette::Active, QPalette::Base, conf.colWindowlistBackground);
-    treePal.setColor(QPalette::Active, QPalette::AlternateBase, conf.colWindowlistBackground);
-    treePal.setColor(QPalette::Inactive, QPalette::Base, conf.colWindowlistBackground);
-    treePal.setColor(QPalette::Inactive, QPalette::AlternateBase, conf.colWindowlistBackground);
-    treePal.setColor(QPalette::Disabled, QPalette::Base, conf.colWindowlistBackground);
-    treePal.setColor(QPalette::Disabled, QPalette::AlternateBase, conf.colWindowlistBackground);
-    treePal.setColor(QPalette::Active, QPalette::Text, conf.colWindowlist);
-    treePal.setColor(QPalette::Active, QPalette::WindowText, conf.colWindowlist);
-    treePal.setColor(QPalette::Inactive, QPalette::Text, conf.colWindowlist);
-    treePal.setColor(QPalette::Inactive, QPalette::WindowText, conf.colWindowlist);
-    treePal.setColor(QPalette::Disabled, QPalette::Text, conf.colWindowlist);
-    treePal.setColor(QPalette::Disabled, QPalette::WindowText, conf.colWindowlist);
+
+    treePal.setColor(QPalette::Active,    QPalette::Base,            conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Active,    QPalette::AlternateBase,   conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Inactive,  QPalette::Base,            conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Inactive,  QPalette::AlternateBase,   conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Disabled,  QPalette::Base,            conf.colWindowlistBackground);
+    treePal.setColor(QPalette::Disabled,  QPalette::AlternateBase,   conf.colWindowlistBackground);
+
+    treePal.setColor(QPalette::Active,    QPalette::Text,            conf.colWindowlist);
+    treePal.setColor(QPalette::Active,    QPalette::WindowText,      conf.colWindowlist);
+    treePal.setColor(QPalette::Inactive,  QPalette::Text,            conf.colWindowlist);
+    treePal.setColor(QPalette::Inactive,  QPalette::WindowText,      conf.colWindowlist);
+    treePal.setColor(QPalette::Disabled,  QPalette::Text,            conf.colWindowlist);
+    treePal.setColor(QPalette::Disabled,  QPalette::WindowText,      conf.colWindowlist);
+
     ui->treeWidget->setPalette(treePal);
+
 
     QHashIterator<int,subwindow_t> i(winlist);
     while (i.hasNext()) {
