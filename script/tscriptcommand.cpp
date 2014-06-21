@@ -70,7 +70,7 @@ bool TScriptCommand::parse(QString &command)
             text = text.mid( target.length()+1 );
         }
 
-        echo(target, tstar, text);
+        echo(target, "", text);
 
         return true;
     }
