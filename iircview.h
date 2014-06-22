@@ -8,6 +8,8 @@
 #include <QWheelEvent>
 #include <QTimer>
 #include <QScrollBar>
+#include <QPoint>
+#include <QLine>
 
 #include "config.h"
 #include "constants.h"
@@ -26,6 +28,11 @@ typedef struct PRINTLINE_T {
     QString sender; // who or what sent the text
     QVector<QString> lines;
 } printLine_t;
+
+typedef struct LINK_T {
+    QString url;
+    QRect area; // rectangle of clickable area
+} t_Link;
 
 class IIRCView : public QWidget
 {
@@ -53,11 +60,17 @@ private:
     QScrollBar scrollbar;
     QVector<printLine_t> visibleLines;
 
+    bool draggingText;
+    QLine textCpyVect;
+    QString textToCopy;
+
+    QVector<t_Link> links;
+
 protected:
     void paintEvent(QPaintEvent *);
     void mouseMoveEvent(QMouseEvent *e);
     void mousePressEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *e);
     void wheelEvent(QWheelEvent *e);
 };
 

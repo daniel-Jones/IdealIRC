@@ -16,7 +16,8 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
     lastUpdate(0),
     splitterPos(150),
     resizingSplitter(false),
-    scrollbar(this)
+    scrollbar(this),
+    draggingText(false)
 {
     fm = new QFontMetrics(font());
     fontSize = fm->height();
@@ -180,8 +181,13 @@ void IIRCView::paintEvent(QPaintEvent *)
 
     QPainter painter(this);
 
+    links.clear();
+
     // Background
     painter.fillRect(0, 0, width(), height(), conf->colBackground);
+
+    painter.setPen( Qt::red );
+    painter.drawLine(textCpyVect);
 
     // Splitter
     painter.setPen( invertColor(conf->colBackground) );
@@ -314,14 +320,21 @@ void IIRCView::paintEvent(QPaintEvent *)
 
         int printY = Y;
         QVectorIterator<QString> si(pl.lines);
+        QString url;
+        bool readURL = false;
         while (si.hasNext()) {
             QString line = si.next();
+
+            if (draggingText) {
+
+            }
 
             int X = splitterPos+5;
 
             for (int ic = 0; ic <= line.length()-1; ++ic) {
                 QChar c = line[ic];
                 int fw = fm->width(c);
+
                 if (c == CTRL_BOLD) {
                     QFont font = painter.font();
                     bold = !bold;
@@ -402,8 +415,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                     font.setUnderline(false);
                     painter.setPen(getColorFromType(pl.type)); // TODO use config
                     painter.setFont(font);
-                }
-
+                }            
 
                 if (color)
                     painter.fillRect(X, printY-fontSize, fw+1, fontSize+2, bgColor);
@@ -411,6 +423,24 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                 if (underline)
                     painter.drawLine(X, printY+2, X+fw, printY+2);
+
+
+                if (c == ' ') {
+                    if (readURL) {
+                        // Create url
+                        qDebug() << "found url:" << url;
+                        readURL = false;
+                    }
+
+                    url.clear();
+                }
+                else
+                    url += c;
+
+                if (url.toUpper() == "HTTP://") {
+                    readURL = true;
+                    continue;
+                }
 
                 X += fw;
 
@@ -420,6 +450,9 @@ void IIRCView::paintEvent(QPaintEvent *)
 
         } // while (si.hasNext())
 
+        if (readURL)
+            qDebug() << "found url:" << url;
+
     } // while (i.hasNext())
 
 }
@@ -427,20 +460,27 @@ void IIRCView::paintEvent(QPaintEvent *)
 void IIRCView::mouseMoveEvent(QMouseEvent *e)
 {
     int x = e->pos().x();
+
+    // Change mouse cursor...
     if ((x >= (splitterPos-3)) && (x <= (splitterPos+3)))
         setCursor(Qt::SplitHCursor);
     else if (! resizingSplitter)
         setCursor(Qt::ArrowCursor);
 
-    if (! resizingSplitter)
+    if (draggingText) {
+        textCpyVect.setP2( QPoint(e->pos().x(), e->pos().y()) );
         return;
+    }
 
-    if ((x <= 50) || (x >= width()-50))
+    if (resizingSplitter) {
+        if ((x <= 50) || (x >= width()-50))
+            return;
+
+
+        splitterPos = x;
+        update();
         return;
-
-
-    splitterPos = x;
-    update();
+    }
 }
 
 void IIRCView::mousePressEvent(QMouseEvent *e)
@@ -448,10 +488,24 @@ void IIRCView::mousePressEvent(QMouseEvent *e)
     int x = e->pos().x();
     if ((x >= (splitterPos-3)) && (x <= (splitterPos+3)))
         resizingSplitter = true;
+
+    if (x > splitterPos+5) {
+        // probable text copy
+        textCpyVect.setP1( QPoint(e->pos().x(), e->pos().y()) );
+        draggingText = true;
+    }
 }
 
-void IIRCView::mouseReleaseEvent(QMouseEvent *)
+void IIRCView::mouseReleaseEvent(QMouseEvent *e)
 {
+    if (draggingText) {
+        // copy text if any.
+        textCpyVect.setP2( QPoint(e->pos().x(), e->pos().y()) );
+        qDebug() << "Copy:" << textCpyVect;
+        update();
+
+    }
+    draggingText = false;
     resizingSplitter = false;
 }
 
