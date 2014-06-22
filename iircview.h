@@ -20,19 +20,25 @@ typedef struct T_TEXT {
     QString sender; // who or what sent the text
     QString text; // actual text
     bool reset; // Used when printing texts, reset ctrl codes, links, etc.
-} text_t;
+} t_text;
 
 typedef struct PRINTLINE_T {
     int type; // what type? (what main color)
     quint64 ts; // timestamp of when the text was written
     QString sender; // who or what sent the text
     QVector<QString> lines;
-} printLine_t;
+} t_printLine;
 
 typedef struct LINK_T {
     QString url;
     QRect area; // rectangle of clickable area
 } t_Link;
+
+typedef struct ANCHOR_T {
+    QPoint P1;
+    QPoint P2;
+    QString url;
+} t_Anchor;
 
 class IIRCView : public QWidget
 {
@@ -48,7 +54,7 @@ private:
     QColor invertColor(QColor c);
     QColor getColorFromType(int type); // see constants.h for PT_*
     config *conf;
-    QVector<text_t> lines;
+    QVector<t_text> lines;
     quint64 lastUpdate;
     int fontSize;
     int splitterPos;
@@ -58,13 +64,15 @@ private:
     QFontMetrics *fm;
     QTimer cooldown; // When update is ran many times in a row, we want a cooldown to prevent the display to lag.
     QScrollBar scrollbar;
-    QVector<printLine_t> visibleLines;
+    QVector<t_printLine> visibleLines;
+    QVector<t_Anchor> anchors;
 
     bool draggingText;
     QLine textCpyVect;
     QString textToCopy;
 
     QVector<t_Link> links;
+    QString getLink(int x, int y);
 
 protected:
     void paintEvent(QPaintEvent *);
