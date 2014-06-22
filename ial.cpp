@@ -21,6 +21,7 @@
 #include <QListIterator>
 #include <QDebug>
 #include <QDateTime>
+#include <QHashIterator>
 
 #include "ial.h"
 #include "iconnection.h"
@@ -287,6 +288,24 @@ bool IAL::isRegular(QString nickname, QString channel)
 {
     QList<char> modes = getModeChars(nickname, channel, false);
     return modes.isEmpty();
+}
+
+int IAL::userCount(QString channel)
+{
+    QHash<QString,int> chanList; // when filled out, a precise table of usercount per channel
+    QHashIterator<QString,IALEntry_t*> i(entries);
+    while (i.hasNext()) {
+        IALEntry_t *entry = i.next().value(); // we dont need nickname
+
+        QListIterator<IALChannel_t*> iu(entry->channels);
+        while (iu.hasNext()) {
+            IALChannel_t *c = iu.next();
+            int count = chanList.value(c->name.toUpper(), 0);
+            chanList.insert(c->name.toUpper(), count+1);
+        }
+    }
+
+    return chanList.value(channel.toUpper(), 0);
 }
 
 void IAL::setChannelBan(QString channel, QString nickname)

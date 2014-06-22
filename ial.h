@@ -74,6 +74,8 @@ public:
     bool isVoiced(QString nickname, QString channel);
     bool isRegular(QString nickname, QString channel);
 
+    int userCount(QString channel);
+
     void setChannelBan(QString channel, QString nickname);
 
 private:

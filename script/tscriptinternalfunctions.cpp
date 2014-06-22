@@ -127,6 +127,16 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "COUNT") {
+        // counts users in a channel
+        if (param.length() == 0)
+            return false;
+
+        IConnection* con = conList->value(*activeConn);
+        result = QString::number( con->ial.userCount(param[0]) );
+        return true;
+    }
+
     if (fn == "CHAR") {
         if (param.length() == 0)
             return false;
