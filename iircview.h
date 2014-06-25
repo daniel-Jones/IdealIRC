@@ -61,6 +61,7 @@ private:
     QScrollBar scrollbar;
     QVector<t_printLine> visibleLines;
 
+    bool mouseDown;
     bool draggingText;
     QLine textCpyVect;
     QString textToCopy;

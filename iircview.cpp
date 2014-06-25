@@ -18,6 +18,7 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
     splitterPos(150),
     resizingSplitter(false),
     scrollbar(this),
+    mouseDown(false),
     draggingText(false)
 {
     fm = new QFontMetrics(font());
@@ -310,8 +311,9 @@ void IIRCView::paintEvent(QPaintEvent *)
     bool underline = false;
     bool color = false; // background color on/off
     QColor bgColor;
+    bool textCopyBg = false;
 
-    QVectorIterator<t_printLine> i(print);
+    QVectorIterator<t_printLine> i(visibleLines);
     while (i.hasNext()) {
         t_printLine pl = i.next();
 
@@ -365,10 +367,6 @@ void IIRCView::paintEvent(QPaintEvent *)
         int ln = 0; // current line number (bottom up)
         while (si.hasNext()) {
             QString line = si.next();
-
-            if (draggingText) {
-
-            }
 
             X = splitterPos+5;
 
@@ -459,7 +457,27 @@ void IIRCView::paintEvent(QPaintEvent *)
                     painter.setFont(font);
                 }            
 
-                if (color)
+                if (draggingText) {
+                    QPoint tl(X, printY-fontSize);
+                    QPoint br(X+fm->width(c), printY);
+
+                    QPoint p1 = textCpyVect.p1();
+                    if ((p1.x() >= tl.x()) && (p1.x() < br.x()) &&
+                        (p1.y() >= tl.y()) && (p1.y() < br.y())) {
+                        textCopyBg = true;
+                    }
+
+                    QPoint p2 = textCpyVect.p2();
+                    if ((p2.x() >= tl.x()) && (p2.x() < br.x()) &&
+                        (p2.y() >= tl.y()) && (p2.y() < br.y())) {
+                        textCopyBg = false;
+                    }
+
+                }
+
+                if (textCopyBg)
+                    painter.fillRect(X, printY-fontSize, fw+1, fontSize+2, invertColor(conf->colBackground));
+                else if (color)
                     painter.fillRect(X, printY-fontSize, fw+1, fontSize+2, bgColor);
                 painter.drawText(QPoint(X, printY), c);
 
@@ -472,14 +490,12 @@ void IIRCView::paintEvent(QPaintEvent *)
                 if (c == ' ') {
                     if (readURL) {
                         // Create url
-                        qDebug() << "found url:" << url;
                         readURL = false;
                         paintLink = false;
                         painter.setPen( getColorFromType(pl.type) );
 
                         anchor.P2 = QPoint(X, printY);
                         addUrl << anchor;
-                        qDebug() << "set 1";
                         setAnchorUrl(&addUrl, url);
                         anchors << addUrl;
                     }
@@ -497,7 +513,6 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                     if (! si.hasNext()) {
                         // this is also last line to send out if this printline.
-                        qDebug() << "set 2";
                         readURL = false;
                         paintLink = false;
 
@@ -527,7 +542,10 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                     // Erase with background color
                     // (!!) Background images is not possible before we add some way to refresh background image...
-                    painter.fillRect(X, printY-fm->height()+4, ulen, fm->height(), conf->colBackground);
+                    QColor bgcol = conf->colBackground;
+                    if (textCopyBg)
+                        bgcol = invertColor( conf->colBackground );
+                    painter.fillRect(X, printY-fm->height()+4, ulen, fm->height()+1, bgcol);
 
                     // Set pen color to links
                     painter.setPen(conf->colLinks);
@@ -571,8 +589,11 @@ void IIRCView::mouseMoveEvent(QMouseEvent *e)
     if (currentCursor != newCursor)
         setCursor(newCursor);
 
+    draggingText = mouseDown;
+
     if (draggingText) {
         textCpyVect.setP2( QPoint(e->pos().x(), e->pos().y()) );
+        update();
         return;
     }
 
@@ -597,7 +618,7 @@ void IIRCView::mousePressEvent(QMouseEvent *e)
     if (x > splitterPos+5) {
         // probable text copy
         textCpyVect.setP1( QPoint(e->pos().x(), e->pos().y()) );
-        draggingText = true;
+        mouseDown = true;
     }
 }
 
@@ -606,23 +627,75 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
     if (draggingText) {
         // copy text if any.
         textCpyVect.setP2( QPoint(e->pos().x(), e->pos().y()) );
-        qDebug() << "Copy:" << textCpyVect;
-        update();
 
+        int Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
+        QVectorIterator<t_printLine> i(visibleLines);
+        QString text;
+        bool done = false;
+        while (i.hasNext()) {
+            t_printLine pl = i.next();
+
+            Y -= fontSize * pl.lines.count();
+            int printY = Y;
+
+            QVectorIterator<QString> is(pl.lines);
+            while (is.hasNext()) {
+                QString line = is.next();
+                int X = splitterPos+5;
+
+                for (int ic = 0; ic <= line.count()-1; ++ic) {
+                    QChar c = line[ic];
+                    QPoint tl(X, printY-fontSize);
+                    QPoint br(X+fm->width(c), printY);
+                    QPoint p2 = textCpyVect.p2();
+
+                    X += fm->width(c);
+
+                    if ((p2.x() >= tl.x()) && (p2.x() < br.x()) &&
+                        (p2.y() >= tl.y()) && (p2.y() < br.y())) {
+                        text += c;
+                        done = true;
+                        break;
+                    }
+
+                    if (! text.isEmpty()) {
+                        text += c;
+                        continue;
+                    }
+
+                    QPoint p1 = textCpyVect.p1();
+                    if ((p1.x() >= tl.x()) && (p1.x() < br.x()) &&
+                        (p1.y() >= tl.y()) && (p1.y() < br.y())) {
+                        text += c;
+                    }
+                }
+
+                if (done)
+                    break;
+
+                printY += fontSize;
+
+            }
+
+            if (done)
+                break;
+
+            if (! text.isEmpty())
+                text.append('\n');
+
+        }
+        qDebug() << "Copy:" << text;
     }
-    draggingText = false;
+
+    if (! draggingText) {
+        QString link = getLink(e->pos().x(), e->pos().y());
+        if (! link.isEmpty())
+            QDesktopServices::openUrl( QUrl(link) );
+    }
+
+    mouseDown = false;
     resizingSplitter = false;
-
-    // check for anchor clicking, avoid opening URLs if we're copying text.
-    /*if (draggingText == false) {
-
-    }
-    */
-
-    QString link = getLink(e->pos().x(), e->pos().y());
-    if (! link.isEmpty())
-        QDesktopServices::openUrl( QUrl(link) );
-
+    update();
 }
 
 void IIRCView::wheelEvent(QWheelEvent *e)
