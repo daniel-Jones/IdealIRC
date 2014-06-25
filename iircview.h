@@ -29,11 +29,6 @@ typedef struct PRINTLINE_T {
     QVector<QString> lines;
 } t_printLine;
 
-typedef struct LINK_T {
-    QString url;
-    QRect area; // rectangle of clickable area
-} t_Link;
-
 typedef struct ANCHOR_T {
     QPoint P1;
     QPoint P2;
@@ -65,14 +60,15 @@ private:
     QTimer cooldown; // When update is ran many times in a row, we want a cooldown to prevent the display to lag.
     QScrollBar scrollbar;
     QVector<t_printLine> visibleLines;
-    QVector<t_Anchor> anchors;
 
     bool draggingText;
     QLine textCpyVect;
     QString textToCopy;
 
-    QVector<t_Link> links;
     QString getLink(int x, int y);
+
+    QVector<t_Anchor> anchors;
+    void setAnchorUrl(QVector<t_Anchor>* lstPtr, QString url);
 
 protected:
     void paintEvent(QPaintEvent *);

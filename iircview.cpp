@@ -40,6 +40,7 @@ void IIRCView::changeFont(QString fontName, int pxSize)
     setFont(f);
     delete fm;
     fm = new QFontMetrics(font());
+    fontSize = fm->height();
     update();
 }
 
@@ -171,12 +172,21 @@ QString IIRCView::getLink(int x, int y)
         t_Anchor anchor = ia.next();
 
         if ((x >= anchor.P1.x()) && (x <= anchor.P2.x()) &&
-            (y >= anchor.P1.y()) && (y <= anchor.P2.y()))
+            (y >= anchor.P1.y()) && (y <= anchor.P2.y())) {
             return anchor.url;
+        }
 
     }
-
     return QString();
+}
+
+void IIRCView::setAnchorUrl(QVector<t_Anchor> *lstPtr, QString url)
+{
+    for (int i = 0; i <= lstPtr->count()-1; ++i) {
+        t_Anchor a = lstPtr->at(i);
+        a.url = url;
+        lstPtr->replace(i, a);
+    }
 }
 
 void IIRCView::paintEvent(QPaintEvent *)
@@ -197,19 +207,17 @@ void IIRCView::paintEvent(QPaintEvent *)
 
     QPainter painter(this);
 
-    links.clear();
-
     // Background
     painter.fillRect(0, 0, width(), height(), conf->colBackground);
 
-    painter.setPen( Qt::red );
-    painter.drawLine(textCpyVect);
+    //painter.setPen( Qt::red );
+    //painter.drawLine(textCpyVect);
 
     // Splitter
     painter.setPen( invertColor(conf->colBackground) );
     painter.drawLine(splitterPos, -20, splitterPos, height());
 
-    int maxWidth = width()-splitterPos-5-scrollbar.width()-15;
+    int maxWidth = width()-splitterPos-scrollbar.width()-45;
 
     anchors.clear();
     // Text items
@@ -218,7 +226,7 @@ void IIRCView::paintEvent(QPaintEvent *)
     int Y = height() - fontSize;
     for (int i = lines.count()-scrollbar.value()-1; (i >= 0 && Y > -fontSize-1); --i) {
 
-        Y -= fontSize - 3;
+        Y -= fontSize;
         t_text t = lines[i];
 
         // Check if splitter needs resize.
@@ -279,7 +287,7 @@ void IIRCView::paintEvent(QPaintEvent *)
         if (list.count() >= 2) {
             QString s = list.last();
             list.pop_back();
-            s.prepend(' ');
+
             list << s;
         }
 
@@ -295,8 +303,9 @@ void IIRCView::paintEvent(QPaintEvent *)
     // store our array of lines to print.
     visibleLines = print;
 
+
     // Draw items from vector
-    Y = height();
+    Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
     bool bold = false;
     bool underline = false;
     bool color = false; // background color on/off
@@ -306,7 +315,10 @@ void IIRCView::paintEvent(QPaintEvent *)
     while (i.hasNext()) {
         t_printLine pl = i.next();
 
-        Y -= fontSize*pl.lines.count() + (3 * pl.lines.count());
+        Y -= fontSize * pl.lines.count();
+
+        if (Y < -fontSize)
+            break; // No need to draw outside. finished
 
         // Set defaults.
         bold = false;
@@ -346,9 +358,11 @@ void IIRCView::paintEvent(QPaintEvent *)
         int printY = Y;
         QVectorIterator<QString> si(pl.lines);
         QString url;
+        QVector<t_Anchor> addUrl;
         bool readURL = false;
         bool paintLink = false;
         int X, fw;
+        int ln = 0; // current line number (bottom up)
         while (si.hasNext()) {
             QString line = si.next();
 
@@ -361,6 +375,7 @@ void IIRCView::paintEvent(QPaintEvent *)
             for (int ic = 0; ic <= line.length()-1; ++ic) {
                 QChar c = line[ic];
                 fw = fm->width(c);
+                ++ln;
 
                 if (c == CTRL_BOLD) {
                     QFont font = painter.font();
@@ -451,54 +466,92 @@ void IIRCView::paintEvent(QPaintEvent *)
                 if (underline)
                     painter.drawLine(X, printY+2, X+fw, printY+2);
 
+                if ((ic == 0) && (!readURL))
+                    url.clear();
 
                 if (c == ' ') {
                     if (readURL) {
                         // Create url
-                        //qDebug() << "found url:" << url;
+                        qDebug() << "found url:" << url;
                         readURL = false;
                         paintLink = false;
                         painter.setPen( getColorFromType(pl.type) );
-                        anchor.P2 = QPoint(X+fw, printY);
-                        anchor.url = url;
-                        anchors << anchor;
+
+                        anchor.P2 = QPoint(X, printY);
+                        addUrl << anchor;
+                        qDebug() << "set 1";
+                        setAnchorUrl(&addUrl, url);
+                        anchors << addUrl;
                     }
 
                     url.clear();
                 }
-                else
+                if (c != ' ')
                     url += c;
 
-                if (url.toUpper() == "HTTP://") { // needs regex for HTTP(S)/FTP/IRC
-                    readURL = true;
-                    paintLink = true;
-                    int ulen = fm->width(url);
-                    int ux = X-ulen+fw;
+                if ((ic == line.length()-1) && (readURL)) {
+                    // End of line, add anchor coords and expect to begin on next line
+                    // with same url...
+                    anchor.P2 = QPoint(X+fw, printY);
+                    addUrl << anchor;
 
-                    painter.fillRect(ux-2, printY-fontSize+3, ulen, fontSize, conf->colBackground);
-                    painter.setPen( conf->colLinks );
-                    painter.drawText(ux, printY, url);
-                    anchor.P1 = QPoint(ux-1, printY-fontSize+3);
+                    if (! si.hasNext()) {
+                        // this is also last line to send out if this printline.
+                        qDebug() << "set 2";
+                        readURL = false;
+                        paintLink = false;
+
+                        anchor.P2 = QPoint(X+fw, printY);
+
+                        addUrl << anchor;
+                        setAnchorUrl(&addUrl, url);
+                        anchors << addUrl;
+
+                        painter.setPen( getColorFromType(pl.type) );
+                    }
                 }
+
+                if ((ic == 0) && (readURL)) // URL continues... prepare it.
+                    anchor.P1 = QPoint(X, printY-fontSize+3);
 
                 X += fw;
 
+                if (((url.toUpper() == "HTTP://") || (url.toUpper() == "HTTPS://")) && (! readURL)) { // TODO: needs regex for HTTP(S)/FTP/IRC
+                    readURL = true;
+                    paintLink = true;
+                    addUrl.clear();
+                    // find X to beginning of 'url'
+                    int ulen = fm->width(url);
+                    X -= ulen;
+                    // (!!) Y could be affected if there is a line shift inside 'url'
+
+                    // Erase with background color
+                    // (!!) Background images is not possible before we add some way to refresh background image...
+                    painter.fillRect(X, printY-fm->height()+4, ulen, fm->height(), conf->colBackground);
+
+                    // Set pen color to links
+                    painter.setPen(conf->colLinks);
+
+                    // Store xy for anchor point bounding box
+                    anchor.P1 = QPoint(X, printY-fm->height()+4);
+                    painter.drawText(X, printY, url);
+
+                    // Set back X, new letter adds and we get proper X set back on next round
+                    X += ulen;
+                }
+
+
+
             } // for (int ic = 0; ic <= line.length()-1; ++ic)
 
-            printY += fontSize + 3;
+            printY += fontSize;
 
         } // while (si.hasNext())
 
-        if (readURL) { // URL not done parsing, no more to parse, this is the complete last url.
-            readURL = false;
-            paintLink = false;
-            painter.setPen( getColorFromType(pl.type) );
-            anchor.P2 = QPoint(X+fw, printY);
-            anchor.url = url;
-            anchors << anchor;
-        }
 
     } // while (i.hasNext())
+
+
 
 }
 
