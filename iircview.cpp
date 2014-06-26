@@ -46,6 +46,12 @@ void IIRCView::changeFont(QString fontName, int pxSize)
     update();
 }
 
+void IIRCView::clear()
+{
+    lines.clear();
+    update();
+}
+
 QColor IIRCView::getColorFromCode(int num)
 {
       switch(num) {
@@ -745,3 +751,18 @@ void IIRCView::wheelEvent(QWheelEvent *e)
     draggingText = false;
 }
 
+void IIRCView::focusInEvent(QFocusEvent *e)
+{
+    emit gotFocus();
+    e->ignore();
+}
+
+void IIRCView::contextMenuEvent(QContextMenuEvent *e)
+{
+    emit menuRequested(e->globalPos());
+}
+
+void IIRCView::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    emit mouseDblClick();
+}

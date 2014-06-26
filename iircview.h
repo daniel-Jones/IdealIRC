@@ -44,6 +44,7 @@ public:
     void addLine(QString sender, QString text, int type = PT_NORMAL);
     int getSplitterPos() { return splitterPos; }
     void changeFont(QString fontName, int pxSize);
+    void clear();
 
 private:
     QColor getColorFromCode(int num);
@@ -79,6 +80,15 @@ protected:
     void mousePressEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
     void wheelEvent(QWheelEvent *e);
+    void focusInEvent(QFocusEvent *e);
+    void contextMenuEvent(QContextMenuEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e);
+
+signals:
+    void joinChannel(QString channel);
+    void gotFocus();
+    void menuRequested(QPoint point);
+    void mouseDblClick();
 };
 
 #endif // IIRCVIEW_H

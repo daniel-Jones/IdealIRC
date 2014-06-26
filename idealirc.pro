@@ -27,7 +27,6 @@ RC_FILE = idealirc.rc
 SOURCES += main.cpp\
         idealirc.cpp \
     iwin.cpp \
-    tircview.cpp \
     config.cpp \
     inifile.cpp \
     tpicturewindow.cpp \
@@ -87,7 +86,6 @@ SOURCES += main.cpp\
 HEADERS  += idealirc.h \
     iwin.h \
     constants.h \
-    tircview.h \
     config.h \
     inifile.h \
     tpicturewindow.h \
