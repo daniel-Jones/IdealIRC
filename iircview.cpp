@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QVectorIterator>
 #include <QDesktopServices>
+#include <QApplication>
 
 #include "iircview.h"
 #include "constants.h"
@@ -166,6 +167,18 @@ void IIRCView::addLine(QString sender, QString text, int type)
     update();
 }
 
+int IIRCView::getLineCount(QVector<t_printLine> *lstPtr)
+{
+    int total = 0;
+    QVectorIterator<t_printLine> i(*lstPtr);
+    while (i.hasNext()) {
+        t_printLine pl = i.next();
+        total += pl.lines.count();
+    }
+
+    return total;
+}
+
 QString IIRCView::getLink(int x, int y)
 {
     QVectorIterator<t_Anchor> ia(anchors);
@@ -245,7 +258,7 @@ void IIRCView::paintEvent(QPaintEvent *)
             pl.ts = t.ts;
             pl.sender = t.sender;
             pl.lines << t.text;
-            print << pl;
+            print.push_front( pl );
             continue;
         }
 
@@ -298,7 +311,7 @@ void IIRCView::paintEvent(QPaintEvent *)
         pl.sender = t.sender;
         pl.lines << list;
 
-        print << pl;
+        print.push_front( pl );
     } // for (int i = lines.count()-scrollbar.value()-1; (i >= 0 && Y > -fontSize-1); --i)
 
     // store our array of lines to print.
@@ -306,7 +319,9 @@ void IIRCView::paintEvent(QPaintEvent *)
 
 
     // Draw items from vector
-    Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
+    //Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
+    Y = height() - (fontSize * getLineCount(&visibleLines));
+    qDebug() << "Y=" << Y << "(" << height() << "-" << fontSize * getLineCount(&visibleLines) << ")";
     bool bold = false;
     bool underline = false;
     bool color = false; // background color on/off
@@ -316,11 +331,6 @@ void IIRCView::paintEvent(QPaintEvent *)
     QVectorIterator<t_printLine> i(visibleLines);
     while (i.hasNext()) {
         t_printLine pl = i.next();
-
-        Y -= fontSize * pl.lines.count();
-
-        if (Y < -fontSize)
-            break; // No need to draw outside. finished
 
         // Set defaults.
         bold = false;
@@ -332,10 +342,6 @@ void IIRCView::paintEvent(QPaintEvent *)
         painter.setPen( getColorFromType(pl.type) );
         painter.setFont(font);
         QColor textcolor = getColorFromType(pl.type);
-
-
-       // painter.setFont(this->font()); // remove any bolds if any...
-     //   painter.setPen( getColorFromType(pl.type) );
 
         // Draw timestamp
         QString ts = QDateTime::fromMSecsSinceEpoch(pl.ts).toString("[hh:mm]");
@@ -357,7 +363,7 @@ void IIRCView::paintEvent(QPaintEvent *)
         // Loop through text list and add colors and stuff.
 
         t_Anchor anchor;
-        int printY = Y;
+       // int printY = Y;
         QVectorIterator<QString> si(pl.lines);
         QString url;
         QVector<t_Anchor> addUrl;
@@ -368,7 +374,7 @@ void IIRCView::paintEvent(QPaintEvent *)
         while (si.hasNext()) {
             QString line = si.next();
 
-            X = splitterPos+5;
+            X = splitterPos+7;
 
             for (int ic = 0; ic <= line.length()-1; ++ic) {
                 QChar c = line[ic];
@@ -395,7 +401,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                     if ((! c.isDigit()) && (c != ',')) { // reset
                         color = false;
                         painter.setPen( getColorFromType(pl.type) ); // TODO: config color
-                        continue;
+                        continue;;
                     }
 
                     QString s;
@@ -458,8 +464,8 @@ void IIRCView::paintEvent(QPaintEvent *)
                 }            
 
                 if (draggingText) {
-                    QPoint tl(X, printY-fontSize);
-                    QPoint br(X+fm->width(c), printY);
+                    QPoint tl(X, Y);
+                    QPoint br(X+fm->width(c), Y+fontSize);
 
                     QPoint p1 = textCpyVect.p1();
                     if ((p1.x() >= tl.x()) && (p1.x() < br.x()) &&
@@ -471,18 +477,20 @@ void IIRCView::paintEvent(QPaintEvent *)
                     if ((p2.x() >= tl.x()) && (p2.x() < br.x()) &&
                         (p2.y() >= tl.y()) && (p2.y() < br.y())) {
                         textCopyBg = false;
+                        painter.fillRect(X, Y, fw+1, fontSize+2, invertColor(conf->colBackground));
                     }
+
+                    if (textCopyBg)
+                        painter.fillRect(X, Y, fw+1, fontSize+2, invertColor(conf->colBackground));
+                    else if (color)
+                        painter.fillRect(X, Y, fw+1, fontSize+2, bgColor);
 
                 }
 
-                if (textCopyBg)
-                    painter.fillRect(X, printY-fontSize, fw+1, fontSize+2, invertColor(conf->colBackground));
-                else if (color)
-                    painter.fillRect(X, printY-fontSize, fw+1, fontSize+2, bgColor);
-                painter.drawText(QPoint(X, printY), c);
+                painter.drawText(QPoint(X, Y), c);
 
                 if (underline)
-                    painter.drawLine(X, printY+2, X+fw, printY+2);
+                    painter.drawLine(X, Y+2, X+fw, Y+2);
 
                 if ((ic == 0) && (!readURL))
                     url.clear();
@@ -494,7 +502,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                         paintLink = false;
                         painter.setPen( getColorFromType(pl.type) );
 
-                        anchor.P2 = QPoint(X, printY);
+                        anchor.P2 = QPoint(X, Y);
                         addUrl << anchor;
                         setAnchorUrl(&addUrl, url);
                         anchors << addUrl;
@@ -508,7 +516,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                 if ((ic == line.length()-1) && (readURL)) {
                     // End of line, add anchor coords and expect to begin on next line
                     // with same url...
-                    anchor.P2 = QPoint(X+fw, printY);
+                    anchor.P2 = QPoint(X+fw, Y);
                     addUrl << anchor;
 
                     if (! si.hasNext()) {
@@ -516,7 +524,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                         readURL = false;
                         paintLink = false;
 
-                        anchor.P2 = QPoint(X+fw, printY);
+                        anchor.P2 = QPoint(X+fw, Y);
 
                         addUrl << anchor;
                         setAnchorUrl(&addUrl, url);
@@ -527,7 +535,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                 }
 
                 if ((ic == 0) && (readURL)) // URL continues... prepare it.
-                    anchor.P1 = QPoint(X, printY-fontSize+3);
+                    anchor.P1 = QPoint(X, Y-fontSize+3);
 
                 X += fw;
 
@@ -545,27 +553,25 @@ void IIRCView::paintEvent(QPaintEvent *)
                     QColor bgcol = conf->colBackground;
                     if (textCopyBg)
                         bgcol = invertColor( conf->colBackground );
-                    painter.fillRect(X, printY-fm->height()+4, ulen, fm->height()+1, bgcol);
+                    painter.fillRect(X, Y-fontSize+2, ulen, fm->height()+1, bgcol);
 
                     // Set pen color to links
                     painter.setPen(conf->colLinks);
 
                     // Store xy for anchor point bounding box
-                    anchor.P1 = QPoint(X, printY-fm->height()+4);
-                    painter.drawText(X, printY, url);
+                    anchor.P1 = QPoint(X, Y-fm->height()+4);
+                    painter.drawText(X, Y, url);
 
                     // Set back X, new letter adds and we get proper X set back on next round
                     X += ulen;
                 }
 
 
-
             } // for (int ic = 0; ic <= line.length()-1; ++ic)
 
-            printY += fontSize;
+            Y += fontSize;
 
         } // while (si.hasNext())
-
 
     } // while (i.hasNext())
 
@@ -628,15 +634,13 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
         // copy text if any.
         textCpyVect.setP2( QPoint(e->pos().x(), e->pos().y()) );
 
-        int Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
+        //int Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
+        int Y = height() - (fontSize * getLineCount(&visibleLines));
         QVectorIterator<t_printLine> i(visibleLines);
         QString text;
         bool done = false;
         while (i.hasNext()) {
             t_printLine pl = i.next();
-
-            Y -= fontSize * pl.lines.count();
-            int printY = Y;
 
             QVectorIterator<QString> is(pl.lines);
             while (is.hasNext()) {
@@ -645,8 +649,8 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
 
                 for (int ic = 0; ic <= line.count()-1; ++ic) {
                     QChar c = line[ic];
-                    QPoint tl(X, printY-fontSize);
-                    QPoint br(X+fm->width(c), printY);
+                    QPoint tl(X, Y-fontSize);
+                    QPoint br(X+fm->width(c), Y);
                     QPoint p2 = textCpyVect.p2();
 
                     X += fm->width(c);
@@ -673,7 +677,7 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
                 if (done)
                     break;
 
-                printY += fontSize;
+                Y += fontSize;
 
             }
 
@@ -685,6 +689,7 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
 
         }
         qDebug() << "Copy:" << text;
+        QApplication::clipboard()->setText(text);
     }
 
     if (! draggingText) {

@@ -10,6 +10,7 @@
 #include <QScrollBar>
 #include <QPoint>
 #include <QLine>
+#include <QClipboard>
 
 #include "config.h"
 #include "constants.h"
@@ -66,8 +67,9 @@ private:
     QLine textCpyVect;
     QString textToCopy;
 
-    QString getLink(int x, int y);
+    int getLineCount(QVector<t_printLine>* lstPtr);
 
+    QString getLink(int x, int y);
     QVector<t_Anchor> anchors;
     void setAnchorUrl(QVector<t_Anchor>* lstPtr, QString url);
 
