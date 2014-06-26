@@ -164,6 +164,12 @@ void IIRCView::addLine(QString sender, QString text, int type)
 
     scrollbar.setMaximum(lines.count());
 
+    if (draggingText) { // Preserve selection
+        QPoint p = textCpyVect.p1();
+        p.setY( p.y() - fontSize );
+        textCpyVect.setP1(p);
+    }
+
     update();
 }
 
@@ -464,8 +470,8 @@ void IIRCView::paintEvent(QPaintEvent *)
                 }            
 
                 if (draggingText) {
-                    QPoint tl(X, Y);
-                    QPoint br(X+fm->width(c), Y+fontSize);
+                    QPoint tl(X, Y-fontSize);
+                    QPoint br(X+fw, Y);
 
                     QPoint p1 = textCpyVect.p1();
                     if ((p1.x() >= tl.x()) && (p1.x() < br.x()) &&
@@ -477,15 +483,15 @@ void IIRCView::paintEvent(QPaintEvent *)
                     if ((p2.x() >= tl.x()) && (p2.x() < br.x()) &&
                         (p2.y() >= tl.y()) && (p2.y() < br.y())) {
                         textCopyBg = false;
-                        painter.fillRect(X, Y, fw+1, fontSize+2, invertColor(conf->colBackground));
+                        painter.fillRect(X+1, Y-fontSize, fw+1, fontSize+2, invertColor(conf->colBackground));
                     }
-
-                    if (textCopyBg)
-                        painter.fillRect(X, Y, fw+1, fontSize+2, invertColor(conf->colBackground));
-                    else if (color)
-                        painter.fillRect(X, Y, fw+1, fontSize+2, bgColor);
-
                 }
+                if (textCopyBg)
+                    painter.fillRect(X+1, Y-fontSize, fw+1, fontSize+2, invertColor(conf->colBackground));
+                else if (color)
+                    painter.fillRect(X, Y, fw+1, fontSize+2, bgColor);
+
+
 
                 painter.drawText(QPoint(X, Y), c);
 
@@ -639,13 +645,19 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
         QVectorIterator<t_printLine> i(visibleLines);
         QString text;
         bool done = false;
+        bool getSender = false;
+
         while (i.hasNext()) {
             t_printLine pl = i.next();
 
+
             QVectorIterator<QString> is(pl.lines);
+            bool atStart;
             while (is.hasNext()) {
+                atStart = ! is.hasPrevious();
+
                 QString line = is.next();
-                int X = splitterPos+5;
+                int X = splitterPos+7;
 
                 for (int ic = 0; ic <= line.count()-1; ++ic) {
                     QChar c = line[ic];
@@ -663,6 +675,15 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
                     }
 
                     if (! text.isEmpty()) {
+                        if ((ic == 0) && (atStart)) {
+                            getSender = true;
+                            QString sender = pl.sender;
+                            if ((! sender.isEmpty()) && (sender != "***"))
+                                sender = QString("<%1>").arg(sender);
+                            text += QString("%1 %2 ")
+                                    .arg( QDateTime::fromMSecsSinceEpoch(pl.ts).toString("[hh:mm]") )
+                                    .arg(sender);
+                        }
                         text += c;
                         continue;
                     }
@@ -670,6 +691,17 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
                     QPoint p1 = textCpyVect.p1();
                     if ((p1.x() >= tl.x()) && (p1.x() < br.x()) &&
                         (p1.y() >= tl.y()) && (p1.y() < br.y())) {
+
+                        if ((ic == 0) && (atStart)) {
+                            getSender = true;
+                            QString sender = pl.sender;
+                            if ((! sender.isEmpty()) && (sender != "***"))
+                                sender = QString("<%1>").arg(sender);
+                            text += QString("%1 %2 ")
+                                    .arg( QDateTime::fromMSecsSinceEpoch(pl.ts).toString("[hh:mm]") )
+                                    .arg(sender);
+                        }
+
                         text += c;
                     }
                 }
@@ -709,5 +741,7 @@ void IIRCView::wheelEvent(QWheelEvent *e)
         scrollbar.setValue( scrollbar.value()+1 );
     else
         scrollbar.setValue( scrollbar.value()-1 );
+
+    draggingText = false;
 }
 
