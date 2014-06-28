@@ -140,6 +140,7 @@ private:
       void regenChannelMenus();
       void regenQueryMenu();
       void regenStatusMenu();
+      void processLineInput(QString &line);
 
 protected:
       void closeEvent(QCloseEvent *e);

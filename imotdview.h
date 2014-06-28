@@ -24,7 +24,7 @@
 #include <QDialog>
 #include <QShowEvent>
 #include <QResizeEvent>
-#include "tircview.h"
+#include "iircview.h"
 #include "config.h"
 
 namespace Ui {
@@ -39,11 +39,11 @@ public:
     explicit IMotdView(config *cfg, QWidget *parent = 0);
     ~IMotdView();
     void reset() { view->clear(); }
-    void print(QString &line);
+    void print(QString sender, QString &line);
 
 private:
     Ui::IMotdView *ui;
-    TIRCView *view;
+    IIRCView *view;
     config *conf;
 
 protected:

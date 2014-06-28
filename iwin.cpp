@@ -380,12 +380,8 @@ void IWin::updateTitleHost()
                    );
 }
 
-void IWin::inputEnterPushed()
+void IWin::processLineInput(QString &line)
 {
-    QString text = input->text();
-    if (text.length() == 0)
-        return; // Do nothing if there's no text.
-
     if (WindowType == WT_DCCCHAT) {
         DCCChat *dsock = (DCCChat*)dcc;
         dsock->inputEnterPushed(input->text());
@@ -395,19 +391,19 @@ void IWin::inputEnterPushed()
 
     input->clear();
 
-    if (text[0] == '/') {
+    if (line[0] == '/') {
 
-        bool commandOk = cmdhndl->parse(text);
+        bool commandOk = cmdhndl->parse(line);
 
         if (! commandOk) // We didn't have it in internal commands list, check for custom command.
-            commandOk = scriptParent->command(text);
+            commandOk = scriptParent->command(line);
 
         if (connection == NULL)
             return; // Nothing more to do.
 
         if ((! commandOk) && (connection->isSocketOpen() == true)) {
             // Run this if we didn't have the command, assume it's on the server.
-            sockwrite( text.mid(1) );
+            sockwrite( line.mid(1) );
         }
 
         if ((! commandOk) && (connection->isSocketOpen() == false)) {
@@ -420,7 +416,7 @@ void IWin::inputEnterPushed()
         return;
     }
 
-    if ((WindowType == WT_STATUS) && (text.at(0) != '/')) {
+    if ((WindowType == WT_STATUS) && (line[0] != '/')) {
         print(tstar, tr("You're not in a chat window!"), PT_LOCALINFO);
         return;
     }
@@ -429,7 +425,7 @@ void IWin::inputEnterPushed()
         // Reaching here means we've eliminated status window and commands. Send text to chat.
         sockwrite( QString("PRIVMSG %1 :%2")
                      .arg(target)
-                     .arg(text)
+                     .arg(line)
                   );
 
         QString mode;
@@ -443,10 +439,24 @@ void IWin::inputEnterPushed()
         if (conf->showUsermodeMsg)
             sender.prepend(mode);
 
-        print(sender, text, PT_OWNTEXT);
+        print(sender, line, PT_OWNTEXT);
     }
 
-    scriptParent->runevent(te_input, QStringList()<<objectName()<<text);
+    scriptParent->runevent(te_input, QStringList()<<objectName()<<line);
+}
+
+void IWin::inputEnterPushed()
+{
+    QString text = input->text();
+    if (text.length() == 0)
+        return; // Do nothing if there's no text.
+
+    QStringList process = text.split('\n');
+    QStringListIterator i(process);
+    while (i.hasNext()) {
+        QString line = i.next();
+        processLineInput( line );
+    }
 }
 
 void IWin::tabKeyPushed()

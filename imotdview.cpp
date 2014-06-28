@@ -28,9 +28,10 @@ IMotdView::IMotdView(config *cfg, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    view = new TIRCView(cfg, ui->frame);
+    view = new IIRCView(cfg, ui->frame);
 
     ui->checkBox->setChecked( conf->showMotd );
+
 }
 
 IMotdView::~IMotdView()
@@ -38,14 +39,15 @@ IMotdView::~IMotdView()
     delete ui;
 }
 
-void IMotdView::print(QString &line)
+void IMotdView::print(QString sender, QString &line)
 {
-    view->addLine(line);
+    view->addLine(sender, line);
 }
 
 void IMotdView::showEvent(QShowEvent *)
 {
     view->setGeometry( ui->frame->geometry() );
+    view->changeFont( conf->fontName, conf->fontSize );
 }
 
 void IMotdView::resizeEvent(QResizeEvent *)

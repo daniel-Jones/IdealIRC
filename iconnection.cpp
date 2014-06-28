@@ -112,7 +112,6 @@ void IConnection::tryConnect()
 
     tryingConnect = true;
     socket.connectToHost(host, port, QIODevice::ReadWrite | QIODevice::Text);
-
 }
 
 void IConnection::addWindow(QString name, subwindow_t win)
@@ -2186,7 +2185,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
     else if ((numeric == RPL_MOTD) && (conf->showMotd)) {
         QString text = getMsg(data);
-        motd.print(text);
+        motd.print("", text);
         return;
     }
 
