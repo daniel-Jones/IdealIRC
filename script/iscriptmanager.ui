@@ -13,8 +13,12 @@
   <property name="windowTitle">
    <string>Script manager</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources.qrc">
+    <normaloff>:/toolicons/gfx/main_scripts.png</normaloff>:/toolicons/gfx/main_scripts.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="3">
+   <item row="2" column="3">
     <widget class="QToolButton" name="btnEdit">
      <property name="text">
       <string>E</string>
@@ -31,7 +35,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
+   <item row="1" column="3">
     <widget class="QToolButton" name="btnLoad">
      <property name="text">
       <string>L</string>
@@ -48,7 +52,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="3">
+   <item row="4" column="3">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -61,7 +65,7 @@
      </property>
     </spacer>
    </item>
-   <item row="4" column="2">
+   <item row="5" column="2">
     <widget class="QPushButton" name="btnClose">
      <property name="maximumSize">
       <size>
@@ -74,7 +78,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="5" column="1">
     <widget class="QPushButton" name="btnReload">
      <property name="maximumSize">
       <size>
@@ -87,14 +91,48 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="reloadLabel">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="0" column="0" rowspan="4" colspan="3">
+   <item row="3" column="3">
+    <widget class="QToolButton" name="btnDelete">
+     <property name="text">
+      <string>D</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../resources.qrc">
+       <normaloff>:/icons/gfx/remove.png</normaloff>:/icons/gfx/remove.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>24</width>
+       <height>24</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QToolButton" name="btnNew">
+     <property name="text">
+      <string>N</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../resources.qrc">
+       <normaloff>:/icons/gfx/new.png</normaloff>:/icons/gfx/new.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>24</width>
+       <height>24</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" rowspan="5" colspan="3">
     <widget class="QTableView" name="tableView">
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
@@ -113,23 +151,6 @@
      </property>
      <property name="showGrid">
       <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="3">
-    <widget class="QToolButton" name="btnDelete">
-     <property name="text">
-      <string>D</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../resources.qrc">
-       <normaloff>:/icons/gfx/remove.png</normaloff>:/icons/gfx/remove.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>24</width>
-       <height>24</height>
-      </size>
      </property>
     </widget>
    </item>

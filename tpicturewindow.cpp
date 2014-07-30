@@ -29,8 +29,9 @@
 
 TPictureWindow::TPictureWindow(QWidget *parent) :
   QWidget(parent),
-  pixmap(NULL),
-  viewBuffer(true)
+  pixmap(nullptr),
+  viewBuffer(true),
+  clearing(false)
 {
     setGeometry(x(), y(), parent->width(), parent->height());
     setMouseTracking(true);
@@ -38,11 +39,8 @@ TPictureWindow::TPictureWindow(QWidget *parent) :
 
 void TPictureWindow::clear()
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
-
-    lw = width();
-    lh = height();
 
     // clear current layer
     delete pixmap;
@@ -55,9 +53,6 @@ void TPictureWindow::clear()
 
 void TPictureWindow::clearAll()
 {
-    lw = width();
-    lh = height();
-
     // clear all layers
 
     QMutableHashIterator<QString,QPixmap*> i(layers);
@@ -66,7 +61,9 @@ void TPictureWindow::clearAll()
         QString name = i.key();
         QPixmap *p = i.value();
 
-        delete p;
+        if (p != nullptr)
+            delete p;
+
         p = new QPixmap(width(), height());
         p->fill(Qt::transparent);
         layers.insert(name, p);
@@ -80,7 +77,7 @@ void TPictureWindow::clearAll()
 
 void TPictureWindow::resizeEvent(QResizeEvent *e)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     int w = e->size().width();
@@ -109,7 +106,7 @@ void TPictureWindow::resizeEvent(QResizeEvent *e)
 void TPictureWindow::showEvent(QShowEvent *)
 {
     // If "pixmap" is set, this means we're already constructed.
-    if (pixmap != NULL)
+    if (pixmap != nullptr)
         return;
 
     // First time showing TPictureWindow, construct the main layer.
@@ -118,27 +115,21 @@ void TPictureWindow::showEvent(QShowEvent *)
 
     pixmap = new QPixmap(width(), height());
     pixmap->fill(Qt::transparent);
-    layers.insert("MAIN", pixmap);
-    layerOrder << "MAIN";
-    currentLayer = "MAIN";
+    setLayer("MAIN");
     update();
 }
 
 void TPictureWindow::paintEvent(QPaintEvent *e)
 {
-    if (pixmap == NULL)
-        return;
-
-    if (! viewBuffer)
+    if ((pixmap == nullptr) || (! viewBuffer))
         return;
 
     QPainter painter(this);
     painter.fillRect(0, 0, width(), height(), Qt::white);
     for (int i = 0; i <= layerOrder.length()-1; ++i) {
-        QPixmap *p = layers.value( layerOrder[i], NULL );
-        if (p == NULL)
-            continue;
-        painter.drawPixmap(0, 0, *p);
+        QPixmap *p = layers.value( layerOrder[i], nullptr );
+        if (p != nullptr)
+            painter.drawPixmap(0, 0, *p);
     }
 
     e->accept();
@@ -195,7 +186,7 @@ void TPictureWindow::wheelEvent(QWheelEvent *event)
 
 void TPictureWindow::paintDot(int x, int y)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     QPainter paint(pixmap);
@@ -209,7 +200,7 @@ void TPictureWindow::paintDot(int x, int y)
 
 void TPictureWindow::paintLine(int x1, int y1, int x2, int y2)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     QPainter paint(pixmap);
@@ -223,7 +214,7 @@ void TPictureWindow::paintLine(int x1, int y1, int x2, int y2)
 
 void TPictureWindow::paintText(int x, int y, QFont font, QString text)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     QPainter paint(pixmap);
@@ -238,7 +229,7 @@ void TPictureWindow::paintText(int x, int y, QFont font, QString text)
 
 void TPictureWindow::paintRect(int x, int y, int w, int h)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     QPainter paint(pixmap);
@@ -251,12 +242,40 @@ void TPictureWindow::paintRect(int x, int y, int w, int h)
     update();
 }
 
-void TPictureWindow::paintImage(QString filename, int x, int y, bool dontBuffer)
+void TPictureWindow::paintCircle(int x, int y, int r)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
-    QImage *image = NULL;
+    QPainter paint(pixmap);
+    paint.setPen(pen);
+    brush.setStyle(Qt::NoBrush);
+    paint.setBrush(brush);
+    paint.drawEllipse(x, y, r, r);
+
+    update();
+}
+
+void TPictureWindow::paintEllipse(int x, int y, int rx, int ry)
+{
+    if (pixmap == nullptr)
+        return;
+
+    QPainter paint(pixmap);
+    paint.setPen(pen);
+    brush.setStyle(Qt::NoBrush);
+    paint.setBrush(brush);
+    paint.drawEllipse(x, y, rx, ry);
+
+    update();
+}
+
+void TPictureWindow::paintImage(QString filename, int x, int y, bool dontBuffer)
+{
+    if (pixmap == nullptr)
+        return;
+
+    QImage *image = nullptr;
 
     bool buffered = false;
     if (dontBuffer) {
@@ -292,7 +311,7 @@ void TPictureWindow::paintImage(QString filename, int x, int y, bool dontBuffer)
 
 void TPictureWindow::paintFill(int x, int y, int w, int h)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     QPainter paint(pixmap);
@@ -313,7 +332,7 @@ void TPictureWindow::paintFill(int x, int y, int w, int h)
 
 void TPictureWindow::paintFillPath(QPainterPath path)
 {
-    if (pixmap == NULL)
+    if (pixmap == nullptr)
         return;
 
     QPainter paint(pixmap);
@@ -334,8 +353,8 @@ void TPictureWindow::setViewBuffer(bool b)
 
 void TPictureWindow::setLayer(QString name)
 {
-    pixmap = layers.value(name.toUpper(), NULL);
-    if (pixmap == NULL) {
+    pixmap = layers.value(name.toUpper(), nullptr);
+    if (pixmap == nullptr) {
         pixmap = new QPixmap(width(), height());
         layers.insert(name.toUpper(), pixmap);
         layerOrder << name.toUpper();
@@ -349,7 +368,7 @@ void TPictureWindow::delLayer(QString name)
         return; // not allowed
 
     layers.remove(name.toUpper());
-    pixmap = layers.value("MAIN", NULL);
+    pixmap = layers.value("MAIN", nullptr);
     currentLayer = "MAIN";
 }
 

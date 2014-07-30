@@ -52,6 +52,11 @@ void IIRCView::clear()
     update();
 }
 
+void IIRCView::redraw()
+{
+    update();
+}
+
 QColor IIRCView::getColorFromCode(int num)
 {
       switch(num) {
@@ -333,7 +338,7 @@ void IIRCView::paintEvent(QPaintEvent *)
     // Draw items from vector
     //Y = height() + (fontSize/2); // start at 1/2 font-height from bottom
     Y = height() - (fontSize * getLineCount(&visibleLines));
-    qDebug() << "Y=" << Y << "(" << height() << "-" << fontSize * getLineCount(&visibleLines) << ")";
+
     bool bold = false;
     bool underline = false;
     bool color = false; // background color on/off
@@ -356,8 +361,11 @@ void IIRCView::paintEvent(QPaintEvent *)
         QColor textcolor = getColorFromType(pl.type);
 
         // Draw timestamp
-        QString ts = QDateTime::fromMSecsSinceEpoch(pl.ts).toString("[hh:mm]");
-        painter.drawText(QPoint(0, Y), ts);
+        QString ts;
+        if (conf->showTimestmap) {
+            ts = QDateTime::fromMSecsSinceEpoch(pl.ts).toString("[hh:mm]");
+            painter.drawText(QPoint(0, Y), ts);
+        }
 
         // Draw sender
         int sendLenPx = fm->width(pl.sender)+5; // Senders name length in px
@@ -629,6 +637,9 @@ void IIRCView::mouseMoveEvent(QMouseEvent *e)
 
 void IIRCView::mousePressEvent(QMouseEvent *e)
 {
+    if (e->button() != Qt::LeftButton)
+        return;
+
     int x = e->pos().x();
     if ((x >= (splitterPos-3)) && (x <= (splitterPos+3)))
         resizingSplitter = true;
@@ -642,6 +653,9 @@ void IIRCView::mousePressEvent(QMouseEvent *e)
 
 void IIRCView::mouseReleaseEvent(QMouseEvent *e)
 {
+    if (e->button() != Qt::LeftButton)
+        return;
+
     if (draggingText) {
         // copy text if any.
         textCpyVect.setP2( QPoint(e->pos().x(), e->pos().y()) );
@@ -754,7 +768,7 @@ void IIRCView::wheelEvent(QWheelEvent *e)
 void IIRCView::focusInEvent(QFocusEvent *e)
 {
     emit gotFocus();
-    e->ignore();
+    e->accept();
 }
 
 void IIRCView::contextMenuEvent(QContextMenuEvent *e)

@@ -21,7 +21,10 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/toolicons/gfx/options.png</normaloff>:/toolicons/gfx/options.png</iconset>
+    <normaloff>:/toolicons/gfx/main_options.png</normaloff>:/toolicons/gfx/main_options.png</iconset>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -40,7 +43,7 @@
      </property>
      <property name="icon">
       <iconset resource="resources.qrc">
-       <normaloff>:/options/gfx/settings.png</normaloff>:/options/gfx/settings.png</iconset>
+       <normaloff>:/options/gfx/options_general.png</normaloff>:/options/gfx/options_general.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -75,7 +78,7 @@
      </property>
      <property name="icon">
       <iconset resource="resources.qrc">
-       <normaloff>:/options/gfx/customize.png</normaloff>:/options/gfx/customize.png</iconset>
+       <normaloff>:/options/gfx/options_idealstyles.png</normaloff>:/options/gfx/options_idealstyles.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -126,7 +129,7 @@
      </property>
      <property name="icon">
       <iconset resource="resources.qrc">
-       <normaloff>:/options/gfx/perform.png</normaloff>:/options/gfx/perform.png</iconset>
+       <normaloff>:/options/gfx/options_onconnect.png</normaloff>:/options/gfx/options_onconnect.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -158,7 +161,7 @@
      </property>
      <property name="icon">
       <iconset resource="resources.qrc">
-       <normaloff>:/options/gfx/logging.png</normaloff>:/options/gfx/logging.png</iconset>
+       <normaloff>:/options/gfx/options_logging.png</normaloff>:/options/gfx/options_logging.png</iconset>
      </property>
      <property name="iconSize">
       <size>

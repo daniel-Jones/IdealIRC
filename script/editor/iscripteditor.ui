@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>IScriptEditor</class>
  <widget class="QDialog" name="IScriptEditor">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -12,6 +15,10 @@
   </property>
   <property name="windowTitle">
    <string>IdealIRC Script Editor</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../resources.qrc">
+    <normaloff>:/toolicons/gfx/main_scripts.png</normaloff>:/toolicons/gfx/main_scripts.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -31,8 +38,8 @@
      </property>
      <property name="iconSize">
       <size>
-       <width>24</width>
-       <height>24</height>
+       <width>32</width>
+       <height>32</height>
       </size>
      </property>
     </widget>
@@ -60,7 +67,7 @@
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
       <attribute name="headerVisible">
-       <bool>true</bool>
+       <bool>false</bool>
       </attribute>
      </widget>
     </widget>
@@ -79,8 +86,8 @@
      </property>
      <property name="iconSize">
       <size>
-       <width>24</width>
-       <height>24</height>
+       <width>32</width>
+       <height>32</height>
       </size>
      </property>
     </widget>

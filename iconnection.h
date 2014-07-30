@@ -31,6 +31,7 @@
 #include "ichannellist.h"
 #include "imotdview.h"
 #include "ial.h"
+#include "iwindowswitcher.h"
 
 // For accessing the IAL with a GUI
 //#include "iaddresslist.h"
@@ -51,7 +52,7 @@ class IConnection : public QObject
   Q_OBJECT
 
 public:
-      explicit IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg, TScriptParent *sp);
+      explicit IConnection(QObject *parent, IChannelList **clptr, int connId, config *cfg, TScriptParent *sp, IWindowSwitcher *ws);
       bool isOnline() { return active; } // True when we're registered to server.
       bool isSocketOpen() { return socket.isOpen(); } // True when socket is connected.
       QString getActiveNickname() { return activeNick; }
@@ -152,6 +153,8 @@ private:
       void parseNumeric(int numeric, QString &data);
       void resetSortRules();
       QString activewin();
+
+      IWindowSwitcher *wsw;
 
 public slots:
       bool sockwrite(QString data);

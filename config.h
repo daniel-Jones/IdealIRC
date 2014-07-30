@@ -78,6 +78,8 @@ public:
     bool showMotd;
     bool showToolBar;
     bool autoReJoin;
+    bool showTreeView;
+    bool showButtonbar;
 
     // Colors
     QString colDefault;

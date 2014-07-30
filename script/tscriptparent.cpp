@@ -211,7 +211,7 @@ void TScriptParent::execCmdSlot(QString cmd)
 
     // 3. push to server for last resort; only if connected.
     if (cmd.left(1) == "/")
-        cmd = cmd.mid(2);
+        cmd = cmd.mid(1);
 
     cmdhndl.sockwrite(cmd);
 }

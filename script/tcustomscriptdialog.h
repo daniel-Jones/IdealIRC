@@ -42,12 +42,14 @@
   Image
 */
 
+class TScript;
+
 class TCustomScriptDialog : public QObject
 {
   Q_OBJECT
 
 public:
-    explicit TCustomScriptDialog(QString oname, QWidget *dlgParent, QObject *parent = 0);
+    explicit TCustomScriptDialog(TScript *parent, QString oname, QWidget *dlgParent);
     void showDlg();
     void hideDlg();
     void closeDlg();
@@ -71,6 +73,7 @@ public:
 
 
 private:
+    TScript *script; // pointer to the script this belongs to
     TSDialog dialog;
     QSignalMapper buttonmap;
     QSignalMapper listmap;
@@ -86,9 +89,6 @@ protected:
 private slots:
     void buttonClicked(QString oname);
     void listSelected(QString oname);
-
-signals:
-    void runEvent(e_iircevent evt, QStringList param);
 };
 
 #endif // TCUSTOMSCRIPTDIALOG_H

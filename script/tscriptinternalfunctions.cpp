@@ -127,6 +127,15 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "CEIL") {
+        if (param.count() != 1)
+            return false;
+
+        result = QString::number( ceil ( param[0].toFloat() ) );
+
+        return true;
+    }
+
     if (fn == "COUNT") {
         // counts users in a channel
         if (param.length() == 0)
@@ -159,7 +168,7 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
-    if (fn == "COLORAT") { // $ColorAt(@window, layer, x, y)
+    if (fn == "COLORAT") { // $ColorAt(@window[, layer], x, y)
         if (param.length() < 3)
             return false;
         QString layer = "main";
@@ -318,6 +327,15 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "FLOOR") {
+        if (param.count() != 1)
+            return false;
+
+        result = QString::number( floor( param[0].toFloat() ) );
+
+        return true;
+    }
+
     if (fn == "FNEXIST") {
         // Checks if an actual function exists; This will NOT work on "internal" functions (these in here)
         if (param.count() != 1)
@@ -466,6 +484,75 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             result = "NO";
 
         lastbtn = b;
+
+        return true;
+    }
+
+    if (fn == "NICKLIST") {
+        /*
+            $nicklist           | Return first selected nickname in current channel
+            $nicklist(#chan)    | Return first selected nickname in #chan
+            $nicklist(N)        | Return index N of selected nicknames in current channel
+            $nicklist(#chan, N) | Return index N of selected nicknames in #chan
+            N = 0: return amount of selected nicknames
+        */
+        result.clear();
+
+        if (param.count() == 0) {
+            subwindow_t sw = getCustomWindow(*activeWid);
+            if (sw.type == WT_NOTHING)
+                return true;
+            if (sw.widget->getSelectedMembers().count() > 0)
+                result = sw.widget->getSelectedMembers().at(0);
+            return true;
+        }
+
+        if (param.count() == 1) {
+            // either #channel or N
+            bool ok = false;
+            int N = param[0].toInt(&ok);
+            if (!ok) {
+                // #Channel
+                subwindow_t sw = getCustomWindow(param[0]);
+                if (sw.type == WT_NOTHING)
+                    return true;
+                if (sw.widget->getSelectedMembers().count() > 0)
+                    result = sw.widget->getSelectedMembers().at(0);
+                return true;
+            }
+            else {
+                // N
+                subwindow_t sw = getCustomWindow(*activeWid);
+                if (sw.type == WT_NOTHING)
+                    return true;
+                if (N <= 0) {
+                    result = QString::number( sw.widget->getSelectedMembers().count() );
+                    return true;
+                }
+                if (sw.widget->getSelectedMembers().count() >= N)
+                    result = sw.widget->getSelectedMembers().at(N-1);
+                return true;
+            }
+        }
+
+        if (param.count() == 2) {
+            // #Channel, N
+            bool ok = false;
+            int N = param[1].toInt(&ok);
+            if (!ok)
+                return true;
+
+            subwindow_t sw = getCustomWindow(param[0]);
+            if (sw.type == WT_NOTHING)
+                return true;
+            if (N <= 0) {
+                result = QString::number( sw.widget->getSelectedMembers().count() );
+                return true;
+            }
+            if (sw.widget->getSelectedMembers().count() >= N)
+                result = sw.widget->getSelectedMembers().at(N-1);
+            return true;
+        }
 
         return true;
     }
@@ -644,6 +731,14 @@ subwindow_t TScriptInternalFunctions::getCustomWindow(QString name)
     }
 
     return error;
+}
+
+subwindow_t TScriptInternalFunctions::getCustomWindow(int wid)
+{
+    subwindow_t def;
+    def.type = WT_NOTHING;
+
+    return winList->value(wid, def);
 }
 
 QString TScriptInternalFunctions::calc(QString expr)

@@ -45,7 +45,8 @@ public:
     void painttext(QString Window, QString X, QString Y, QString FontSize, QString Color, QString FontName, QString Text);
     void paintfill(QString Window, QString X, QString Y, QString W, QString H, QString Color);
     void paintfillpath(QString Window, QString Color, QPainterPath Path);
-    void paintcircle(QString Window);
+    void paintcircle(QString Window, QString X, QString Y, QString R, QString Size, QString Color);
+    void paintellipse(QString Window, QString X, QString Y, QString RX, QString RY, QString Size, QString Color);
     void paintsetlayer(QString Window, QString Layer);
     void paintdellayer(QString Window, QString Layer);
     void paintlayerorder(QString Window, QStringList Layers);

@@ -19,10 +19,12 @@
  */
 
 #include "tcustomscriptdialog.h"
+#include "tscript.h"
 #include <iostream>
 
-TCustomScriptDialog::TCustomScriptDialog(QString oname, QWidget *dlgParent, QObject *parent) :
-  QObject(parent)
+TCustomScriptDialog::TCustomScriptDialog(TScript *parent, QString oname, QWidget *dlgParent) :
+  QObject(parent),
+  script(parent)
 {
     dialog.setParent(dlgParent, Qt::Tool);
     dialog.setObjectName(oname);
@@ -146,7 +148,7 @@ void TCustomScriptDialog::buttonClicked(QString oname)
     QStringList param;
     param.push_back(dialog.objectName());
     param.push_back(oname);
-    emit runEvent(te_dbuttonclick, param);
+    script->runEvent(te_dbuttonclick, param);
 }
 
 void TCustomScriptDialog::listSelected(QString oname)
@@ -166,30 +168,52 @@ void TCustomScriptDialog::listSelected(QString oname)
   param.push_back(dialog.objectName());
   param.push_back(oname);
   param.push_back( QString::number(idx) );
-  emit runEvent(te_dlistboxselect, param);
+  script->runEvent(te_dlistboxselect, param);
 }
 
 QString TCustomScriptDialog::getLabel(QString oname)
 {
-    QHashIterator<QString,QLabel*> i1(label);
-    while (i1.hasNext()) {
-        i1.next();
-        if (i1.value()->objectName().toUpper() == oname.toUpper())
-            return i1.value()->text();
+    // Find object in labels...
+    {
+        QHashIterator<QString,QLabel*> i(label);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value()->objectName().toUpper() == oname.toUpper())
+                return i.value()->text();
+        }
     }
 
-    QHashIterator<QString,QPushButton*> i2(button);
-    while (i2.hasNext()) {
-        i2.next();
-        if (i2.value()->objectName().toUpper() == oname.toUpper())
-            return i2.value()->text();
+    // Find object in buttons...
+    {
+        QHashIterator<QString,QPushButton*> i(button);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value()->objectName().toUpper() == oname.toUpper())
+                return i.value()->text();
+        }
     }
 
-    QHashIterator<QString,QLineEdit*> i3(editbox);
-    while (i3.hasNext()) {
-        i3.next();
-        if (i3.value()->objectName().toUpper() == oname.toUpper())
-            return i3.value()->text();
+    // Find object in editbox...
+    {
+        QHashIterator<QString,QLineEdit*> i(editbox);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value()->objectName().toUpper() == oname.toUpper())
+                return i.value()->text();
+        }
+    }
+
+    // Find object in a listbox (return selected text)
+    {
+        QHashIterator<QString,QListWidget*> i(listbox);
+        while (i.hasNext()) {
+            i.next();
+            if (i.value()->objectName().toUpper() == oname.toUpper()) {
+                if (i.value()->currentItem() != nullptr)
+                    return i.value()->currentItem()->text();
+                break;
+            }
+        }
     }
 
     // Default result

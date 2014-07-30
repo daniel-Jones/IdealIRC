@@ -588,12 +588,14 @@ void IWin::print(const QString &sender, const QString &text, const int ptype)
     if (textdata == NULL)
         return;
 
-    QString msg = text;
+    QString msg;
 
     if ((ptype == PT_LOCALINFO) || (ptype == PT_SERVINFO))
-        msg.prepend("*** ");
-    if (ptype == PT_ACTION)
-        msg.prepend("* ");
+        msg = QString("%1 %2").arg(sender).arg(text);
+    else if (ptype == PT_ACTION)
+        msg = QString("* %1 %2").arg(sender).arg(text);
+    else
+        msg = QString("<%1> %2").arg(sender).arg(text);
 
     if ((ptype == PT_ACTION) || (ptype == PT_CTCP))
         emit Highlight(winid, HL_MSG);
@@ -608,7 +610,6 @@ void IWin::print(const QString &sender, const QString &text, const int ptype)
         msg.prepend(stamp);
     }
 
-    //textdata->addLine(msg, ptype);
     textdata->addLine(sender, text, ptype);
 
     if ((WindowType == WT_CHANNEL) || (WindowType == WT_PRIVMSG))
@@ -784,9 +785,11 @@ void IWin::setFont(const QFont &font)
 
 void IWin::reloadCSS()
 {
-    // TODO Update color scheme for textdata.
-    //if (textdata != NULL)
-        //textdata->reloadCSS();
+    /*
+     * CSS will eventually be obsolete, consider a function rename.
+    */
+    if (textdata != NULL)
+        textdata->redraw();
 
     if (input != NULL)
         input->updateCSS();

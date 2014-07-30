@@ -22,8 +22,8 @@
 #define CONSTANTS_H
 
 /* Version constants */
-#define VERSION_STRING "0.3.8"
-#define VERSION_INTEGER 17
+#define VERSION_STRING "0.4.0"
+#define VERSION_INTEGER 18
 
 //#define IIRC_DEBUG_SCRIPT 1
 //#define IIRC_DEBUG_TWIN 1
@@ -35,7 +35,7 @@
 #define PACKAGED
 
 
-// Define system names and OS specifics TIRC supports here.
+// Define system names and OS specifics IIRC supports here.
 // SYSTEM_NAME defines system/kernel type.
 // CONF_PATH contains where to put config file when running as packaged. DO NOT append /.
 
@@ -136,10 +136,10 @@
 #define PT_HIGHLIGHT  8  // Messages marked as highlighted
 
 /* Window highlight type */
-#define HL_NONE       0
-#define HL_ACTIVITY   1
-#define HL_MSG        2
-#define HL_HIGHLIGHT  3
+#define HL_NONE       0     // No activity (black)
+#define HL_ACTIVITY   1     // Join, Quit, etc (dark red)
+#define HL_MSG        2     // Messages (red)
+#define HL_HIGHLIGHT  3     // Highlighted messages (blue)
 
 /* Control codes */
 #define CTRL_BOLD           0x02
@@ -151,7 +151,7 @@
 #define CTRL_RESET          0x0F
 #define CTRL_STRIKETHROUGH  0x13
 
-/* Script painting commands */
+/* Script painting commands -- DEPRECATED */
 enum e_painting {
     pc_clear = 0, // clear the window, this can also be used in text windows.
     pc_paintdot,
@@ -197,9 +197,11 @@ enum e_iircevent {
     te_dbuttonclick = 25,
     te_dlistboxselect,
     te_ialhostget,
-    te_input
+    te_input,
+    te_numeric
 };
 
+/* Results TScript::runf() can give */
 enum e_scriptresult {
     se_None = 0,
     se_Finished,

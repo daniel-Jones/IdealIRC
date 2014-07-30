@@ -17,6 +17,9 @@
    <iconset resource="../resources.qrc">
     <normaloff>:/toolicons/gfx/options.png</normaloff>:/toolicons/gfx/options.png</iconset>
   </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="3" column="0">
     <widget class="QLabel" name="label">

@@ -58,6 +58,9 @@ void QMyLineEdit::focusInEvent(QFocusEvent *e)
 
 void QMyLineEdit::focusOutEvent(QFocusEvent *e)
 {
+    if (text().isEmpty())
+        return;
+
     cursorSize = 0;
     setStyle(style);
 

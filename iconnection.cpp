@@ -30,7 +30,7 @@
 #include "script/tscriptparent.h"
 
 IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
-                         config *cfg, TScriptParent *sp) :
+                         config *cfg, TScriptParent *sp, IWindowSwitcher *ws) :
     QObject(parent),
     maxBanList(-1), /** -1 means undefined. **/
     maxExceptList(-1),
@@ -61,7 +61,8 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     cmD("imnpstr"),
     tstar("***"),
     sstar("*"),
-    checkState(0)
+    checkState(0),
+    wsw(ws)
 {
     cmdhndl.setWinList(&winlist);
     cmdhndl.setCid(&cid);
@@ -547,6 +548,20 @@ void IConnection::parse(QString &data)
     int num = token[1].toInt();
 
     if (num > 0) { // valid NUMERIC
+        QString params;
+        QString msg = getMsg(data);
+        for (int i = 2; i <= token.count()-1; ++i) {
+            if (token[i].isEmpty())
+                continue;
+
+            if (token[i].at(0) == ':')
+                break;
+
+            if (! params.isEmpty())
+                params += ' ';
+            params += token[i];
+        }
+        scriptParent->runevent(te_numeric, QStringList()<<token[1]<<params<<msg);
         parseNumeric(num, data);
         return;
     }
@@ -702,6 +717,8 @@ void IConnection::parse(QString &data)
             request.append(0x01);
             request.append("DCC");
             if (tx.at(0).toUpper() == request) { /// DCC
+                return; // FIXME dcc is disabled for now.
+
                 // DCC
                 /*
 
@@ -1088,7 +1105,7 @@ xchat
         ial.setNickname(u.nick, newnick);
 
         if (u.nick == activeNick) {
-            print("STATUS", tstar, tr("Your nickname is now %1").arg(newnick));
+            print("STATUS", tstar, tr("Your nickname is now %1").arg(newnick), PT_SERVINFO);
             activeNick = newnick;
             conf->nickname = newnick;
             conf->save();
@@ -1185,7 +1202,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
   :nick!user@host num/cmd [target] :msg
 */
     QStringList token = data.split(' ');
-
 
     /** ***********************
     **        ERRORS        **
@@ -1674,7 +1690,10 @@ void IConnection::parseNumeric(int numeric, QString &data)
             if (lst.at(0) == "NETWORK") {
                 /// @todo set treeview of this Status to Status (Network) from lst.at(1)
                 subwindow_t sw = winlist.value("STATUS");
-                sw.treeitem->setText(0, tr("Status (%1)").arg(lst[1]));
+                QString title = QString("Status (%1)").arg(lst[1]);
+
+                sw.treeitem->setText(0, title);
+                wsw->setTitle(sw.wid, title);
             }
 
             /** @todo  sorting rules for channel nickname list, @, %, +, etc */

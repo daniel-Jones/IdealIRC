@@ -11,6 +11,7 @@
 #include <QPoint>
 #include <QLine>
 #include <QClipboard>
+#include <QFocusEvent>
 
 #include "config.h"
 #include "constants.h"
@@ -45,6 +46,7 @@ public:
     int getSplitterPos() { return splitterPos; }
     void changeFont(QString fontName, int pxSize);
     void clear();
+    void redraw();
 
 private:
     QColor getColorFromCode(int num);

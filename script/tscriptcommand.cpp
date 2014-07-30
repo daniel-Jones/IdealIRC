@@ -146,6 +146,31 @@ bool TScriptCommand::parse(QString &command)
         return true;
     }
 
+    if (acmd == "PAINTCIRCLE") {
+        // Paint a circle
+        // paintcircle @win x y r size color
+        // x and y is topleft of circle, r is radius in px
+        if (token.count() != 7) {
+            echo("STATUS", tstar, InvalidParameterCount("Paintcircle"), PT_LOCALINFO);
+            return true;
+        }
+
+        paintcircle(token[1], token[2], token[3], token[4], token[5], token[6]);
+        return true;
+    }
+
+    if (acmd == "PAINTELLIPSE") {
+        // Paint an ellipse
+        // paintellipse @win x y rx ry size color
+        if (token.count() != 8) {
+            echo("STATUS", tstar, InvalidParameterCount("Paintellipse"), PT_LOCALINFO);
+            return true;
+        }
+
+        paintellipse(token[1], token[2], token[3], token[4], token[5], token[6], token[7]);
+        return true;
+    }
+
     if (acmd == "PAINTIMAGE") {
         // Paints an image in @window
         // This will also keep the image in buffer of IIRC so you can do fast re-drawing
@@ -156,7 +181,7 @@ bool TScriptCommand::parse(QString &command)
             echo("STATUS", tstar, InvalidParameterCount("Paintimage"), PT_LOCALINFO);
             return true;
         }
-        // length to skip to get filename
+
 
         bool dontBuffer = false;
         if (token[1] == "-u") {
@@ -164,6 +189,7 @@ bool TScriptCommand::parse(QString &command)
             token.removeAt(1);
         }
 
+        // length to skip to get filename
         int skip = 0;
         for (int i = 0; i <= 3; i++)
             skip += token[i].length() + 1;
@@ -576,6 +602,57 @@ void TScriptCommand::paintfillpath(QString Window, QString Color, QPainterPath P
 
     wt.widget->picwinPtr()->setBrushPen(br, pn);
     wt.widget->picwinPtr()->paintFillPath(Path);
+}
+
+void TScriptCommand::paintcircle(QString Window, QString X, QString Y, QString R, QString Size, QString Color)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", tstar, NoSuchWindow("Paintcircle"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", tstar, NotAPaintWindow("Paintcircle"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+    int iR = floor(R.toFloat());
+
+    QBrush br(Color, Qt::SolidPattern);
+    QPen pn(Color);
+    pn.setWidth(Size.toInt());
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintCircle(iX, iY, iR);
+}
+
+void TScriptCommand::paintellipse(QString Window, QString X, QString Y, QString RX, QString RY, QString Size, QString Color)
+{
+    subwindow_t wt = getCustomWindow(Window);
+    if (wt.type == WT_NOTHING) {
+        echo("STATUS", tstar, NoSuchWindow("Paintcircle"), PT_LOCALINFO);
+        return;
+    }
+
+    if (wt.type < WT_GRAPHIC) {
+        echo("STATUS", tstar, NotAPaintWindow("Paintcircle"), PT_LOCALINFO);
+        return;
+    }
+
+    int iX = floor(X.toFloat());
+    int iY = floor(Y.toFloat());
+    int iRX = floor(RX.toFloat());
+    int iRY = floor(RY.toFloat());
+
+    QBrush br(Color, Qt::SolidPattern);
+    QPen pn(Color);
+    pn.setWidth(Size.toInt());
+
+    wt.widget->picwinPtr()->setBrushPen(br, pn);
+    wt.widget->picwinPtr()->paintEllipse(iX, iY, iRX, iRY);
 }
 
 void TScriptCommand::paintsetlayer(QString Window, QString Layer)

@@ -36,7 +36,7 @@ IAL::IAL(IConnection *parent, QString *activeNickname, QList<char> *sortingRule,
 {
     connect(&garbageTimer, SIGNAL(timeout()),
             this, SLOT(cleanGarbage()));
-    garbageTimer.setInterval(300000); // every 5 mins
+    garbageTimer.setInterval(60000); // every 1 min
     garbageTimer.start();
 }
 
@@ -59,11 +59,18 @@ void IAL::delNickname(QString nickname)
     if (entry == NULL)
         return;
 
-    if (nickname != *activeNick) { // cannot mark deletion on ourself.
-        // Mark age for when this one should be deleted (5 mins)
-        entry->age = QDateTime::currentMSecsSinceEpoch() / 1000;
-        garbage << nickname;
-    }
+    if (nickname == *activeNick)
+        return;
+
+    // Remove from channels
+    QListIterator<IALChannel_t*> i(entry->channels);
+    while (i.hasNext())
+        delete i.next();
+    entry->channels.clear();
+
+    // Mark age for when this one should be deleted (5 mins)
+    entry->age = QDateTime::currentMSecsSinceEpoch() / 1000;
+    garbage << nickname;
 }
 
 bool IAL::hasNickname(QString nickname)

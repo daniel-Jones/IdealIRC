@@ -26,7 +26,6 @@ bool TScript::runEvent(e_iircevent evt, QStringList param)
     QHashIterator<e_iircevent,QString> i(tevent);
     bool found = false;
 
-
     while (i.hasNext()) {
         i.next();
 
@@ -36,11 +35,12 @@ bool TScript::runEvent(e_iircevent evt, QStringList param)
         if (ievt == evt) {
             // Do not break here, there might be multiple of same events.
             found = true;
+
             QString r;
 
             e_scriptresult ok = runf(fnct, param, r);
             if (ok != se_RunfDone)
-                emit error( QString("Unable to run function %1 via an event (Script %2) - Parameter count?")
+                emit error( tr("Unable to run function %1 via an event (Script %2) - Parameter count?")
                             .arg(fnct)
                             .arg(name)
                            );
@@ -137,6 +137,9 @@ e_iircevent TScript::getEvent(QString event)
 
     else if (evt == "INPUT")
         return te_input;
+
+    else if (evt == "NUMERIC")
+        return te_numeric;
 
     else
         return te_noevent;

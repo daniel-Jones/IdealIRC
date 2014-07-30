@@ -151,6 +151,17 @@ void config::rehash()
     else
         autoReJoin = stb(ini->ReadIni("Options", "AutoReJoin"));
 
+    if (ini->ReadIni("Options", "ShowTreeView").length() == 0)
+        showTreeView = true;
+    else
+        showTreeView = stb(ini->ReadIni("Options", "ShowTreeView"));
+
+    if (ini->ReadIni("Options", "ShowButtonbar").length() == 0)
+        showButtonbar = false;
+    else
+        showButtonbar = stb(ini->ReadIni("Options", "ShowButtonbar"));
+
+
 
     trayNotify = stb(ini->ReadIni("Options", "TrayNotify"));
 
@@ -386,6 +397,8 @@ void config::save()
     ini->WriteIni("Options", "ShowMotd", QString::number(showMotd));
     ini->WriteIni("Options", "ShowToolBar", QString::number(showToolBar));
     ini->WriteIni("Options", "AutoReJoin", QString::number(autoReJoin));
+    ini->WriteIni("Options", "ShowTreeView", QString::number(showTreeView));
+    ini->WriteIni("Options", "ShowButtonbar", QString::number(showButtonbar));
     ini->WriteIni("Options", "Log", QString::number(logEnabled));
     ini->WriteIni("Options", "LogPath", logPath);
     ini->WriteIni("Options", "LogChan", QString::number(logChannel));

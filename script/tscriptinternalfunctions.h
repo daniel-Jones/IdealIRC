@@ -72,6 +72,7 @@ private:
     QHash<int,subwindow_t> *winList;
     QHash<int,IConnection*> *conList;
     subwindow_t getCustomWindow(QString name);
+    subwindow_t getCustomWindow(int wid);
 
     int lastbtn;
 

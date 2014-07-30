@@ -10,6 +10,9 @@
     <height>582</height>
    </rect>
   </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::CustomContextMenu</enum>
+  </property>
   <property name="windowTitle">
    <string>IdealIRC</string>
   </property>
@@ -37,7 +40,7 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="childrenCollapsible">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <widget class="QTreeWidget" name="treeWidget">
        <property name="editTriggers">
@@ -113,8 +116,17 @@
     </property>
     <addaction name="actionAbout_IdealIRC"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionToolbar"/>
+    <addaction name="actionWindow_buttons"/>
+    <addaction name="actionWindow_tree"/>
+   </widget>
    <addaction name="menuIIRC"/>
    <addaction name="menuTools"/>
+   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
@@ -123,8 +135,8 @@
    </property>
    <property name="iconSize">
     <size>
-     <width>30</width>
-     <height>30</height>
+     <width>33</width>
+     <height>33</height>
     </size>
    </property>
    <attribute name="toolBarArea">
@@ -145,8 +157,9 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/toolicons/gfx/connect.png</normaloff>
-     <normalon>:/toolicons/gfx/disconnect.png</normalon>:/toolicons/gfx/connect.png</iconset>
+     <normaloff>:/toolicons/gfx/main_disconnected.png</normaloff>
+     <normalon>:/toolicons/gfx/main_connected.png</normalon>
+     <selectedon>:/toolicons/gfx/main_connected.png</selectedon>:/toolicons/gfx/main_disconnected.png</iconset>
    </property>
    <property name="text">
     <string extracomment="Connect to server (toolbar)">Connect</string>
@@ -155,7 +168,7 @@
   <action name="actionOptions">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/toolicons/gfx/options.png</normaloff>:/toolicons/gfx/options.png</iconset>
+     <normaloff>:/toolicons/gfx/main_options.png</normaloff>:/toolicons/gfx/main_options.png</iconset>
    </property>
    <property name="text">
     <string extracomment="Toolbar">Options</string>
@@ -167,7 +180,7 @@
   <action name="actionChannels_list">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/toolicons/gfx/chanlist.png</normaloff>:/toolicons/gfx/chanlist.png</iconset>
+     <normaloff>:/toolicons/gfx/main_channels.png</normaloff>:/toolicons/gfx/main_channels.png</iconset>
    </property>
    <property name="text">
     <string extracomment="Toolbar">Channels list</string>
@@ -176,7 +189,7 @@
   <action name="actionChannel_favourites">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/toolicons/gfx/favourites.png</normaloff>:/toolicons/gfx/favourites.png</iconset>
+     <normaloff>:/toolicons/gfx/main_bookmarks.png</normaloff>:/toolicons/gfx/main_bookmarks.png</iconset>
    </property>
    <property name="text">
     <string extracomment="Toolbar">Channel favourites</string>
@@ -186,6 +199,10 @@
    <property name="enabled">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/toolicons/gfx/main_scripts.png</normaloff>:/toolicons/gfx/main_scripts.png</iconset>
+   </property>
    <property name="text">
     <string extracomment="Toolbar">Script Manager</string>
    </property>
@@ -193,6 +210,30 @@
   <action name="actionAbout_IdealIRC">
    <property name="text">
     <string>About IdealIRC</string>
+   </property>
+  </action>
+  <action name="actionToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toolbar</string>
+   </property>
+  </action>
+  <action name="actionWindow_buttons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Window buttons</string>
+   </property>
+  </action>
+  <action name="actionWindow_tree">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Window tree</string>
    </property>
   </action>
  </widget>

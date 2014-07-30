@@ -159,6 +159,7 @@ void IScriptEditor::setupTreeView()
     treeModel.setHorizontalHeaderLabels(QStringList()<<"Included files");
 
     firstItem = new QStandardItem(scriptFile);
+    firstItem->setToolTip(scriptFile);
     setupTreeView(firstItem);
 
     treeModel.appendRow(firstItem);
@@ -322,6 +323,7 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
                     state = st_meta;
                 else {
                     QStandardItem *item = new QStandardItem(keyword);
+                    item->setToolTip(keyword);
                     parent->appendRow(item);
                     setupTreeView(item);
 

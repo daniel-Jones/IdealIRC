@@ -38,6 +38,7 @@
 #include "versionchecker.h"
 #include "ifavourites.h"
 #include "ichannellist.h"
+#include "iwindowswitcher.h"
 
 #include "script/tscriptparent.h"
 #include "script/iscriptmanager.h"
@@ -79,6 +80,7 @@ private:
       VersionChecker vc;
       TScriptParent scriptParent;
       QSystemTrayIcon trayicon;
+      IWindowSwitcher wsw;
 
       void recreateConfDlg();
       void recreateFavouritesDlg();
@@ -118,6 +120,10 @@ private slots:
       void onTrayActivated(QSystemTrayIcon::ActivationReason reason);
       void trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon = QSystemTrayIcon::Information);
       void applicationFocusChanged(QWidget* old, QWidget* now);
+      void switchWindows(int wid);
+      void on_actionToolbar_triggered();
+      void on_actionWindow_buttons_triggered();
+      void on_actionWindow_tree_triggered();
 };
 
 #endif // IDEALIRC_H

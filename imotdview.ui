@@ -17,6 +17,9 @@
    <iconset resource="resources.qrc">
     <normaloff>:/window/gfx/status.png</normaloff>:/window/gfx/status.png</iconset>
   </property>
+  <property name="modal">
+   <bool>false</bool>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
     <number>0</number>

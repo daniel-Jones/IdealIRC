@@ -47,7 +47,7 @@ private slots:
     void on_btnDelete_clicked();
     void on_btnLoad_clicked();
     void on_btnEdit_clicked();
-
+    void on_btnNew_clicked();
 
 private:
     Ui::IScriptManager *ui;
@@ -57,8 +57,9 @@ private:
     QHash<QString,QStandardItem*> scriptList;
     QTimer clearLabel;
     config *conf;
-    void addItem(QString name, QString path);
+    void addItem(QString name, QString path, bool select = false);
     void reloadLabel(QString text);
+    void editFile(QString filename);
 };
 
 #endif // ISCRIPTMANAGER_H

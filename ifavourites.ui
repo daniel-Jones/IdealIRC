@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>255</width>
+    <width>267</width>
     <height>361</height>
    </rect>
   </property>
@@ -15,7 +15,10 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/toolicons/gfx/favourites.png</normaloff>:/toolicons/gfx/favourites.png</iconset>
+    <normaloff>:/toolicons/gfx/main_bookmarks.png</normaloff>:/toolicons/gfx/main_bookmarks.png</iconset>
+  </property>
+  <property name="modal">
+   <bool>false</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="2">

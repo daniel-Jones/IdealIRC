@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QHashIterator>
 #include <QMessageBox>
+#include <QInputDialog>
 #include "editor/iscripteditor.h"
 #include "iscriptmanager.h"
 #include "ui_iscriptmanager.h"
@@ -66,7 +67,7 @@ IScriptManager::~IScriptManager()
     delete ui;
 }
 
-void IScriptManager::addItem(QString name, QString path)
+void IScriptManager::addItem(QString name, QString path, bool select)
 {
     QStandardItem *nameItem = new QStandardItem(name);
     QStandardItem *pathItem = new QStandardItem(path);
@@ -75,6 +76,8 @@ void IScriptManager::addItem(QString name, QString path)
     model.appendRow(items);
 
     scriptList.insert(name, nameItem);
+    if (select)
+        editFile(path);
 }
 
 void IScriptManager::reloadLabel(QString text)
@@ -82,6 +85,12 @@ void IScriptManager::reloadLabel(QString text)
     clearLabel.stop();
     ui->reloadLabel->setText(text);
     clearLabel.start(5000);
+}
+
+void IScriptManager::editFile(QString filename)
+{
+    IScriptEditor *editor = new IScriptEditor((QWidget*)this->parent(), filename, conf);
+    editor->show();
 }
 
 void IScriptManager::on_btnReload_clicked()
@@ -163,8 +172,45 @@ void IScriptManager::on_btnEdit_clicked()
         return;
 
     QModelIndex index = model.index(selected.row(), 1);
-    QString file = index.data().toString();
+    editFile( index.data().toString() );
+}
 
-    IScriptEditor *editor = new IScriptEditor((QWidget*)this->parent(), file, conf);
-    editor->show();
+void IScriptManager::on_btnNew_clicked()
+{
+    bool ok = false;
+    QString name = QInputDialog::getText(this, tr("New script..."),
+                                        tr("Script name (Not file):"),
+                                        QLineEdit::Normal,
+                                        "", &ok);
+
+    if (!ok)
+        return;
+
+    QString file = QFileDialog::getSaveFileName(this, tr("Save to..."), CONF_PATH, "*.iis");
+    if (file.isEmpty())
+        return;
+
+    QFile f(file);
+    if (! f.open(QIODevice::WriteOnly)){
+        // error on opening
+        QMessageBox::critical(this, tr("Cannot create file"), tr("Unable to create file"), QMessageBox::Ok);
+        return;
+    }
+
+    QByteArray data;
+    data.append("script " + name + " {\n");
+    data.append("    command " + name + " main\n");
+    data.append("}\n\n");
+    data.append("function main(%arg) {\n");
+    data.append("    echo Hello, world: %arg\n");
+    data.append("}\n");
+
+    f.write(data);
+    f.close();
+
+    addItem(name, file, true);
+    IniFile ini(CONF_FILE);
+    ini.WriteIni("Script", name, file);
+
+
 }

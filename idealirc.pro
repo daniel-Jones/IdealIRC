@@ -79,7 +79,9 @@ SOURCES += main.cpp\
     dcc/dccchat.cpp \
     dcc/dcc.cpp \
     dcc/dccrecv.cpp \
-    iircview.cpp
+    iircview.cpp \
+    ibuttonbar.cpp \
+    iwindowswitcher.cpp
 
 #iaddresslist.cpp
 
@@ -131,7 +133,9 @@ HEADERS  += idealirc.h \
     dcc/dcc.h \
     dcc/dccrecv.h \
     dcc/dcc_protocols.h \
-    iircview.h
+    iircview.h \
+    ibuttonbar.h \
+    iwindowswitcher.h
 
 #iaddresslist.h
 
@@ -157,7 +161,6 @@ RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    TIRCView.css \
     CHANGELOG.txt \
     LICENSE.txt \
     idealirc.rc \

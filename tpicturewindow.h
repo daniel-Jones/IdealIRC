@@ -52,6 +52,8 @@ public:
     void paintLine(int x1, int y1, int x2, int y2);
     void paintText(int x, int y, QFont font, QString text);
     void paintRect(int x, int y, int w, int h);
+    void paintCircle(int x, int y, int r);
+    void paintEllipse(int x, int y, int rx, int ry);
     void paintImage(QString filename, int x, int y, bool dontBuffer);
     void paintFill(int x, int y, int w = -1, int h = -1);
     void paintFillPath(QPainterPath path);
@@ -83,6 +85,7 @@ private:
     int lw;
     int lh;
     bool viewBuffer;
+    bool clearing;
 
 signals:
   void mouseEvent(e_iircevent event, int x, int y, int delta = 0);

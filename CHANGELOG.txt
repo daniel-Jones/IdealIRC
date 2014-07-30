@@ -1,3 +1,40 @@
+0.4.0 - July 30th 2014
+ * New and fancy text-view
+ * New graphics provided by xKryptx
+ * Added a button bar for window switching
+   - Also got a context menu for closing the window.
+ * Added a new menu "View" to view toolbar, buttonbar and treeview
+ * Added /KILL to command parser
+ * Added new script event: Numeric
+ * Minor fixes in the IAL
+ * New script commands:
+   - /PaintCircle @window X Y Radius Size Color
+   - /PaintEllipse @window X Y RX RY Size Color
+   - $Ceil(N)
+   - $Floor(N)
+   - $Nicklist(#Channel, N)
+ * Script manager now features a "New" button.
+ * Minor fixes with painting @windows
+ * Fixed a crash on opening channel settings on a modeless channel
+ * Fixed receiving ACTION in private msg.
+ * Random hanging should be fixed when switcing windows.
+ * Inputting multiple lines will paste it for sending.
+
+0.3.8 - April 17th 2014
+ * New command: /PaintFillPath
+ * New command: /PaintLayerOrder
+ * New command: /Query
+ * New command: /ChanSettings
+ * New function: $ColorAt()
+ * New function: $Input()
+ * New function: $MsgBox()
+ * New function: $Button
+ * New function: $Char()
+ * Added abillity to merge variable names based on other variable contents
+ * Default popup menus removed (not those in the menubar)
+ * Added scriptable menus for Query windows and Status windows
+ * IdealIRC does now test the connection if no data was received for 3 minutes
+
 0.3.7 - March 23rd 2014
  * Cancelling kick (nicklist menu) performed a kick anyway. Fixed.
  * Scripts handle relative paths to CONF_PATH (where iirc.ini resides).

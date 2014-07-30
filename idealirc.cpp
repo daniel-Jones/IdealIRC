@@ -88,6 +88,12 @@ IdealIRC::IdealIRC(QWidget *parent) :
     connect(&trayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(onTrayActivated(QSystemTrayIcon::ActivationReason)));
 
+    connect(&wsw, SIGNAL(windowSwitched(int)),
+            this, SLOT(switchWindows(int)));
+
+    connect(&wsw, SIGNAL(windowClosed(int)),
+            this, SLOT(subWinClosed(int)));
+
 }
 
 IdealIRC::~IdealIRC()
@@ -161,6 +167,16 @@ void IdealIRC::showEvent(QShowEvent *)
     if (conf.showOptionsStartup)
         on_actionOptions_triggered();
 
+    addToolBarBreak();
+    addToolBar(wsw.getToolbar());
+
+    wsw.getToolbar()->setVisible( conf.showButtonbar );
+    ui->treeWidget->setVisible( conf.showTreeView );
+
+    ui->actionToolbar->setChecked( ui->toolBar->isVisible() );
+    ui->actionWindow_buttons->setChecked( wsw.getToolbar()->isVisible() );
+    ui->actionWindow_tree->setChecked( ui->treeWidget->isVisible() );
+
     scriptParent.loadAllScripts();
     scriptParent.runevent(te_start);
 }
@@ -198,6 +214,8 @@ void IdealIRC::closeEvent(QCloseEvent *e)
 
     // Save config prior to exit.
     conf.showToolBar = ui->toolBar->isVisible();
+    conf.showTreeView = (ui->treeWidget->width() > 0);
+    conf.showButtonbar = wsw.getToolbar()->isVisible();
     conf.maximized = isMaximized();
     conf.save();
 
@@ -278,6 +296,18 @@ void IdealIRC::subWinClosed(int wid)
     if (sw.wid == -1)
         return; // Nope.
 
+    if (sw.type == WT_STATUS) {
+        int statusCount = 0;
+
+        QHashIterator<int,subwindow_t> i(winlist);
+        while (i.hasNext())
+            if (i.next().value().type == WT_STATUS)
+                ++statusCount;
+
+        if (statusCount <= 1)
+            return; // Nope.
+    }
+
     std::cout << "Closing " << sw.widget->objectName().toStdString().c_str() << " (" << wid << ")" << std::endl;
 
     if (sw.type == WT_STATUS) {
@@ -326,11 +356,15 @@ void IdealIRC::subWinClosed(int wid)
         con->sockwrite("PART :" + sw.widget->objectName() );
     }
 
+    if (sw.type == WT_STATUS)
+        wsw.delGroup(sw.wid);
+    else
+        wsw.delWindow(sw.wid);
+
     ui->treeWidget->removeItemWidget(sw.treeitem, 0);
     delete sw.treeitem;
     delete sw.widget;
     winlist.remove(wid);
-
 
     /**
        @note Do we need to delete the other pointers from subwindow_t ?
@@ -365,7 +399,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     IConnection *connection = conlist.value(parent, NULL);
     if (type == WT_STATUS) {
         qDebug() << "Window is status, new connection added with id " << s->getId();
-        connection = new IConnection(this, &chanlist, s->getId(), &conf, &scriptParent);
+        connection = new IConnection(this, &chanlist, s->getId(), &conf, &scriptParent, &wsw);
         connection->setActiveInfo(&activeWname, &activeConn);
         connect(connection, SIGNAL(connectionClosed()),
                 this, SLOT(connectionClosed()));
@@ -429,6 +463,8 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     qDebug() << "Adding subwindow_t to winlist...";
 
     winlist.insert(s->getId(), wt);
+
+    wsw.addWindow(type, name, wt.wid, parent);
 
     sw->setGeometry(0, 0, 500, 400);
 
@@ -502,9 +538,7 @@ QTreeWidgetItem* IdealIRC::GetWidgetItem(int wid)
     if (! winlist.contains(wid))
         return NULL;
 
-    subwindow_t t = winlist.value(wid);
-    return t.treeitem;
-
+    return winlist.value(wid).treeitem;
 }
 
 void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
@@ -514,16 +548,18 @@ void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
     while (i.hasNext()) {
         i.next();
         subwindow_t sw = i.value();
+        if (sw.subwin != arg1)
+            continue;
 
-        if (sw.subwin == arg1) {
-            activeWid = sw.wid;
-            sw.treeitem->setForeground(0, QBrush(QColor(conf.colWindowlist)));
-            sw.highlight = HL_NONE;
-            ui->treeWidget->setCurrentItem(sw.treeitem);
-            updateConnectionButton();
-            winlist.insert(sw.wid, sw);
-            break;
-        }
+        activeWid = sw.wid;
+        sw.treeitem->setForeground(0, QBrush(QColor(conf.colWindowlist)));
+        sw.highlight = HL_NONE;
+        ui->treeWidget->setCurrentItem(sw.treeitem);
+        updateConnectionButton();
+        winlist.insert(sw.wid, sw);
+        wsw.setActiveWindow(sw.wid);
+
+        break;
     }
 }
 
@@ -551,7 +587,6 @@ void IdealIRC::on_treeWidget_itemSelectionChanged()
 
             if ((chanlist != NULL) && (sw.connection != NULL))
                 chanlist->setConnection(sw.connection);
-
         }
     }
 }
@@ -714,7 +749,7 @@ void IdealIRC::Highlight(int wid, int type)
 
     wt.highlight = type;
     winlist.insert(wid, wt);
-
+    wsw.setHighlight(wid, type);
 }
 
 void IdealIRC::on_actionAbout_IdealIRC_triggered()
@@ -887,4 +922,38 @@ void IdealIRC::applicationFocusChanged(QWidget *old, QWidget *now)
     windowIsActive = true;
   else if (isAncestorOf(old) == true && now == 0)
     windowIsActive = false;
+}
+
+void IdealIRC::switchWindows(int wid)
+{
+    QHashIterator<int,subwindow_t> i(winlist);
+
+    while (i.hasNext()) {
+        i.next();
+        subwindow_t sw = i.value();
+        if (sw.wid != wid)
+            continue;
+
+        ui->treeWidget->setCurrentItem(sw.treeitem);
+
+        break;
+    }
+}
+
+void IdealIRC::on_actionToolbar_triggered()
+{
+    ui->toolBar->setVisible( ui->actionToolbar->isChecked() );
+    conf.showToolBar = ui->actionToolbar->isChecked();
+}
+
+void IdealIRC::on_actionWindow_buttons_triggered()
+{
+    wsw.getToolbar()->setVisible( ui->actionWindow_buttons->isChecked() );
+    conf.showButtonbar = ui->actionWindow_buttons->isChecked();
+}
+
+void IdealIRC::on_actionWindow_tree_triggered()
+{
+    ui->treeWidget->setVisible( ui->actionWindow_tree->isChecked() );
+    conf.showTreeView = ui->actionWindow_tree->isChecked();
 }

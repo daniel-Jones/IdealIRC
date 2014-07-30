@@ -317,9 +317,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                 }
 
                 if (ex == ex_DialogName) {
-                    dialog =  new TCustomScriptDialog(keyword, dlgParent, this);
-                    connect(dialog, SIGNAL(runEvent(e_iircevent,QStringList)),
-                    this, SLOT(runEvent(e_iircevent,QStringList)));
+                    dialog =  new TCustomScriptDialog(this, keyword, dlgParent);
                     ex = ex_Brace;
                     keyword.clear();
                     continue;
@@ -612,6 +610,7 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     qDebug() << " -" << include.count() << "includes.";
     qDebug() << " -" << command.count() << "commands.";
     qDebug() << " -" << timers.count() << "timers.";
+    qDebug() << " -" << dialogs.count() << "dialogs.";
     qDebug() << "---";
 
     return se_None;

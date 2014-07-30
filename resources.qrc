@@ -9,20 +9,26 @@
         <file>gfx/saveall.png</file>
     </qresource>
     <qresource prefix="/toolicons">
-        <file>gfx/chanlist.png</file>
-        <file>gfx/connect.png</file>
-        <file>gfx/disconnect.png</file>
-        <file>gfx/favourites.png</file>
-        <file>gfx/options.png</file>
+        <file>gfx/main_bookmarks.png</file>
+        <file>gfx/main_channels.png</file>
+        <file>gfx/main_connected.png</file>
+        <file>gfx/main_disconnected.png</file>
+        <file>gfx/main_options.png</file>
+        <file>gfx/main_scripts.png</file>
+        <file>gfx/main_scripts_pixel.png</file>
+        <file>gfx/main_channels_pixel.png</file>
     </qresource>
     <qresource prefix="/window">
-        <file>gfx/channel.png</file>
         <file>gfx/custom.png</file>
         <file>gfx/query.png</file>
         <file>gfx/status.png</file>
-    </qresource>
-    <qresource prefix="/css">
-        <file>TIRCView.css</file>
+        <file>gfx/channel_act.png</file>
+        <file>gfx/channel_noact.png</file>
+        <file>gfx/status_act.png</file>
+        <file>gfx/query_noact.png</file>
+        <file>gfx/query_act.png</file>
+        <file>gfx/status_noact.png</file>
+        <file>gfx/channel.png</file>
     </qresource>
     <qresource prefix="/other">
         <file>gfx/colorpicker.png</file>
@@ -32,11 +38,11 @@
         <file>gfx/icon32x32.png</file>
     </qresource>
     <qresource prefix="/options">
-        <file>gfx/customize.png</file>
-        <file>gfx/perform.png</file>
-        <file>gfx/logging.png</file>
-        <file>gfx/settings.png</file>
         <file>gfx/server.png</file>
         <file>gfx/network.png</file>
+        <file>gfx/options_general.png</file>
+        <file>gfx/options_idealstyles.png</file>
+        <file>gfx/options_logging.png</file>
+        <file>gfx/options_onconnect.png</file>
     </qresource>
 </RCC>

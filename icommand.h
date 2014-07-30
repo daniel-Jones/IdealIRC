@@ -46,6 +46,7 @@ public:
     void me(QString target, QString message);
     void ctcp(QString target, QString message); // Do not add 0x01 to the message, this function does it.
     void kick(QString channel, QString nickname, QString reason = "");
+    void kill(QString nickname, QString reason = "");
     void ban(QString channel, QString nickname);
     void raw(QString data);
     void charset(QString newCodec = ""); // Adding no parameters echoes out current charset.

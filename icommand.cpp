@@ -187,6 +187,18 @@ bool ICommand::parse(QString command)
         return true;
     }
 
+    if (t1 == "KILL") {
+        if (token.count() < 2) {
+            localMsg(InsufficientParameters("/Kill"));
+            return true;
+        }
+        QString nickname = token[1];
+        QString reason = command.mid(nickname.length() + 5);
+
+        kill(nickname, reason);
+        return true;
+    }
+
     if (t1 == "BAN") {
         if (token.count() < 2) {
             localMsg(InsufficientParameters("/Ban"));
@@ -347,6 +359,14 @@ void ICommand::kick(QString channel, QString nickname, QString reason)
 
     sockwrite( QString("KICK %1 %2 :%3")
                  .arg(channel)
+                 .arg(nickname)
+                 .arg(reason)
+              );
+}
+
+void ICommand::kill(QString nickname, QString reason)
+{
+    sockwrite( QString("KILL %1 :%2")
                  .arg(nickname)
                  .arg(reason)
               );
