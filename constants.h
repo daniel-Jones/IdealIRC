@@ -198,7 +198,9 @@ enum e_iircevent {
     te_dlistboxselect,
     te_ialhostget,
     te_input,
-    te_numeric
+    te_numeric,
+    te_activate = 30,
+    te_deactivate
 };
 
 /* Results TScript::runf() can give */

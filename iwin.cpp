@@ -809,6 +809,9 @@ void IWin::clear()
 
 QStringList IWin::getSelectedMembers()
 {
+    if (listbox == NULL)
+        return QStringList();
+
     const QList<QListWidgetItem*> sel = listbox->selectedItems();
     QStringList list;
     for (int i = 0; i <= sel.length()-1; ++i) {
@@ -860,6 +863,20 @@ void IWin::execChanSettings()
             this, SLOT(settingsClosed()));
 
     sockwrite(QString("TOPIC %1").arg(target));
+}
+
+int IWin::listboxWidth()
+{
+    if (listbox == NULL)
+        return 0;
+    return listbox->width();
+}
+
+int IWin::listboxHeight()
+{
+    if (listbox == NULL)
+        return 0;
+    return listbox->height();
 }
 
 void IWin::listboxDoubleClick(QListWidgetItem *item)

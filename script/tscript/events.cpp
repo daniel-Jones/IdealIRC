@@ -141,6 +141,12 @@ e_iircevent TScript::getEvent(QString event)
     else if (evt == "NUMERIC")
         return te_numeric;
 
+    else if (evt == "ACTIVATE")
+        return te_activate;
+
+    else if (evt == "DEACTIVATE")
+        return te_deactivate;
+
     else
         return te_noevent;
 }

@@ -131,6 +131,8 @@ private:
     void delCon(QString id);
     QString readCon(QString id);
     void execCmd(QString cmd) { if (cmd.length() > 0) { emit execCmdSignal(cmd); } }
+    QString mergeVarName(QString &vname);
+    e_scriptresult escape(QString &text, int *i, QString *result);
     e_scriptresult extract(QString &text, bool extractVariables = true); // extract functions and variables
     e_scriptresult extractFunction(QString &text, QString &result, int *pos);
     QString extractVarsOld(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar);

@@ -93,6 +93,8 @@ public:
       void updateTitleHost(); // for WT_PRIVMSG, set hostname in titlebar
       TPictureWindow* picwinPtr() { return picwin; }
       void execChanSettings();
+      int listboxWidth();
+      int listboxHeight();
 
 private:
       Ui::IWin *ui;

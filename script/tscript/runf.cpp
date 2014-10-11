@@ -225,15 +225,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
             curLine++;
 
         if (cc == '\\') { // Escape, skip completely and add to keyword
-            if (i == scriptstr.length()-1)
-                return se_EscapeOnEndLine;
+            ++i;
+            e_scriptresult er = escape(scriptstr, &i, &keyword);
+            if (er != se_None)
+                return er;
 
-            i++;
-
-            if (scriptstr[i] == '\n')
-                return se_EscapeOnEndLine;
-
-            keyword += scriptstr[i];
             continue;
         }
 
@@ -606,6 +602,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
+                if (vname.contains('+'))
+                    vname = mergeVarName(vname);
+
                 variables.insert(vname, data);
 
                 keyword.clear();
@@ -639,12 +638,18 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                     if (st == st_VarName) {
                         if (c == '\n') {
+                            if (vname.contains('+'))
+                                vname = mergeVarName(vname);
+
                             binVars.remove(vname);
                             variables.remove(vname);
                             parName->removeAll(vname);
-                            break;
+                            break; // no need to clear vname
                         }
                         else if ((c == ' ') || (c == '\t')) {
+                            if (vname.contains('+'))
+                                vname = mergeVarName(vname);
+
                             binVars.remove(vname);
                             variables.remove(vname);
                             parName->removeAll(vname);
@@ -713,7 +718,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                 }
 
-                if (st == st_VarPrefix) // In case something very weird happens, this prevents TIRC to go bananas.
+                if (st == st_VarPrefix) // In case something very weird happens, this prevents IIRC to go bananas.
                     return  se_UnexpectedNewline;
 
                 double val = 1.0f;
@@ -739,6 +744,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     varval += val;
                 if (keywup == "DEC")
                     varval -= val;
+
+                if (vname.contains('+'))
+                    vname = mergeVarName(vname);
 
                 variables.insert(vname, QString::number(varval));
 
@@ -1305,7 +1313,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     if (args.length() == 0)
                         return se_InvalidParamCount;
 
-                    QString vname = args;
+                    QString vname = mergeVarName(args);
                     QByteArray data;
 
                     if (newline)

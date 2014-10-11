@@ -142,7 +142,10 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
         ex_DialogButton,
         ex_DialogEditBox = 20,
         ex_DialogTextBox,
-        ex_DialogListBox
+        ex_DialogListBox,
+        ex_DialogEmbed,
+        ex_DialogPaint,
+        ex_DialogText = 25
     };
 
     enum {
@@ -439,6 +442,20 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
 
                         else if (keywup == "GEOMETRY")
                             ex = ex_DialogGeometry;
+
+                        else if (keywup == "EMBED") {
+                            // embed c|l|p|s
+                            // channel, listbox, pm, status
+                            ex = ex_DialogEmbed;
+                        }
+
+                        else if (keywup == "PAINT") {
+                            // paint @wname x y w h
+                        }
+
+                        else if (keywup == "TEXT") {
+                            // text @name x y w h
+                        }
 
                         else if (keywup == "LABEL")
                             ex = ex_DialogLabel;

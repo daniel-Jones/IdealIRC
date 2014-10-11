@@ -193,10 +193,23 @@ void IButtonBar::highlight(int wid, int type)
         return;
 
     action_data_t ad = getActionData(a);
+
+    // clang is being good:
+    if (activewid == wid) {
+        ad.wid = wid;
+        ad.highlight = HL_NONE;
+    }
+    else {
+        ad.wid = wid;
+        ad.highlight = type;
+    }
+
+    /* clang is being bad:
     if (activewid == wid)
         ad = {wid, HL_NONE};
     else
         ad = {wid, type};
+        */
     setActionData(a, ad);
 
     int wtype = getWtype(wid);

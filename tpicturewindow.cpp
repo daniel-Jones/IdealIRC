@@ -128,8 +128,11 @@ void TPictureWindow::paintEvent(QPaintEvent *e)
     painter.fillRect(0, 0, width(), height(), Qt::white);
     for (int i = 0; i <= layerOrder.length()-1; ++i) {
         QPixmap *p = layers.value( layerOrder[i], nullptr );
-        if (p != nullptr)
-            painter.drawPixmap(0, 0, *p);
+        if (p == nullptr)
+            continue; // layer is invalid. don't do more on this
+
+        QPixmap pm(*p);
+        painter.drawPixmap(0, 0, pm);
     }
 
     e->accept();

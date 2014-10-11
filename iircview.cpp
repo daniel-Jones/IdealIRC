@@ -35,13 +35,14 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
 
     cooldown.setSingleShot(true);
 }
+
 void IIRCView::changeFont(QString fontName, int pxSize)
 {
     QFont f(fontName);
     f.setPixelSize(pxSize);
     setFont(f);
     delete fm;
-    fm = new QFontMetrics(font());
+    fm = new QFontMetrics(f);
     fontSize = fm->height();
     update();
 }
@@ -261,7 +262,7 @@ void IIRCView::paintEvent(QPaintEvent *)
         t_text t = lines[i];
 
         // Check if splitter needs resize.
-        QString ts = QDateTime::fromMSecsSinceEpoch(t.ts).toString("[hh:mm]");
+        QString ts = QDateTime::fromMSecsSinceEpoch(t.ts).toString( conf->timestamp );
         if (fm->width(t.sender) > splitterPos-fm->width(ts)) {
             splitterPos = fm->width(t.sender) + fm->width(ts) + 10;
             update();
@@ -363,7 +364,7 @@ void IIRCView::paintEvent(QPaintEvent *)
         // Draw timestamp
         QString ts;
         if (conf->showTimestmap) {
-            ts = QDateTime::fromMSecsSinceEpoch(pl.ts).toString("[hh:mm]");
+            ts = QDateTime::fromMSecsSinceEpoch(pl.ts).toString( conf->timestamp );
             painter.drawText(QPoint(0, Y), ts);
         }
 
@@ -479,8 +480,9 @@ void IIRCView::paintEvent(QPaintEvent *)
                     QFont font = painter.font();
                     font.setBold(false);
                     font.setUnderline(false);
-                    painter.setPen(getColorFromType(pl.type)); // TODO use config
+                    painter.setPen(getColorFromType(pl.type));
                     painter.setFont(font);
+                    continue;
                 }            
 
                 if (draggingText) {
@@ -497,14 +499,13 @@ void IIRCView::paintEvent(QPaintEvent *)
                     if ((p2.x() >= tl.x()) && (p2.x() < br.x()) &&
                         (p2.y() >= tl.y()) && (p2.y() < br.y())) {
                         textCopyBg = false;
-                        painter.fillRect(X+1, Y-fontSize, fw+1, fontSize+2, invertColor(conf->colBackground));
+                        painter.fillRect(X+1, Y-fontSize+2, fw+1, fontSize+1, invertColor(conf->colBackground));
                     }
                 }
                 if (textCopyBg)
-                    painter.fillRect(X+1, Y-fontSize, fw+1, fontSize+2, invertColor(conf->colBackground));
+                    painter.fillRect(X+1, Y-fontSize+2, fw+1, fontSize+1, invertColor(conf->colBackground));
                 else if (color)
-                    painter.fillRect(X, Y, fw+1, fontSize+2, bgColor);
-
+                    painter.fillRect(X+1, Y-fontSize+2, fw+1, fontSize+1, bgColor);
 
 
                 painter.drawText(QPoint(X, Y), c);
@@ -740,8 +741,8 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
                 text.append('\n');
 
         }
-        qDebug() << "Copy:" << text;
-        QApplication::clipboard()->setText(text);
+        if (! text.isEmpty())
+           QApplication::clipboard()->setText(text);
     }
 
     if (! draggingText) {

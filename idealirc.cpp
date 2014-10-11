@@ -177,6 +177,10 @@ void IdealIRC::showEvent(QShowEvent *)
     ui->actionWindow_buttons->setChecked( wsw.getToolbar()->isVisible() );
     ui->actionWindow_tree->setChecked( ui->treeWidget->isVisible() );
 
+    ui->actionMenubar->setChecked( conf.showMenubar );
+    ui->menuBar->setVisible( ui->actionMenubar->isChecked() );
+
+
     scriptParent.loadAllScripts();
     scriptParent.runevent(te_start);
 }
@@ -264,6 +268,25 @@ void IdealIRC::resizeEvent(QResizeEvent *e)
 void IdealIRC::moveEvent(QMoveEvent *)
 {
     conf.mainWinGeo = geometry();
+}
+
+void IdealIRC::keyReleaseEvent(QKeyEvent *e)
+{
+    if (e->modifiers() != Qt::ControlModifier) {
+        e->ignore();
+        return;
+    }
+
+    switch (e->key()) {
+        case Qt::Key_M:
+            ui->actionMenubar->trigger();
+            e->accept();
+            break;
+
+        default:
+            e->ignore();
+    }
+
 }
 
 bool IdealIRC::WindowExists(QString name, int parent)
@@ -912,8 +935,11 @@ QSystemTrayIcon::MiddleClick	4	The system tray entry was clicked with the middle
 
 void IdealIRC::trayMessage(QString title, QString message, QSystemTrayIcon::MessageIcon icon)
 {
-    if (conf.trayNotify && !windowIsActive)
+    QApplication::beep();
+
+    if (conf.trayNotify && !windowIsActive) {
         trayicon.showMessage(title, message, icon, conf.trayNotifyDelay);
+    }
 }
 
 void IdealIRC::applicationFocusChanged(QWidget *old, QWidget *now)
@@ -934,7 +960,9 @@ void IdealIRC::switchWindows(int wid)
         if (sw.wid != wid)
             continue;
 
+        scriptParent.runevent(te_deactivate, QStringList()<<activeWname);
         ui->treeWidget->setCurrentItem(sw.treeitem);
+        scriptParent.runevent(te_activate, QStringList()<<sw.widget->objectName());
 
         break;
     }
@@ -956,4 +984,13 @@ void IdealIRC::on_actionWindow_tree_triggered()
 {
     ui->treeWidget->setVisible( ui->actionWindow_tree->isChecked() );
     conf.showTreeView = ui->actionWindow_tree->isChecked();
+}
+
+void IdealIRC::on_actionMenubar_triggered()
+{
+    ui->menuBar->setVisible( ui->actionMenubar->isChecked() );
+    conf.showMenubar = ui->actionMenubar->isChecked();
+
+    if (ui->actionMenubar->isChecked() == false)
+        QMessageBox::information(this, tr("Menubar hidden"), tr("To show the menubar again, press CTRL+M"));
 }

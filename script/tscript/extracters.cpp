@@ -21,6 +21,91 @@
 #include "../tscript.h"
 #include "constants.h"
 
+QString TScript::mergeVarName(QString &vname)
+{
+    enum {
+        st_begin = 0,
+        st_mergekey
+    };
+    QString result;
+    QString keyword;
+    int state = st_begin;
+    for (int i = 0; i <= vname.length()-1; ++i) {
+        QChar c = vname[i];
+        if (c == '\\') {
+            ++i;
+            escape(vname, &i, &result);
+            continue;
+        }
+
+        if (state == st_begin) {
+            if (c == '+') {
+                state = st_mergekey;
+                continue;
+            }
+
+            result += c;
+            continue;
+        }
+
+        if (state == st_mergekey) {
+            if ((c == '+') || (i == vname.length()-1)) {
+                if (i == vname.length()-1)
+                    keyword += c;
+
+                extract(keyword);
+                result += keyword;
+                keyword.clear();
+                continue;
+            }
+
+            keyword += c;
+            continue;
+        }
+    }
+
+    return result;
+}
+
+e_scriptresult TScript::escape(QString &text, int *i, QString *result)
+{
+    // i is a pointer from a loop for text.
+    // It begins after the escape character '\'.
+    // It's a pointer for a future feature, escaping ASCII numbers by hex (f.ex. \x0A) (resulting in a char)
+
+    if (*i >= text.length())
+        return se_EscapeOnEndLine;
+
+    if (text[*i] == '\n')
+        return se_EscapeOnEndLine;
+
+    switch (text[*i].toLatin1()) {
+        case 'c':
+            result->append(char(CTRL_COLOR));
+            break;
+
+        case 'b':
+            result->append(char(CTRL_BOLD));
+            break;
+
+        case 'u':
+            result->append(char(CTRL_UNDERLINE));
+            break;
+
+        case 'e':
+            result->append(char(CTRL_RESET));
+            break;
+
+        case 'n':
+            result->append('\n');
+            break;
+
+        default:
+            result->append( text[*i] );
+    }
+    return se_None;
+}
+
 e_scriptresult TScript::extract(QString &text, bool extractVariables)
 {
     enum {
@@ -36,10 +121,11 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
     for (int i = 0; i <= text.length()-1; ++i) {
         QChar c = text[i];
         if (c == '\\') {
-            if (i == text.length()-1)
-                return se_EscapeOnEndLine;
-            c = text[++i];
-            result += c;
+            ++i;
+            e_scriptresult er = escape(text, &i, &result);
+            if (er != se_None)
+                return er;
+
             continue;
         }
 
@@ -145,12 +231,18 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
         QChar c = text[i];
 
         if (c == '\\') {
-            if (i == text.length()-1)
-                return se_EscapeOnEndLine;
+            ++(*pos);
+            QString add;
+            e_scriptresult er = escape(text, pos, &add);
+            if (er != se_None)
+                return er;
+
             if (state == st_FnName)
-                function += text[++i];
+                function += add;
             if (state == st_FnParam)
-                param += text[++i];
+                param += add;
+
+            continue;
         }
 
         if (state == st_Wait) {
@@ -240,6 +332,13 @@ QByteArray TScript::extractBinVars(QString &text)
     QString var; // Var name
     for (int i = 0; i <= text.length()-1; i++) {
         QChar c = text[i];
+
+        if (c == '\\') {
+            ++i;
+            escape(text, &i, &var);
+
+            continue;
+        }
 
         if (getVarName == false) {
             if (c == '%') {

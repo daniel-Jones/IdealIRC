@@ -80,6 +80,7 @@ public:
     bool autoReJoin;
     bool showTreeView;
     bool showButtonbar;
+    bool showMenubar;
 
     // Colors
     QString colDefault;

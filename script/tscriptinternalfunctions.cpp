@@ -67,6 +67,11 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "ACTIVE") {
+        result = getCustomWindow(*activeWid).widget->objectName();
+        return true;
+    }
+
     if (fn == "ASIN") {
         if (param.length() < 1)
             return false;
@@ -358,6 +363,33 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             r += param[i];
 
         result = r;
+        return true;
+    }
+
+    if (fn == "HEIGHT") {
+        /*
+
+          $height - Returns height of IIRC window
+
+          $height(@window) - Returns height of (text|paint) widget of @window.
+                            Works for any windows.
+
+          $height(#channel, l) - Returns height of listbox (l for Larry)
+
+*/
+        if (param.count() < 1) {
+            result.clear();
+            return false;
+        }
+        subwindow_t sw = getCustomWindow(param[0]);
+        if (sw.type == WT_NOTHING)
+            return false;
+
+        if (param.count() > 1)
+            result = QString::number( sw.widget->listboxHeight() );
+        else
+            result = QString::number( sw.widget->height() );
+
         return true;
     }
 
@@ -711,6 +743,33 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
     if (fn == "VERSION") {
         // IIRC version.
         result = VERSION_STRING;
+        return true;
+    }
+
+    if (fn == "WIDTH") {
+        /*
+
+          $width - Returns width of IIRC window
+
+          $width(@window) - Returns width of (text|paint) widget of @window.
+                            Works for any windows.
+
+          $width(#channel, l) - Returns width of listbox (l for Larry)
+
+*/
+        if (param.count() < 1) {
+            result.clear();
+            return false;
+        }
+        subwindow_t sw = getCustomWindow(param[0]);
+        if (sw.type == WT_NOTHING)
+            return false;
+
+        if (param.count() > 1)
+            result = QString::number( sw.widget->listboxWidth() );
+        else
+            result = QString::number( sw.widget->width() );
+
         return true;
     }
 

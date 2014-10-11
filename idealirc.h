@@ -29,6 +29,7 @@
 #include <QMdiSubWindow>
 #include <QHash>
 #include <QSystemTrayIcon>
+#include <QKeyEvent>
 
 #include "constants.h"
 #include "config.h"
@@ -95,6 +96,7 @@ protected:
       void closeEvent(QCloseEvent *e);
       void resizeEvent(QResizeEvent *e);
       void moveEvent(QMoveEvent *);
+      void keyReleaseEvent(QKeyEvent *e);
 
 public slots:
       int CreateSubWindow(QString name, int type, int parent, bool activate);
@@ -124,6 +126,7 @@ private slots:
       void on_actionToolbar_triggered();
       void on_actionWindow_buttons_triggered();
       void on_actionWindow_tree_triggered();
+      void on_actionMenubar_triggered();
 };
 
 #endif // IDEALIRC_H
