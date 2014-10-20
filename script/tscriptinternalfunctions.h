@@ -80,6 +80,7 @@ private:
     QString sstr(QString text, int start, int stop = -1);
     QString token(QString text, int pos, QChar delim);
     QString rand(int lo, int hi);
+    QString n(QString numc);
 };
 
 #endif // TSCRIPTINTERNALFUNCTIONS_H

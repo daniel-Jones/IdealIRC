@@ -81,7 +81,8 @@ SOURCES += main.cpp\
     dcc/dccrecv.cpp \
     iircview.cpp \
     ibuttonbar.cpp \
-    iwindowswitcher.cpp
+    iwindowswitcher.cpp \
+    script/tscriptinternalfunctions/n.cpp
 
 #iaddresslist.cpp
 

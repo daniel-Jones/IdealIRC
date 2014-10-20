@@ -520,6 +520,16 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "N") {
+        // Numeric conversion
+        result.clear();
+        if (param.count() == 0)
+            return true;
+
+        result = n(param[0]);
+        return true;
+    }
+
     if (fn == "NICKLIST") {
         /*
             $nicklist           | Return first selected nickname in current channel
