@@ -50,7 +50,7 @@ class TScriptParent : public QObject
 public:
     TScriptParent(QObject *parent, QWidget *dialogParent, config *cfg, QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl, int *aWid, int *aConn);
     bool command(QString cmd); // Exec any custom commands, returns false if command not found in loaded scripts.
-    bool runevent(e_iircevent event, QStringList param);
+    bool runevent(e_iircevent event, QStringList param, QString *result = nullptr);
     bool runevent(e_iircevent event);
     bool loadScript(QString path, bool starting = false); // starting is true when IIRC is starting up.
     bool unloadScript(QString name);

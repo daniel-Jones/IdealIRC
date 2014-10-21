@@ -21,7 +21,7 @@
 #include "../tscript.h"
 #include "constants.h"
 
-bool TScript::runEvent(e_iircevent evt, QStringList param)
+bool TScript::runEvent(e_iircevent evt, QStringList param, QString *result)
 {
     QHashIterator<e_iircevent,QString> i(tevent);
     bool found = false;
@@ -44,6 +44,8 @@ bool TScript::runEvent(e_iircevent evt, QStringList param)
                             .arg(fnct)
                             .arg(name)
                            );
+            if (result != nullptr)
+            *result = r;
         }
     }
 

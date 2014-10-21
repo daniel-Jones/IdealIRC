@@ -561,8 +561,11 @@ void IConnection::parse(QString &data)
                 params += ' ';
             params += token[i];
         }
-        scriptParent->runevent(te_numeric, QStringList()<<token[1]<<params<<msg);
-        parseNumeric(num, data);
+        QString res;
+        scriptParent->runevent(te_numeric, QStringList()<<token[1]<<params<<msg, &res);
+        if (res != "0")
+            parseNumeric(num, data);
+
         return;
     }
 

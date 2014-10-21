@@ -158,14 +158,14 @@ bool TScriptParent::reloadScript(QString name)
     return loader(script);
 }
 
-bool TScriptParent::runevent(e_iircevent event, QStringList param)
+bool TScriptParent::runevent(e_iircevent event, QStringList param, QString *result)
 {
     bool found = false;
     displayURL = true;
 
     for (int i = 0; i <= scriptlist.count()-1; i++) {
         TScript *s = scriptlist[i];
-        found = s->runEvent(event, param);
+        found = s->runEvent(event, param, result);
         // 'found' is true if event is actually run (function assigned to it)
     }
 

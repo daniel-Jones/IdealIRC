@@ -159,7 +159,7 @@ private:
 
 public slots:
     void timerTimeout(QString fn);
-    bool runEvent(e_iircevent evt, QStringList param);
+    bool runEvent(e_iircevent evt, QStringList param, QString *result = nullptr);
 
 private slots:
     void nicklistMenuItemTriggered(QString function);
