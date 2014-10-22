@@ -72,9 +72,8 @@ bool TScript::customDialogSetLabel(QString dlg, QString oname, QString text)
     while (i.hasNext()) {
         i.next();
         TCustomScriptDialog *d = i.value();
-        if (d->getName().toUpper() == dlg.toUpper()) {
+        if (d->getName().toUpper() == dlg.toUpper())
             return d->setLabel(oname, text);
-        }
     }
 
     return false;
@@ -86,9 +85,21 @@ bool TScript::customDialogAddItem(QString dlg, QString oname, QString text)
     while (i.hasNext()) {
         i.next();
         TCustomScriptDialog *d = i.value();
-        if (d->getName().toUpper() == dlg.toUpper()) {
+        if (d->getName().toUpper() == dlg.toUpper())
             return d->addItem(oname, text);
-        }
+    }
+
+    return false;
+}
+
+bool TScript::customDialogReItem(QString dlg, QString oname, QString index, QString text)
+{
+    QHashIterator<QString,TCustomScriptDialog*> i(dialogs);
+    while (i.hasNext()) {
+        i.next();
+        TCustomScriptDialog *d = i.value();
+        if (d->getName().toUpper() == dlg.toUpper())
+            return d->reItem(oname, index.toInt(), text);
     }
 
     return false;
@@ -119,9 +130,8 @@ bool TScript::customDialogClear(QString dlg, QString oname)
     while (i.hasNext()) {
         i.next();
         TCustomScriptDialog *d = i.value();
-        if (d->getName().toUpper() == dlg.toUpper()) {
+        if (d->getName().toUpper() == dlg.toUpper())
             return d->clear(oname);
-        }
     }
 
     return false;

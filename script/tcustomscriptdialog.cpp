@@ -296,6 +296,23 @@ bool TCustomScriptDialog::addItem(QString oname, QString text)
   return false;
 }
 
+bool TCustomScriptDialog::reItem(QString oname, int idx, QString text)
+{
+  QHashIterator<QString,QListWidget*> i1(listbox);
+  while (i1.hasNext()) {
+      i1.next();
+      if (i1.value()->objectName().toUpper() == oname.toUpper()) {
+          QListWidgetItem *item = i1.value()->item(idx-1);
+          if (item == 0)
+              return false;
+          item->setText(text);
+          return true;
+      }
+  }
+
+  return false;
+}
+
 bool TCustomScriptDialog::delItem(QString oname, int idx)
 {
   if (idx < 1)

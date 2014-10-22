@@ -154,6 +154,7 @@ private:
     bool customDialogClose(QString oname);
     bool customDialogSetLabel(QString dlg, QString oname, QString text);
     bool customDialogAddItem(QString dlg, QString oname, QString text);
+    bool customDialogReItem(QString dlg, QString oname, QString index, QString text);
     bool customDialogDelItem(QString dlg, QString oname, QString index);
     bool customDialogClear(QString dlg, QString oname);
 

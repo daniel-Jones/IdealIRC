@@ -636,6 +636,15 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         return true;
     }
 
+    if (fn == "REPLACE") {
+        // $replace(text, search, replace)
+        if (param.length() < 3)
+            return false;
+
+        result = param[0].replace(param[1], param[2]);
+        return true;
+    }
+
     if (fn == "SIN") {
         if (param.length() < 1)
             return false;
@@ -734,8 +743,7 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
 
         bool ok = false;
 
-        QString tcnum = param[2]; // token character (ascii num)
-        QChar tc = tcnum.toInt(&ok); // converted from string-number to actual number, into a character.
+        QChar tc = param[2].toInt(&ok); // converted from string-number to actual number, into a character.
 
         if (ok == false)
             return false;
@@ -747,6 +755,22 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
 
         result = token(param[0], p, tc);
 
+        return true;
+    }
+
+
+    if (fn == "TOKENPOS") {
+        if (param.count() != 3)
+            return false;
+
+        // $tokenpos(text, pattern, token)
+        // returns what token position given pattern is in a given text
+        bool ok = false;
+        QChar tc = param[2].toInt(&ok); // converted from string-number to actual number, into a character.
+        if (ok == false)
+            return false;
+        QStringList tokens = param[0].split(tc);
+        result = QString::number(tokens.indexOf(param[1]) + 1);
         return true;
     }
 

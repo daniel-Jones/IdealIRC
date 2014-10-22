@@ -67,6 +67,7 @@ public:
 
     bool setLabel(QString oname, QString text);
     bool addItem(QString oname, QString text);
+    bool reItem(QString oname, int idx, QString text);
     bool delItem(QString oname, int idx);
 
     bool clear(QString oname);

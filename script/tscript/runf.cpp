@@ -1531,6 +1531,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 bool close = false;
                 bool label = false;
                 bool additem = false;
+                bool reitem = false;
                 bool clear = false;
                 bool delitem = false;
 
@@ -1568,6 +1569,8 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                             label = true;
                         else if (c == 'i')
                             additem = true;
+                        else if (c == 'r')
+                            reitem = true;
                         else if (c == 'd')
                             delitem = true;
                         else if (c == 'e')
@@ -1616,6 +1619,14 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                         return se_UnexpectedNewline;
                     QString text = arg.mid(par[0].length() + par[1].length() + 2);
                     ok = customDialogAddItem(par[0], par[1], text);
+                }
+
+                if (reitem) {
+                    QStringList par = arg.split(' '); // dialog object index text ...
+                    if (par.count() < 4)
+                        return se_UnexpectedNewline;
+                    QString text = arg.mid(par[0].length() + par[1].length() + par[2].length() + 3);
+                    ok = customDialogReItem(par[0], par[1], par[2], text);
                 }
 
                 if (delitem) {
