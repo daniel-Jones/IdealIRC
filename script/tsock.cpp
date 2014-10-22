@@ -114,8 +114,9 @@ QByteArray TSock::readBuffer() // Read out entire buffer.
 
 QString TSock::readBufferLn() // Read out first line (to next \n).
 {
-    QString data = socket->readLine();
-    return data.mid(0, data.length()-2); // remove newline on the end
+    return socket->readLine().replace( QByteArray('\r','\n'),
+                                       QByteArray('\0','\0')
+                                      );
 }
 
 void TSock::socketError(QAbstractSocket::SocketError error)
