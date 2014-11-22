@@ -82,7 +82,8 @@ SOURCES += main.cpp\
     iircview.cpp \
     ibuttonbar.cpp \
     iwindowswitcher.cpp \
-    script/tscriptinternalfunctions/n.cpp
+    script/tscriptinternalfunctions/n.cpp \
+    script/editor/iscripteditorsettings.cpp
 
 #iaddresslist.cpp
 
@@ -136,7 +137,8 @@ HEADERS  += idealirc.h \
     dcc/dcc_protocols.h \
     iircview.h \
     ibuttonbar.h \
-    iwindowswitcher.h
+    iwindowswitcher.h \
+    script/editor/iscripteditorsettings.h
 
 #iaddresslist.h
 
@@ -154,7 +156,8 @@ FORMS    += idealirc.ui \
     ichannellist.ui \
     imotdview.ui \
     script/iscriptmanager.ui \
-    script/editor/iscripteditor.ui
+    script/editor/iscripteditor.ui \
+    script/editor/iscripteditorsettings.ui
 
 #iaddresslist.ui
 

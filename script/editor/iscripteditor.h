@@ -32,6 +32,7 @@
 #include "config.h"
 #include "editorwidget.h"
 #include "tscripteditorhighlighter.h"
+#include "iscripteditorsettings.h"
 
 namespace Ui {
 class IScriptEditor;
@@ -66,6 +67,7 @@ private:
     QHash<QString,file_t> files;
     bool ignoreNextTextChange;
     bool ignoreNextRowChange;
+    IScriptEditorSettings settings;
 
     void saveFile(QString filename); // Save given file
     void saveAll(); // Save all files
@@ -80,8 +82,10 @@ private:
 private slots:
     void currentRowChanged(const QModelIndex &current, const QModelIndex &previous);
     void textChanged();
+    void settingsSaved();
     void on_btnSave_clicked();
     void on_btnSaveAll_clicked();
+    void on_btnSettings_clicked();
 
 protected:
     void closeEvent(QCloseEvent *e);

@@ -340,6 +340,18 @@ void config::rehash()
     else
         editorComment = c;
 
+    c = ini->ReadIni("Editor", "FontName");
+    if (c.length() == 0)
+        editorFontName = "Courier New"; // Default value
+    else
+        editorFontName = c;
+
+    c = ini->ReadIni("Editor", "FontSize");
+    if (c.length() == 0)
+        editorFontSize = 12; // Default value
+    else
+        editorFontSize = c.toInt();
+
 
     if (treeWidth < 25)
         treeWidth = 125;
@@ -436,6 +448,9 @@ void config::save()
     ini->WriteIni("Colors", "EditorWindow", editorWindow.name());
     ini->WriteIni("Colors", "EditorVariable", editorVariable.name());
     ini->WriteIni("Colors", "EditorComment", editorComment.name());
+
+    ini->WriteIni("Editor", "FontName", editorFontName);
+    ini->WriteIni("Editor", "FontSize", QString::number(editorFontSize));
 }
 
 

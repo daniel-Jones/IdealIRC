@@ -23,6 +23,7 @@
 
 #include <QObject>
 #include <QPainterPath>
+#include <math.h>
 #include "constants.h"
 
 class IConnection;

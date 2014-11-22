@@ -110,6 +110,10 @@ public:
     QColor editorVariable;
     QColor editorComment;
 
+    // Editor font
+    QString editorFontName;
+    int editorFontSize;
+
     bool connectionActive;
 
     int bti(bool b); // bool to int, true=1, false=0

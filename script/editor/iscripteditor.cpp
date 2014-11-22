@@ -36,16 +36,17 @@ IScriptEditor::IScriptEditor(QWidget *parent, QString script, config *cfg) :
     current(script),
     selection(NULL),
     ignoreNextTextChange(false),
-    ignoreNextRowChange(false)
+    ignoreNextRowChange(false),
+    settings(conf, this)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Window);
 
     ui->splitter->addWidget(&editor);
 
-    QFont font("Courier New");
-    font.setPixelSize(12);
-    editor.setFont(font);
+    QFont f(conf->fontName);
+    f.setPixelSize(conf->fontSize);
+    editor.setFont(f);
 
     QList<int> size;
     size << 150 << 600;
@@ -55,6 +56,9 @@ IScriptEditor::IScriptEditor(QWidget *parent, QString script, config *cfg) :
 
     connect(&editor, SIGNAL(textChanged()),
             this, SLOT(textChanged()));
+
+    connect(&settings, SIGNAL(settingsSaved()),
+            this, SLOT(settingsSaved()));
 
     setupTreeView();
 
@@ -426,6 +430,13 @@ void IScriptEditor::textChanged()
     setBold(item);
 }
 
+void IScriptEditor::settingsSaved()
+{
+    QFont f(conf->fontName);
+    f.setPixelSize(conf->fontSize);
+    editor.setFont(f);
+}
+
 void IScriptEditor::on_btnSave_clicked()
 {
     // save current
@@ -462,4 +473,9 @@ void IScriptEditor::closeEvent(QCloseEvent *e)
         if (b == QMessageBox::Cancel)
             e->ignore();
     }
+}
+
+void IScriptEditor::on_btnSettings_clicked()
+{
+    settings.show();
 }
