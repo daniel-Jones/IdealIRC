@@ -113,10 +113,7 @@ void TPictureWindow::showEvent(QShowEvent *)
     lw = width();
     lh = height();
 
-    pixmap = new QPixmap(width(), height());
-    pixmap->fill(Qt::transparent);
     setLayer("MAIN");
-    update();
 }
 
 void TPictureWindow::paintEvent(QPaintEvent *e)
@@ -131,8 +128,7 @@ void TPictureWindow::paintEvent(QPaintEvent *e)
         if (p == nullptr)
             continue; // layer is invalid. don't do more on this
 
-        QPixmap pm(*p);
-        painter.drawPixmap(0, 0, pm);
+        painter.drawPixmap(QPoint(0, 0), *p);
     }
 
     e->accept();
@@ -359,6 +355,7 @@ void TPictureWindow::setLayer(QString name)
     pixmap = layers.value(name.toUpper(), nullptr);
     if (pixmap == nullptr) {
         pixmap = new QPixmap(width(), height());
+        pixmap->fill(Qt::transparent);
         layers.insert(name.toUpper(), pixmap);
         layerOrder << name.toUpper();
     }

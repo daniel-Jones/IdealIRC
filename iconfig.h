@@ -66,9 +66,7 @@ private slots:
     void on_btnSaveConnect_clicked();
     void on_btnSaveClose_clicked();
     void on_btnCancel_clicked();
-
     void on_btnDisconnect_clicked();
-
     void on_newServer_toggled(bool checked);
 
 protected:

@@ -94,8 +94,15 @@
    </item>
    <item row="0" column="2">
     <widget class="QToolButton" name="btnSettings">
+     <property name="toolTip">
+      <string>Editor settings...</string>
+     </property>
      <property name="text">
       <string>SS</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../resources.qrc">
+       <normaloff>:/toolicons/gfx/main_options.png</normaloff>:/toolicons/gfx/main_options.png</iconset>
      </property>
      <property name="iconSize">
       <size>

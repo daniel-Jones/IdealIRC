@@ -55,8 +55,10 @@ IScriptEditorSettings::IScriptEditorSettings(config *cfg, QWidget *parent) :
     editorFontName = conf->editorFontName;
     editorFontSize = conf->editorFontSize;
 
-    ui->fontname->setCurrentFont( conf->editorFontName );
-    ui->fontsize->setValue( conf->editorFontSize );
+    QFont f(editorFontName);
+    f.setPixelSize(editorFontSize);
+    ui->fontname->setCurrentFont( f );
+    ui->fontsize->setValue( editorFontSize );
 
     setButtonColor(conf->editorLineHighlight);
     selectedColor = ui->LineHighlight->objectName();
