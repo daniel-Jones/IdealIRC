@@ -1,25 +1,29 @@
-0.4.1 - ???
- * Improved escaping in IIRC script
-   - \b, \u, \k and \e will be replaced with its control code characters (bold, underline, color and reset).
-   - \n will escape a newline.
- * New script functions:
-   - $Width(#channel[, l)
-     - $Width(@window)
-   - $Height(#channel[, l]
-     - $Height(@window)
-     Return height|width of channel/window textbox (or listbox)
+0.4.1 - Jan 4th 2015
+ * Escape characters improved in scripting:
+   - Almost anywhere in a script, \b is bold, \u is underline, etc. \n for newline.
+ * New functions:
+   - $Width(#channel[, l])
+   - $Wdith(@window)
+   - $Height(#channel[, l])
+   - $Height(@window)
    - $Active
-     Return current window active
- * New events:
-   - Activate(%window) - Runs when another window is activated
-   - Deactivate(%window) - Runs when current window is no longer the active
-    These events essentially runs when switching between windows.
-    First the Deactivate event runs for window you switch _from_
-    and then Activate runs for the window you switch _to_.
- * Fixed crash on using $Listbox in a window without listbox
- * Variable merging didn't work properly on VAR, DEL, INC and DEC instructions.
- * Fixed backround colors on text
- * Fixed empty text copying
+   - $N(IRC_NUMERIC)
+   - $Replace(text, search, replace)
+   - $Tokenpos(text, pattern, token)
+ * New events
+   - Activate(%window)
+   - Deactivate(%window)
+ * New switch to Dlg instruction:
+   - dlg -r dialog object index text
+ * Fixed crash on using $Listbox in a window w/o a listbox
+ * Fixed variable merging in VAR, DEL, INC and DEC.
+ * Raw event can now silence status message replies.
+ * Added script editor colors for Sock and Dlg keywords.
+ * A simple script editor settings box is made, still a little buggy.
+ * Fixed socket read line (sock -rn ...) to properly remove newline bytes.
+ * Fixed background colors on text.
+ * Fixed empty text copying.
+ * Fixed picture windows, does not crash anymore.
 
 0.4.0 - July 30th 2014
  * New and fancy text-view

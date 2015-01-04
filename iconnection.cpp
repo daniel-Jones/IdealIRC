@@ -144,14 +144,14 @@ bool IConnection::sockwrite(QString data)
         QByteArray encodedData = tc->fromUnicode(data);
         encodedData.append("\r\n");
         socket.write(encodedData);
-        qDebug() << "[out]" << encodedData;
+        //qDebug() << "[out]" << encodedData;
     }
     else {
         QByteArray outData;
         outData.append(data);
         outData.append("\r\n");
         socket.write(outData);
-        qDebug() << "[out]" << outData;
+        //qDebug() << "[out]" << outData;
     }
     return true;
 }
