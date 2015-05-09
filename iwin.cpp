@@ -416,7 +416,7 @@ void IWin::processLineInput(QString &line)
         return;
     }
 
-    if ((WindowType == WT_STATUS) && (line[0] != '/')) {
+    if (WindowType == WT_STATUS) {
         print(tstar, tr("You're not in a chat window!"), PT_LOCALINFO);
         return;
     }

@@ -116,6 +116,10 @@ void config::rehash()
         trayNotifyDelay = ini->ReadIni("Options", "TrayNotifyDelay").toInt()*1000;
     bgZoomLevel = ini->ReadIni("Options", "BgZoomLevel").toInt();
 
+    timeout = ini->ReadIni("Options", "Timeout").toInt();
+    if (timeout == 0)
+        timeout = 25000; // Default 25,000 ms
+
     timestamp = ini->ReadIni("Options", "TimeStamp");
     if (timestamp.length() == 0)
         timestamp = "[hh:mm]";
@@ -177,6 +181,7 @@ void config::rehash()
     bgZoomScaled = stb(ini->ReadIni("Options", "BgZoomScaled"));
     if (bgZoomScaled == 0)
         bgZoomScaled = 100; // Default value.
+
 
     if (ini->ReadIni("Options", "LinksUnderline").length() > 0)
         linkUnderline = stb(ini->ReadIni("Options", "LinksUnderline"));
@@ -394,6 +399,7 @@ void config::save()
     ini->WriteIni("Options", "BgImagePath", bgImagePath);
     ini->WriteIni("Options", "BgZoomLevel", QString::number(bgZoomLevel));
     ini->WriteIni("Options", "BgZoomScaled", QString::number(bgZoomScaled));
+    ini->WriteIni("Options", "Timeout", QString::number(timeout));
     ini->WriteIni("Options", "FontName", fontName);
     ini->WriteIni("Options", "FontSize", QString::number(fontSize));
     ini->WriteIni("Options", "Charset", charset);

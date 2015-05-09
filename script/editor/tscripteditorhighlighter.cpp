@@ -27,13 +27,14 @@ TScriptEditorHighlighter::TScriptEditorHighlighter(QTextDocument *document, conf
     conf(cfg)
 {
 
-    blockKeywords << "SCRIPT" << "META" << "FUNCTION" << "RETURN" << "DIALOG" << "MENU";
+    blockKeywords << "SCRIPT" << "META"    << "FUNCTION" << "RETURN" << "DIALOG" << "MENU"
+                  << "BREAK" << "CONTINUE" << "IF"       << "ELSE"   << "WHILE";
 
     metaKeywords << "INCLUDE" << "EVENT" << "COMMAND" << "TIMER" << "STIMER";
 
-    scriptKeywords << "VAR"      << "DEL"   << "INC"    << "DEC"  << "IF"   << "ELSE" << "WHILE" << "BREAK"
-                   << "CONTINUE" << "ECHO"  << "CON"    << "WCON" << "SCON" << "DCON" << "DLG"   << "SOCK"
-                   << "FREAD"    << "FSEEK" << "FWRITE" << "FCLOSE";
+    scriptKeywords << "VAR"      << "DEL"   << "INC"    << "DEC" << "DLG"
+                   << "ECHO"     << "CON"   << "WCON"   << "SCON" << "DCON"
+                   << "FREAD"    << "FSEEK" << "FWRITE" << "FCLOSE"  << "SOCK";
 
     QWidget w;
     defaultForeground = w.palette().foreground().color();

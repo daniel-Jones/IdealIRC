@@ -62,6 +62,7 @@ public:
     int listboxWidth;
     int trayNotifyDelay;
     int bgZoomLevel; // -50 % to +50 %
+    int timeout;
     bool showTimestmap;
     bool showOptionsStartup;
     bool connectInvisible;

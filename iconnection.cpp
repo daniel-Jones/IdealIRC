@@ -40,7 +40,7 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     haveInviteList(false),
     FillSettings(false),
     ial(this, &activeNick, &sortrule, sp),
-    //addresslist((QWidget*)parent, this),
+    // addresslist((QWidget*)parent, this),
     cmdhndl(this, cfg),
     conf(cfg),
     cid(connId),
@@ -112,6 +112,7 @@ void IConnection::tryConnect()
              );
 
     tryingConnect = true;
+    conTimeout.singleShot(conf->timeout, this, SLOT(connectionAttemptTimeout()));
     socket.connectToHost(host, port, QIODevice::ReadWrite | QIODevice::Text);
 }
 
@@ -237,10 +238,11 @@ void IConnection::closeConnection(bool shutdown)
         print("STATUS", tstar, tr("Disconnected."), PT_LOCALINFO);
         socket.close();
         tryingConnect = false;
+        emit updateConnectionButton();
         return;
     }
 
-    if (socket.isOpen()) {
+    if (registered) {
         connectionClosing = true;
         ShuttingDown = shutdown;
         QString data = QString("QUIT :%1")
@@ -300,6 +302,13 @@ void IConnection::checkConnectionTimeout()
         socket.close(); // close socket, connection's dead.
         return;
     }
+}
+
+void IConnection::connectionAttemptTimeout()
+{
+    print("STATUS", tstar, tr("Connection attempt timed out."), PT_LOCALINFO);
+    socket.abort();
+    closeConnection();
 }
 
 IWin* IConnection::getWinObj(QString name)
@@ -525,6 +534,12 @@ QString IConnection::getMsg(QString &data)
     */
     if (data.at(0) == ':')
         data = data.mid(1);
+
+    // No colon, return last token
+    if (! data.contains(':')) {
+        QStringList t = data.split(' ');
+        return t[t.length()-1];
+    }
 
     int l = data.split(":").at(0).length()+1;
     return data.mid(l);

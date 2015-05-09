@@ -145,6 +145,8 @@ private:
       QTimer checkConnection; // Run every 3 minutes. Restart timer on every data we receive.
       int checkState; // 0: on timeout, send ping to server. 1: on timeout, close socket (took too long to receive pong).
 
+      QTimer conTimeout; // Waits for config::timeout ms. and aborts connection attempt.
+
       QString getMsg(QString &data);
       IWin* getWinObj(QString name); // Returns NULL if no matches.
 
@@ -164,6 +166,7 @@ private slots:
       void onSocketDisconnected();
       void onSocketReadyRead();
       void checkConnectionTimeout();
+      void connectionAttemptTimeout();
 
 signals:
       void RequestTrayMsg(QString title, QString message);
