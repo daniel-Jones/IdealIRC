@@ -365,6 +365,7 @@ void IWin::focusInEvent(QFocusEvent *)
 void IWin::setConnectionPtr(IConnection *con)
 {
     connection = con;
+    cmdhndl = con->getCmdHndlPtr(); // command handler is bound directly to the connection.
 
     if ((WindowType == WT_PRIVMSG) && (con->isOnline()) && (con->ial.getHost(target) != "")) {
         updateTitleHost();
@@ -800,9 +801,9 @@ void IWin::reloadCSS()
 
 void IWin::clear()
 {
-    // TODO: clear textdata
-  //  if (textdata != NULL)
-  //      textdata->clear();
+    if (textdata != NULL)
+        textdata->clear();
+
     if (picwin != NULL)
         picwin->clear();
 }

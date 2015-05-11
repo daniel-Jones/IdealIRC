@@ -332,6 +332,7 @@ void IdealIRC::subWinClosed(int wid)
     }
 
     std::cout << "Closing " << sw.widget->objectName().toStdString().c_str() << " (" << wid << ")" << std::endl;
+    scriptParent.resetMenuPtrList();
 
     if (sw.type == WT_STATUS) {
         // Closing a status window.
@@ -549,7 +550,7 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     qDebug() << "'- activate=" << activate;
 
 
-    qDebug() << "Returning with window id.";
+    qDebug() << "Returning with window id " << s->getId();
     return s->getId();
 }
 
@@ -568,12 +569,17 @@ void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
 {
     QHashIterator<int,subwindow_t> i(winlist);
 
+    // Find out what window's activated...
+
     while (i.hasNext()) {
         i.next();
         subwindow_t sw = i.value();
         if (sw.subwin != arg1)
-            continue;
+            continue; // ... not this one...
 
+        IConnection *prevCon = conlist.value(activeConn, NULL); // If we get a NULL here, that can be a bad thing!
+
+        // found it here.
         activeWid = sw.wid;
         sw.treeitem->setForeground(0, QBrush(QColor(conf.colWindowlist)));
         sw.highlight = HL_NONE;
@@ -581,6 +587,10 @@ void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
         updateConnectionButton();
         winlist.insert(sw.wid, sw);
         wsw.setActiveWindow(sw.wid);
+
+        if (sw.type >= WT_TXTONLY) {
+            sw.widget->setConnectionPtr(prevCon);
+        }
 
         break;
     }

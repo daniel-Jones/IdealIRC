@@ -178,6 +178,8 @@ void IConnection::onSocketConnected()
                  .arg(username)
                  .arg(conf->realname)
               );
+
+    conTimeout.stop();
 }
 
 void IConnection::onSocketDisconnected()
@@ -306,6 +308,9 @@ void IConnection::checkConnectionTimeout()
 
 void IConnection::connectionAttemptTimeout()
 {
+    if (socket.isOpen())
+        return;
+
     print("STATUS", tstar, tr("Connection attempt timed out."), PT_LOCALINFO);
     socket.abort();
     closeConnection();
@@ -1706,7 +1711,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
 
 
             if (lst.at(0) == "NETWORK") {
-                /// @todo set treeview of this Status to Status (Network) from lst.at(1)
                 subwindow_t sw = winlist.value("STATUS");
                 QString title = QString("Status (%1)").arg(lst[1]);
 

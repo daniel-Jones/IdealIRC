@@ -470,10 +470,7 @@ QList<scriptmenu_t> TScriptParent::getCustomStatusMenu()
 
 void TScriptParent::populateMenu(QMenu *menu, char type)
 {
-    QListIterator<QMenu*> si(menuPtrList);
-    while (si.hasNext())
-        si.next()->deleteLater();
-    menuPtrList.clear();
+    resetMenuPtrList();
 
     QVectorIterator<TScript*> i(scriptlist);
     while (i.hasNext()) {
@@ -525,4 +522,12 @@ QString TScriptParent::getCurrentWindow()
 {
     subwindow_t sw = winlist->value(*activeWid);
     return sw.widget->objectName();
+}
+
+void TScriptParent::resetMenuPtrList()
+{
+    QListIterator<QMenu*> si(menuPtrList);
+    while (si.hasNext())
+        si.next()->deleteLater();
+    menuPtrList.clear();
 }

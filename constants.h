@@ -251,5 +251,16 @@ typedef struct SUBWINDOW_T {
   int highlight;
 } subwindow_t;
 
+#define SW_EMPTY_SET {nullptr, nullptr, nullptr, nullptr, -1, -1, WT_NOTHING, 0};
+/* Construct an empty/"invalid" subwindow_t with this.
+   for example:
+     ...
+     subwindow_t sw_empty = SW_EMPTY_SET;
+     subwindow_t sw = winlist->value(windowName, sw_empty); // 'sw_empty' will be default lookup result if 'windowName' weren't found.
+     if (sw.type == WT_NOTHING) {
+         // subwindow was not found
+     }
+     ...
+*/
 
 #endif // CONSTANTS_H

@@ -247,6 +247,18 @@ bool ICommand::parse(QString command)
         return true;
     }
 
+    if (t1 == "CLEAR") {
+        if (token.count() == 1) {
+            // clear active window
+        }
+
+        subwindow_t sw = getCurrentSubwin();
+        if (sw.type == WT_NOTHING)
+            return true;
+        sw.widget->clear();
+        return true;
+    }
+
     if (t1 == "PING") {
         if (! connection->isOnline()) {
             localMsg(NotConnectedToServer("/Ping"));
@@ -506,5 +518,6 @@ subwindow_t ICommand::getCurrentSubwin()
     if (*activeConn != *cid)
         return winlist->value("STATUS");
 
-    return winlist->value(activewin());
+    subwindow_t sw_empty = SW_EMPTY_SET;
+    return winlist->value(activewin(), sw_empty);
 }

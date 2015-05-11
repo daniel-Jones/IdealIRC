@@ -101,7 +101,7 @@ private:
       QString target;
       int WindowType; // See constants.h
       static int winidCount;
-      static int statusCount; // count of status windows.
+      static int statusCount;  // count of status windows.
       int winid;
       IConnection *connection;
       DCC *dcc;

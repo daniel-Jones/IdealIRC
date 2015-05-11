@@ -69,7 +69,7 @@ private:
       QHash<int,IConnection*> conlist; // Connections list. int is "parent" from CreateSubWindow.
       int activeWid;
       QString activeWname;
-      int activeConn; // -1 if it's a custom window active!
+      int activeConn;
       config conf;
       IConfig *confDlg;
       IFavourites *favourites;
