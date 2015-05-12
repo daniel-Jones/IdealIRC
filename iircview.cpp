@@ -395,12 +395,31 @@ void IIRCView::paintEvent(QPaintEvent *)
         while (si.hasNext()) {
             QString line = si.next();
 
-            X = splitterPos+7;
+            X = splitterPos+9;
+
+            // fetch all instances of matching URLs
+            QList<int> urlpos;
+
+            QRegExp ex("(?:https?|ftp|irc)://");
+            for (int ic = 0; ; ++ic) {
+                ic = line.indexOf(ex, ic);
+                if (ic == -1)
+                    break;
+                urlpos << ic;
+            }
 
             for (int ic = 0; ic <= line.length()-1; ++ic) {
                 QChar c = line[ic];
                 fw = fm->width(c);
                 ++ln;
+
+                // we're now entering an URL.
+                if (urlpos.contains(ic)) {
+                    readURL = true;
+                    paintLink = true;
+                    anchor.P1 = QPoint(X, Y-fm->height()+4);
+                    painter.setPen(conf->colLinks);
+                }
 
                 if (c == CTRL_BOLD) {
                     QFont font = painter.font();
@@ -560,6 +579,8 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                 X += fw;
 
+                /*
+                 * TODO: Remove this when all set
                 if (((url.toUpper() == "HTTP://") || (url.toUpper() == "HTTPS://")) && (! readURL)) { // TODO: needs regex for HTTP(S)/FTP/IRC
                     readURL = true;
                     paintLink = true;
@@ -585,7 +606,7 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                     // Set back X, new letter adds and we get proper X set back on next round
                     X += ulen;
-                }
+                }*/
 
 
             } // for (int ic = 0; ic <= line.length()-1; ++ic)
