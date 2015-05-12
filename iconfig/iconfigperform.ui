@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Enter a list of commands to run when a connection has been successfully established:</string>
+      <string>Enter a list of commands to perform upon connection:</string>
      </property>
     </widget>
    </item>

@@ -34,7 +34,7 @@
    <item row="9" column="0">
     <widget class="QCheckBox" name="chkCheckVersion">
      <property name="text">
-      <string>Check for new versions</string>
+      <string>Check for updates</string>
      </property>
     </widget>
    </item>

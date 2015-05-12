@@ -17,7 +17,7 @@
    <item row="0" column="1" colspan="2">
     <widget class="QCheckBox" name="chkEnable">
      <property name="text">
-      <string>Enable logging</string>
+      <string>Enable channel logging</string>
      </property>
     </widget>
    </item>

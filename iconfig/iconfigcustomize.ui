@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>630</width>
-    <height>496</height>
+    <height>508</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -30,7 +30,7 @@
        <item row="0" column="0" colspan="2">
         <widget class="QCheckBox" name="chkShowOptions">
          <property name="text">
-          <string>Show Options upon start</string>
+          <string>Show options upon start</string>
          </property>
         </widget>
        </item>
@@ -64,7 +64,7 @@
        <item row="2" column="0">
         <widget class="QCheckBox" name="chkTrayNotify">
          <property name="text">
-          <string>Tray notify, delay:</string>
+          <string>Tray notify delay:</string>
          </property>
         </widget>
        </item>
@@ -498,7 +498,7 @@
        <item row="1" column="0">
         <widget class="QCheckBox" name="chkTimestamp">
          <property name="text">
-          <string>View timestamp</string>
+          <string>Display timestamp</string>
          </property>
         </widget>
        </item>
