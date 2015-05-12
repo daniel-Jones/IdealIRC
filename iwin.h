@@ -80,7 +80,7 @@ public:
       member_t ReadMember(QString nickname);
       IChanConfig *settings;
       void setInputText(QString text);
-      void setTopic(QString newTopic) { topic = newTopic; } // Just for storing, nothing else.
+      void setTopic(QString newTopic); // Just for storing, nothing else.
       void setCmdHandler(ICommand *cmd) { cmdhndl = cmd; }
       void setConnectionPtr(IConnection *con);
       void sockwrite(QString data) { emit sendToSocket(data); }

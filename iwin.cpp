@@ -372,6 +372,15 @@ void IWin::setConnectionPtr(IConnection *con)
     }
 }
 
+void IWin::setTopic(QString newTopic)
+{
+    topic = newTopic;
+    setWindowTitle( QString("%1 (%2)")
+                      .arg(target)
+                      .arg(topic)
+                   );
+}
+
 void IWin::updateTitleHost()
 {
     setWindowTitle( QString("%1 (%2@%3)")

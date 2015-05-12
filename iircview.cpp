@@ -421,8 +421,8 @@ void IIRCView::paintEvent(QPaintEvent *)
                     c = line[ic+1];
                     if ((! c.isDigit()) && (c != ',')) { // reset
                         color = false;
-                        painter.setPen( getColorFromType(pl.type) ); // TODO: config color
-                        continue;;
+                        painter.setPen( getColorFromType(pl.type) );
+                        continue;
                     }
 
                     QString s;
@@ -439,7 +439,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                             // Get background
                             bg = true;
                             if (s.isEmpty()) // no fg was defined, reset.
-                                painter.setPen( getColorFromType(pl.type) ); // TODO: config color
+                                painter.setPen( getColorFromType(pl.type) );
                             else
                                 painter.setPen( getColorFromCode(s.toInt()) );
                             s.clear();

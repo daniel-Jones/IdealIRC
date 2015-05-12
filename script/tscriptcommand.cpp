@@ -42,15 +42,6 @@ bool TScriptCommand::parse(QString &command)
     if (command[0] == '/')
         command = command.mid(2); // skip the /
 
-    // Find our current command handler.
-
-    if (*activeConn > -1) {
-        IConnection *c = conlist->value(*activeConn);
-        ICommand *cmd = c->getCmdHndlPtr();
-        if (cmd->parse(command))
-            return true; // found our command here. just stop.
-    }
-
     // Parse any internal commands from here.
     QStringList token = command.split(' ');
     QString acmd = token[0].toUpper();
@@ -318,6 +309,14 @@ bool TScriptCommand::parse(QString &command)
     }
 
     // Reaching here means we did not find our command. The server should take care of it.
+    // Find our current command handler.
+    if (*activeConn > -1) {
+        IConnection *c = conlist->value(*activeConn);
+        ICommand *cmd = c->getCmdHndlPtr();
+        if (cmd->parse(command))
+            return true; // found our command here. just stop.
+    }
+
     return false;
 }
 

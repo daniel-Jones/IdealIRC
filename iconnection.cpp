@@ -1164,11 +1164,9 @@ xchat
         ial.setHostname(u.nick, u.host);
         ial.setIdent(u.nick, u.user);
 
-        /* TODO
-        TWin *tg = winlist->value(chan.toUpper()).window;
+        IWin *w = getWinObj(chan);
+        w->setTopic(newTopic);
 
-        tg->setTopic(newTopic);
-        */
         emit refreshTitlebar();
 
         return;
@@ -1503,7 +1501,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
     }
 
     else if (numeric == ERR_CHANOPRIVSNEEDED) {
-        /** @todo Use 'text' before its appended further, to print in channel. **/
         QString chan = token[3];
         QString text = QString("%1: %2")
                          .arg(chan)
@@ -1717,8 +1714,6 @@ void IConnection::parseNumeric(int numeric, QString &data)
                 sw.treeitem->setText(0, title);
                 wsw->setTitle(sw.wid, title);
             }
-
-            /** @todo  sorting rules for channel nickname list, @, %, +, etc */
 
             if (lst.at(0) == "PREFIX") {
                 //  PREFIX=(ohv)@%+

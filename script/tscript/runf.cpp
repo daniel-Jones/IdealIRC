@@ -24,7 +24,7 @@
 e_scriptresult TScript::runf(QString function, QStringList param, QString &result, bool ignoreParamCount)
 {
     #ifdef IIRC_DEBUG_SCRIPT
-    qDebug() << "runf(" << function << "):";
+    qDebug() << "runf(" << function << ", " << param << ", [&result], " << ignoreParamCount << "):";
     #endif
 
     /* Here we attempt to run a function. It does not have to exist.
@@ -174,7 +174,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
 e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &result)
 {
     #ifdef IIRC_DEBUG_SCRIPT
-    qDebug() << "TScript::_runf_private2(" << pos << "," << function << ", parName" << *varName << ", varData" << *varData << ", [binVar] , [&result]);";
+    qDebug() << "TScript::_runf_private2(" << pos << "," << *parName <<  ", [&result]);";
     #endif
 
     /* Here we run functions we _know_ exist. Do not run this one directly.

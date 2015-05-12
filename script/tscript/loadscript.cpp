@@ -137,13 +137,13 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
         ex_DialogName,
         ex_DialogTitle = 15,
         ex_DialogGeometry,
+        ex_DialogEmbed,
         ex_DialogIcon,
         ex_DialogLabel,
-        ex_DialogButton,
-        ex_DialogEditBox = 20,
+        ex_DialogButton = 20,
+        ex_DialogEditBox,
         ex_DialogTextBox,
         ex_DialogListBox,
-        ex_DialogEmbed,
         ex_DialogPaint,
         ex_DialogText = 25
     };
@@ -527,6 +527,10 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
                         keyword.clear();
                         ex = ex_Statement;
                         continue;
+                    }
+                    
+                    if (ex == ex_DialogEmbed) {
+                        
                     }
 
                     if (ex >= ex_DialogLabel) {
