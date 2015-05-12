@@ -31,7 +31,7 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     slidersMovingHSV(false)
 {
     ui->setupUi(this);
-
+    ui->chkUnderlineLinks->hide(); // hide the underline option
     pp = ui->colPreview->palette();
 
     connect(&scene, SIGNAL(colorPicked(QColor)),
