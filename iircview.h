@@ -12,6 +12,7 @@
 #include <QLine>
 #include <QClipboard>
 #include <QFocusEvent>
+#include <QResizeEvent>
 
 #include "config.h"
 #include "constants.h"
@@ -42,6 +43,7 @@ class IIRCView : public QWidget
     Q_OBJECT
 public:
     explicit IIRCView(config *cfg, QWidget *parent = 0);
+    ~IIRCView();
     void addLine(QString sender, QString text, int type = PT_NORMAL);
     int getSplitterPos() { return splitterPos; }
     void changeFont(QString fontName, int pxSize);
@@ -64,6 +66,8 @@ private:
     QTimer cooldown; // When update is ran many times in a row, we want a cooldown to prevent the display to lag.
     QScrollBar scrollbar;
     QVector<t_printLine> visibleLines;
+    QImage *backgroundImage; // Original image
+    QImage *pBackgroundImage; // Processed bg image- use this!
 
     bool mouseDown;
     bool draggingText;
@@ -75,6 +79,7 @@ private:
     QString getLink(int x, int y);
     QVector<t_Anchor> anchors;
     void setAnchorUrl(QVector<t_Anchor>* lstPtr, QString url);
+    void resizeBackground(QSize size);
 
 protected:
     void paintEvent(QPaintEvent *);
@@ -85,6 +90,7 @@ protected:
     void focusInEvent(QFocusEvent *e);
     void contextMenuEvent(QContextMenuEvent *e);
     void mouseDoubleClickEvent(QMouseEvent *e);
+    void resizeEvent(QResizeEvent *e);
 
 signals:
     void joinChannel(QString channel);

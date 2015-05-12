@@ -24,6 +24,7 @@
 #include <QWidget>
 #include <QPalette>
 #include <QSignalMapper>
+#include "constants.h"
 #include "config.h"
 #include "colorpickerscene.h"
 
@@ -80,6 +81,7 @@ private slots:
     void colorSlidersRGBReleased() { slidersMovingRGB = false; }
     void colorSlidersHSVPressed() { slidersMovingHSV = true; }
     void colorSlidersHSVReleased() { slidersMovingHSV = false; }
+    void on_btnBrowse_clicked();
 };
 
 #endif // ICONFIGCUSTOMIZE_H

@@ -21,7 +21,7 @@
 #include "iconfigcustomize.h"
 #include "ui_iconfigcustomize.h"
 #include <QDebug>
-
+#include <QFileDialog>
 
 IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     QWidget(parent),
@@ -56,6 +56,9 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     ui->chkTrayNotify->setChecked( conf->trayNotify );
     ui->edTray->setValue( conf->trayNotifyDelay/1000 );
     ui->chkReJoin->setChecked( conf->autoReJoin );
+
+    ui->chkBackground->setChecked( ! conf->bgImagePath.isEmpty() );
+    ui->edBackground->setText( conf->bgImagePath );
 
     connect(ui->rdActions,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdBackground,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
@@ -269,6 +272,10 @@ void IConfigCustomize::saveConfig()
     conf->trayNotifyDelay = ui->edTray->value()*1000;
     conf->autoReJoin = ui->chkReJoin->isChecked();
 
+    conf->bgImagePath = ui->edBackground->text();
+    if (! ui->chkBackground->isChecked())
+        conf->bgImagePath.clear();
+
     conf->colDefault                = colDefault;
     conf->colLocalInfo              = colLocalInfo;
     conf->colServerInfo             = colServerInfo;
@@ -358,4 +365,14 @@ void IConfigCustomize::colorSlidersMoveHSV(int)
     QColor color;
     color.setHsv(ui->slideH->value(), ui->slideS->value(), ui->slideV->value());
     colorPicked(color);
+}
+
+void IConfigCustomize::on_btnBrowse_clicked()
+{
+    ui->chkBackground->setChecked(true);
+
+    QString fd = QFileDialog::getOpenFileName(this, tr("Browse for a background image..."),
+                                              CONF_PATH, tr("Images (*.png *.jpg *.jpeg)"));
+
+    ui->edBackground->setText(fd);
 }

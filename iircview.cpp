@@ -19,6 +19,7 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
     splitterPos(150),
     resizingSplitter(false),
     scrollbar(this),
+    backgroundImage(nullptr),
     mouseDown(false),
     draggingText(false)
 {
@@ -34,6 +35,28 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
     scrollbar.setInvertedControls(false);
 
     cooldown.setSingleShot(true);
+
+    if (! conf->bgImagePath.isEmpty()) {
+        backgroundImage = new QImage(conf->bgImagePath);
+        pBackgroundImage = new QImage(conf->bgImagePath);
+    }
+}
+
+IIRCView::~IIRCView()
+{
+    delete backgroundImage;
+    delete pBackgroundImage;
+}
+
+void IIRCView::resizeEvent(QResizeEvent *e)
+{
+}
+
+void IIRCView::resizeBackground(QSize size)
+{
+    delete pBackgroundImage;
+    pBackgroundImage = new QImage(backgroundImage->scaled(size, Qt::KeepAspectRatio,
+                                                          Qt::SmoothTransformation));
 }
 
 void IIRCView::changeFont(QString fontName, int pxSize)
@@ -55,6 +78,15 @@ void IIRCView::clear()
 
 void IIRCView::redraw()
 {
+    if (backgroundImage != nullptr)
+        delete backgroundImage; // We have a background image active, delete it...
+
+    if (conf->bgImagePath.isEmpty())
+        backgroundImage = nullptr; // The configuration says we don't have an image (anymore), set it/keep it to nulltpr.
+    else
+        backgroundImage = new QImage(conf->bgImagePath); // Config have bg image, overwrite the nullptr...
+
+    // Re-draw everything!
     update();
 }
 
@@ -241,6 +273,23 @@ void IIRCView::paintEvent(QPaintEvent *)
 
     // Background
     painter.fillRect(0, 0, width(), height(), conf->colBackground);
+
+    if (backgroundImage != nullptr) {
+        int X = 0;
+        int Y = 0;
+
+        resizeBackground(size());
+
+        if (width() > pBackgroundImage->width()) {
+            X = (width() - pBackgroundImage->width()) / 2;
+        }
+        if (height() > pBackgroundImage->height()) {
+            Y = (height() - pBackgroundImage->height()) / 2;
+        }
+
+        painter.drawImage(X, Y, *pBackgroundImage);
+
+    }
 
     //painter.setPen( Qt::red );
     //painter.drawLine(textCpyVect);

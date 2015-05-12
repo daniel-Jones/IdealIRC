@@ -796,7 +796,7 @@ void IWin::setFont(const QFont &font)
 void IWin::reloadCSS()
 {
     /*
-     * CSS will eventually be obsolete, consider a function rename.
+     * CSS is no longer in use, function needs a rename.
     */
     if (textdata != NULL)
         textdata->redraw();
