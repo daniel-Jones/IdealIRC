@@ -1,3 +1,14 @@
+0.4.2 - May 13th 2015
+* Fix: Some data received may contain no colons, resulting in no messages displayed in status.
+* Fix: Entering commands from ICommand in custom windows caused crash.
+* Fix: When parting one channel and bringing up a context menu for another channel crashes.
+* Now the custom windows is bound to is the previous active IRC connection (either from channel, status, query,..)
+* English grammar fixes.
+* Added timeout on connection attempt to dead ends.
+* Small cosmetic fixes on the text view
+* New feature: Background image on text view. This will be more configurable.
+* New command: /clear
+
 0.4.1 - Jan 4th 2015
  * Escape characters improved in scripting:
    - Almost anywhere in a script, \b is bold, \u is underline, etc. \n for newline.
