@@ -57,8 +57,10 @@ IConfigCustomize::IConfigCustomize(config *cfg, QWidget *parent) :
     ui->edTray->setValue( conf->trayNotifyDelay/1000 );
     ui->chkReJoin->setChecked( conf->autoReJoin );
 
-    ui->chkBackground->setChecked( ! conf->bgImagePath.isEmpty() );
+    ui->chkBackground->setChecked( conf->bgImageEnabled );
     ui->edBackground->setText( conf->bgImagePath );
+    ui->bgOpacity->setValue( conf->bgImageOpacity );
+    ui->bgScale->setCurrentIndex( conf->bgImageScale-1 );
 
     connect(ui->rdActions,          SIGNAL(clicked()), &colorSignals, SLOT(map()));
     connect(ui->rdBackground,       SIGNAL(clicked()), &colorSignals, SLOT(map()));
@@ -259,22 +261,23 @@ void IConfigCustomize::saveConfig()
     conf->fontName = f.family();
     conf->fontSize = f.pixelSize();
 
-    conf->showOptionsStartup = ui->chkShowOptions->isChecked();
-    conf->showWhois = ui->chkShowWhois->isChecked();
-    conf->showMotd = ui->chkShowMotd->isChecked();
-    conf->quit = ui->edQuit->text();
+    conf->showOptionsStartup    = ui->chkShowOptions->isChecked();
+    conf->showWhois             = ui->chkShowWhois->isChecked();
+    conf->showMotd              = ui->chkShowMotd->isChecked();
+    conf->quit                  = ui->edQuit->text();
 
-    conf->linkUnderline = ui->chkUnderlineLinks->isChecked();
-    conf->showUsermodeMsg = ui->chkModes->isChecked();
-    conf->showTimestmap = ui->chkTimestamp->isChecked();
-    conf->timestamp = ui->edTimeFormat->text();
-    conf->trayNotify = ui->chkTrayNotify->isChecked();
-    conf->trayNotifyDelay = ui->edTray->value()*1000;
-    conf->autoReJoin = ui->chkReJoin->isChecked();
+    conf->linkUnderline     = ui->chkUnderlineLinks->isChecked();
+    conf->showUsermodeMsg   = ui->chkModes->isChecked();
+    conf->showTimestmap     = ui->chkTimestamp->isChecked();
+    conf->timestamp         = ui->edTimeFormat->text();
+    conf->trayNotify        = ui->chkTrayNotify->isChecked();
+    conf->trayNotifyDelay   = ui->edTray->value()*1000;
+    conf->autoReJoin        = ui->chkReJoin->isChecked();
 
-    conf->bgImagePath = ui->edBackground->text();
-    if (! ui->chkBackground->isChecked())
-        conf->bgImagePath.clear();
+    conf->bgImagePath       = ui->edBackground->text();
+    conf->bgImageEnabled    = ui->chkBackground->isChecked();
+    conf->bgImageOpacity    = ui->bgOpacity->value();
+    conf->bgImageScale      = ui->bgScale->currentIndex()+1;
 
     conf->colDefault                = colDefault;
     conf->colLocalInfo              = colLocalInfo;
@@ -375,4 +378,9 @@ void IConfigCustomize::on_btnBrowse_clicked()
                                               CONF_PATH, tr("Images (*.png *.jpg *.jpeg)"));
 
     ui->edBackground->setText(fd);
+}
+
+void IConfigCustomize::on_bgOpacity_valueChanged(int value)
+{
+    ui->bgOpacityPct->setText( QString("%1\%").arg(value) );
 }

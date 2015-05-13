@@ -94,7 +94,16 @@ void config::rehash()
     server += ":" + ini->ReadIni("Options", "Port");
     password = ini->ReadIni("Options", "Password");
     quit = ini->ReadIni("Options", "Quit");
+
     bgImagePath = ini->ReadIni("Options", "BgImagePath");
+    bgImageEnabled = stb(ini->ReadIni("Options", "bgImageEnabled"));
+    bgImageScale = ini->ReadIni("Options", "bgImageScale").toInt();
+    if  ((bgImageScale < 1) || (bgImageScale > 5))
+        bgImageScale = Bg_Center; // Default scaling method
+    bool ok = false;
+    bgImageOpacity = ini->ReadIni("Options", "bgImageOpacity").toInt(&ok);
+    if  ((bgImageOpacity < 0) || (bgImageOpacity > 100) || (! ok))
+        bgImageOpacity = 100; // Default opacity (percent)
 
     fontName = ini->ReadIni("Options", "FontName");
     if (fontName.length() == 0)
@@ -114,7 +123,6 @@ void config::rehash()
         trayNotifyDelay = 5000;
     else
         trayNotifyDelay = ini->ReadIni("Options", "TrayNotifyDelay").toInt()*1000;
-    bgZoomLevel = ini->ReadIni("Options", "BgZoomLevel").toInt();
 
     timeout = ini->ReadIni("Options", "Timeout").toInt();
     if (timeout == 0)
@@ -178,10 +186,6 @@ void config::rehash()
     logChannel = stb(ini->ReadIni("Options", "LogChan"));
     logPM =  stb(ini->ReadIni("Options", "LogPM"));
 
-    bgZoomScaled = stb(ini->ReadIni("Options", "BgZoomScaled"));
-    if (bgZoomScaled == 0)
-        bgZoomScaled = 100; // Default value.
-
 
     if (ini->ReadIni("Options", "LinksUnderline").length() > 0)
         linkUnderline = stb(ini->ReadIni("Options", "LinksUnderline"));
@@ -230,13 +234,6 @@ void config::rehash()
     else
         colNotice = c;
 
-    /* not in use
-    c = ini->ReadIni("Colors", "OwnTextBackground");
-    if (c.length() == 0)
-        colOwntextBg = -1; // Default value
-    else
-        colOwntextBg = c.toInt();
-    */
     c = ini->ReadIni("Colors", "OwnText");
     if (c.length() == 0)
         colOwntext = C_CYAN.name(); // Default value
@@ -397,8 +394,9 @@ void config::save()
     ini->WriteIni("Options", "Password", password);
     ini->WriteIni("Options", "Quit", quit);
     ini->WriteIni("Options", "BgImagePath", bgImagePath);
-    ini->WriteIni("Options", "BgZoomLevel", QString::number(bgZoomLevel));
-    ini->WriteIni("Options", "BgZoomScaled", QString::number(bgZoomScaled));
+    ini->WriteIni("Options", "BgImageEnabled", QString::number(bgImageEnabled));
+    ini->WriteIni("Options", "BgImageScale", QString::number(bgImageScale));
+    ini->WriteIni("Options", "BgImageOpacity", QString::number(bgImageOpacity));
     ini->WriteIni("Options", "Timeout", QString::number(timeout));
     ini->WriteIni("Options", "FontName", fontName);
     ini->WriteIni("Options", "FontSize", QString::number(fontSize));

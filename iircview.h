@@ -68,6 +68,7 @@ private:
     QVector<t_printLine> visibleLines;
     QImage *backgroundImage; // Original image
     QImage *pBackgroundImage; // Processed bg image- use this!
+    QPoint bgImgPos;
 
     bool mouseDown;
     bool draggingText;

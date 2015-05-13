@@ -82,6 +82,7 @@ private slots:
     void colorSlidersHSVPressed() { slidersMovingHSV = true; }
     void colorSlidersHSVReleased() { slidersMovingHSV = false; }
     void on_btnBrowse_clicked();
+    void on_bgOpacity_valueChanged(int value);
 };
 
 #endif // ICONFIGCUSTOMIZE_H

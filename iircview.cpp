@@ -11,6 +11,7 @@
 
 #include "iircview.h"
 #include "constants.h"
+#include "math.h"
 
 IIRCView::IIRCView(config *cfg, QWidget *parent) :
     QWidget(parent),
@@ -36,7 +37,7 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
 
     cooldown.setSingleShot(true);
 
-    if (! conf->bgImagePath.isEmpty()) {
+    if (conf->bgImageEnabled) {
         backgroundImage = new QImage(conf->bgImagePath);
         pBackgroundImage = new QImage(conf->bgImagePath);
     }
@@ -54,9 +55,63 @@ void IIRCView::resizeEvent(QResizeEvent *e)
 
 void IIRCView::resizeBackground(QSize size)
 {
-    delete pBackgroundImage;
-    pBackgroundImage = new QImage(backgroundImage->scaled(size, Qt::KeepAspectRatio,
-                                                          Qt::SmoothTransformation));
+    bgImgPos.setX(0);
+    bgImgPos.setY(0);
+
+    switch (conf->bgImageScale) {
+        case Bg_Scale:
+            // Scale, but ignore the proportions
+            *pBackgroundImage = backgroundImage->scaled(size, Qt::IgnoreAspectRatio,
+                                                                  Qt::SmoothTransformation);
+            // Center image...
+            if (width() > pBackgroundImage->width())
+                bgImgPos.setX( (width() - pBackgroundImage->width()) / 2 );
+            if (height() > pBackgroundImage->height())
+                bgImgPos.setY( (height() - pBackgroundImage->height()) / 2 );
+            break;
+
+        case Bg_ScaleAndCut:
+            // Scale, keep proportions, but cut image where it overflows
+            *pBackgroundImage = backgroundImage->scaled(size, Qt::KeepAspectRatioByExpanding,
+                                                                  Qt::SmoothTransformation);
+            break;
+
+        case Bg_ScaleKeepProportions:
+            // Scale and keep proportions
+            *pBackgroundImage = backgroundImage->scaled(size, Qt::KeepAspectRatio,
+                                                                  Qt::SmoothTransformation);
+            // Center image...
+            if (width() > pBackgroundImage->width())
+                bgImgPos.setX( (width() - pBackgroundImage->width()) / 2 );
+            if (height() > pBackgroundImage->height())
+                bgImgPos.setY( (height() - pBackgroundImage->height()) / 2 );
+            break;
+
+        case Bg_Center:
+            // Just make a copy of original bg img
+            *pBackgroundImage = *backgroundImage;
+            // Center image...
+            if (width() > pBackgroundImage->width())
+                bgImgPos.setX( (width() - pBackgroundImage->width()) / 2 );
+            if (height() > pBackgroundImage->height())
+                bgImgPos.setY( (height() - pBackgroundImage->height()) / 2 );
+            break;
+
+        case Bg_Tiled:
+            break; // See below.
+
+        default:
+            *pBackgroundImage = backgroundImage->scaled(size, Qt::KeepAspectRatio,
+                                                                  Qt::SmoothTransformation);
+    }
+
+    if (conf->bgImageScale == Bg_Tiled) {
+        // Cannot be inside the switch because of QPainter...
+        pBackgroundImage = new QImage(this->size(), QImage::Format_ARGB32);
+        QPainter painter(pBackgroundImage);
+        QBrush brush(*backgroundImage);
+        painter.fillRect(geometry(), brush);
+    }
 }
 
 void IIRCView::changeFont(QString fontName, int pxSize)
@@ -81,10 +136,10 @@ void IIRCView::redraw()
     if (backgroundImage != nullptr)
         delete backgroundImage; // We have a background image active, delete it...
 
-    if (conf->bgImagePath.isEmpty())
-        backgroundImage = nullptr; // The configuration says we don't have an image (anymore), set it/keep it to nulltpr.
-    else
+    if (conf->bgImageEnabled)
         backgroundImage = new QImage(conf->bgImagePath); // Config have bg image, overwrite the nullptr...
+    else
+        backgroundImage = nullptr; // The configuration says we don't have an image (anymore), set it/keep it to nulltpr.
 
     // Re-draw everything!
     update();
@@ -275,20 +330,10 @@ void IIRCView::paintEvent(QPaintEvent *)
     painter.fillRect(0, 0, width(), height(), conf->colBackground);
 
     if (backgroundImage != nullptr) {
-        int X = 0;
-        int Y = 0;
-
-        resizeBackground(size());
-
-        if (width() > pBackgroundImage->width()) {
-            X = (width() - pBackgroundImage->width()) / 2;
-        }
-        if (height() > pBackgroundImage->height()) {
-            Y = (height() - pBackgroundImage->height()) / 2;
-        }
-
-        painter.drawImage(X, Y, *pBackgroundImage);
-
+        resizeBackground(size()); // construct a new 'pBackgroundImage'
+        painter.setOpacity( conf->bgImageOpacity/100.f );
+        painter.drawImage(bgImgPos, *pBackgroundImage); // Draw it!
+        painter.setOpacity(1);
     }
 
     //painter.setPen( Qt::red );

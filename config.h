@@ -33,6 +33,14 @@
 #include <QColor>
 #include "inifile.h"
 
+enum BgImageScale {
+    Bg_Scale = 1,
+    Bg_ScaleAndCut,
+    Bg_ScaleKeepProportions,
+    Bg_Center,
+    Bg_Tiled
+};
+
 class config : public QObject
 {
   Q_OBJECT
@@ -53,7 +61,6 @@ public:
     QString password;
     QString quit;
     QString logPath;
-    QString bgImagePath;
     QString timestamp;
     QString fontName;
     QString charset;
@@ -82,6 +89,12 @@ public:
     bool showTreeView;
     bool showButtonbar;
     bool showMenubar;
+
+    // Background image
+    bool bgImageEnabled;
+    QString bgImagePath;
+    int bgImageScale;
+    int bgImageOpacity;
 
     // Colors
     QString colDefault;
