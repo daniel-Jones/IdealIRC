@@ -275,7 +275,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="text">
-         <string>New server window</string>
+         <string>Connect in a new window</string>
         </property>
        </widget>
       </item>
