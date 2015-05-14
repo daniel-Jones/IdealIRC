@@ -30,6 +30,7 @@
 #include <QHash>
 #include <QSystemTrayIcon>
 #include <QKeyEvent>
+#include <QToolButton>
 
 #include "constants.h"
 #include "config.h"
@@ -82,6 +83,9 @@ private:
       TScriptParent scriptParent;
       QSystemTrayIcon trayicon;
       IWindowSwitcher wsw;
+      QHash<QString,toolbar_t> *customToolbar; // toolbar buttons from script
+      QList<QAction*> customToolButtons;
+      QSignalMapper *toolBtnMap;
 
       void recreateConfDlg();
       void recreateFavouritesDlg();
@@ -127,6 +131,8 @@ private slots:
       void on_actionWindow_buttons_triggered();
       void on_actionWindow_tree_triggered();
       void on_actionMenubar_triggered();
+      void customToolBtnClick(QString objName);
+      void rebuildCustomToolbar(); // Rebuild the toolbar icons.
 };
 
 #endif // IDEALIRC_H

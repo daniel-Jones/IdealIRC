@@ -68,6 +68,7 @@ public:
     QStringList getCurrentNickSelection(); // Gets selected nicknames in active window (used for custom nicklist menu items)
     QString getCurrentWindow(); // Gets the current window that's active
     void resetMenuPtrList();
+    config* getConfPtr() { return conf; }
 
 signals:
     void refreshToolbar();

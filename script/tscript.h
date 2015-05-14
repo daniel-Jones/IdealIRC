@@ -83,6 +83,10 @@ public:
 
     static QString setRelativePath(QString folder, QString file); // puts file on folder unless file is a full path.
 
+    config* getConfPtr();
+    TScriptParent* getScriptParent();
+    QWidget* getDlgParent();
+
 private:
     QWidget *dlgParent;
     TScriptParent *scriptParent;

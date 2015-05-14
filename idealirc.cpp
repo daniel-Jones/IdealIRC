@@ -22,6 +22,7 @@
 #include <QTreeWidgetItem>
 #include <QHashIterator>
 #include <QMapIterator>
+#include <QListIterator>
 #include <QDebug>
 #include <QPalette>
 #include <QMessageBox>
@@ -93,6 +94,13 @@ IdealIRC::IdealIRC(QWidget *parent) :
 
     connect(&wsw, SIGNAL(windowClosed(int)),
             this, SLOT(subWinClosed(int)));
+
+    connect(&scriptParent, SIGNAL(refreshToolbar()),
+            this, SLOT(rebuildCustomToolbar()));
+
+    toolBtnMap = new QSignalMapper(this);
+    connect(toolBtnMap, SIGNAL(mapped(QString)),
+            this, SLOT(customToolBtnClick(QString)));
 
 }
 
@@ -180,6 +188,7 @@ void IdealIRC::showEvent(QShowEvent *)
     ui->actionMenubar->setChecked( conf.showMenubar );
     ui->menuBar->setVisible( ui->actionMenubar->isChecked() );
 
+    scriptParent.getToolbarPtr(&customToolbar);
 
     scriptParent.loadAllScripts();
     scriptParent.runevent(te_start);
@@ -1003,4 +1012,49 @@ void IdealIRC::on_actionMenubar_triggered()
 
     if (ui->actionMenubar->isChecked() == false)
         QMessageBox::information(this, tr("Menubar hidden"), tr("To show the menubar again, press CTRL+M"));
+}
+
+void IdealIRC::customToolBtnClick(QString objName)
+{
+    toolbar_t btn = customToolbar->value(objName.toUpper());
+    scriptParent.runScriptFunction(btn.scriptname, btn.function);
+}
+
+void IdealIRC::rebuildCustomToolbar()
+{
+    // Iterate through current buttons for deletion
+    QListIterator<QAction*> ib(customToolButtons);
+    while (ib.hasNext()) {
+        QAction *btn = ib.next();
+        disconnect(btn, SIGNAL(triggered())); // Disconnect from signal mapper
+        btn->deleteLater(); // Mark object for deletion
+    }
+    customToolButtons.clear(); // Reset button list
+
+    QAction *sep = new QAction(this);
+    sep->setSeparator(true);
+    customToolButtons << sep;
+
+    // Iterate through all buttons from script parent, this will
+    // catch new ones, remove nonexistant buttons.
+    QHashIterator<QString,toolbar_t> it(*customToolbar);
+    while (it.hasNext()) {
+        it.next();
+        QString objName = it.key();
+        toolbar_t tBtn = it.value();
+        //QAction *btn = ui->toolBar->addAction(tBtn.tooltip);
+        QAction *btn = new QAction(tBtn.tooltip, this);
+        if (! tBtn.iconpath.isEmpty())
+            btn->setIcon( QIcon(tBtn.iconpath) );
+
+        connect(btn, SIGNAL(triggered()),
+                toolBtnMap, SLOT(map()));
+
+        toolBtnMap->setMapping(btn, objName);
+
+        customToolButtons << btn;
+    }
+
+    ui->toolBar->addActions( customToolButtons );
+    ui->menuTools->addActions( customToolButtons );
 }

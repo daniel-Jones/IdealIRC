@@ -31,6 +31,7 @@
 #include <QStringList>
 #include <QSignalMapper>
 
+#include "iwin.h"
 #include "tsdialog.h"
 #include "constants.h"
 
@@ -71,7 +72,6 @@ public:
     bool delItem(QString oname, int idx);
 
     bool clear(QString oname);
-
 
 private:
     TScript *script; // pointer to the script this belongs to

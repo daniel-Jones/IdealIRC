@@ -37,6 +37,8 @@ TCustomScriptDialog::TCustomScriptDialog(TScript *parent, QString oname, QWidget
 
     connect(&listmap, SIGNAL(mapped(QString)),
             this, SLOT(listSelected(QString)));
+
+    //IWin test(parent->getDlgParent(), QString("@test"), WT_GRAPHIC, parent->getConfPtr(), parent->getScriptParent());
 }
 
 void TCustomScriptDialog::showDlg()

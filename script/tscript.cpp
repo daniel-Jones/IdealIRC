@@ -77,6 +77,21 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
             this, SLOT(statusMenuItemTriggered(QString)));
 }
 
+config* TScript::getConfPtr()
+{
+    return scriptParent->getConfPtr();
+}
+
+TScriptParent* TScript::getScriptParent()
+{
+    return scriptParent;
+}
+
+QWidget* TScript::getDlgParent()
+{
+    return dlgParent;
+}
+
 void TScript::timerTimeout(QString fn)
 {
     QStringList par;

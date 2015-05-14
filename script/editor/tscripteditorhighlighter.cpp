@@ -34,7 +34,8 @@ TScriptEditorHighlighter::TScriptEditorHighlighter(QTextDocument *document, conf
 
     scriptKeywords << "VAR"      << "DEL"   << "INC"    << "DEC" << "DLG"
                    << "ECHO"     << "CON"   << "WCON"   << "SCON" << "DCON"
-                   << "FREAD"    << "FSEEK" << "FWRITE" << "FCLOSE"  << "SOCK";
+                   << "FREAD"    << "FSEEK" << "FWRITE" << "FCLOSE"  << "SOCK"
+                   << "TOOLBAR";
 
     QWidget w;
     defaultForeground = w.palette().foreground().color();
