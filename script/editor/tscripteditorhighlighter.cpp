@@ -38,13 +38,13 @@ TScriptEditorHighlighter::TScriptEditorHighlighter(QTextDocument *document, conf
                    << "TOOLBAR" << "LOCAL VAR";
 
     QWidget w;
-    defaultForeground = w.palette().foreground().color();
 }
 
 void TScriptEditorHighlighter::highlightBlock(const QString &text)
 {
 
     int skip = skipWhitespace(text);
+    defaultForeground = conf->editorText;
 
     QString first = text.mid(skip).split(' ').at(0);
     first = first.toUpper();

@@ -112,7 +112,7 @@ void EditorWidget::highlightCurrentLine()
 void EditorWidget::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(), Qt::lightGray);
+    painter.fillRect(event->rect(), conf->editorLineNumBackground);
 
 
     QTextBlock block = firstVisibleBlock();
@@ -123,7 +123,7 @@ void EditorWidget::lineNumberAreaPaintEvent(QPaintEvent *event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
-            painter.setPen(Qt::black);
+            painter.setPen(conf->editorLineNumText);
             painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
                              Qt::AlignRight, number);
         }

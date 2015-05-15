@@ -61,6 +61,11 @@ private:
     QColor editorWindow;
     QColor editorVariable;
     QColor editorComment;
+    QColor editorBackground;
+    QColor editorText;
+    QColor editorLineNumBackground;
+    QColor editorLineNumText;
+
     QString editorFontName;
     int editorFontSize;
 

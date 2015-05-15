@@ -123,6 +123,10 @@ public:
     QColor editorWindow;
     QColor editorVariable;
     QColor editorComment;
+    QColor editorBackground;
+    QColor editorText;
+    QColor editorLineNumBackground;
+    QColor editorLineNumText;
 
     // Editor font
     QString editorFontName;

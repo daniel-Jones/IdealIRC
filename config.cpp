@@ -342,6 +342,30 @@ void config::rehash()
     else
         editorComment = c;
 
+    c = ini->ReadIni("Colors", "EditorBackground");
+    if (c.length() == 0)
+        editorBackground = Qt::white; // Default value
+    else
+        editorBackground = c;
+
+    c = ini->ReadIni("Colors", "EditorText");
+    if (c.length() == 0)
+        editorText = Qt::black; // Default value
+    else
+        editorText = c;
+
+    c = ini->ReadIni("Colors", "EditorLineNumBackground");
+    if (c.length() == 0)
+        editorLineNumBackground = Qt::lightGray; // Default value
+    else
+        editorLineNumBackground = c;
+
+    c = ini->ReadIni("Colors", "EditorLineNumText");
+    if (c.length() == 0)
+        editorLineNumText = Qt::black; // Default value
+    else
+        editorLineNumText = c;
+
     c = ini->ReadIni("Editor", "FontName");
     if (c.length() == 0)
         editorFontName = "Courier New"; // Default value
@@ -452,6 +476,10 @@ void config::save()
     ini->WriteIni("Colors", "EditorWindow", editorWindow.name());
     ini->WriteIni("Colors", "EditorVariable", editorVariable.name());
     ini->WriteIni("Colors", "EditorComment", editorComment.name());
+    ini->WriteIni("Colors", "EditorBackground", editorBackground.name());
+    ini->WriteIni("Colors", "EditorText", editorText.name());
+    ini->WriteIni("Colors", "EditorLineNumBackground", editorLineNumBackground.name());
+    ini->WriteIni("Colors", "EditorLineNumText", editorLineNumText.name());
 
     ini->WriteIni("Editor", "FontName", editorFontName);
     ini->WriteIni("Editor", "FontSize", QString::number(editorFontSize));

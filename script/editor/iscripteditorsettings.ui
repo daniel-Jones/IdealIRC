@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>368</width>
-    <height>337</height>
+    <width>338</width>
+    <height>434</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,52 +47,76 @@
       <string>Colors</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="3" column="0">
-       <widget class="QRadioButton" name="FunctionDef">
-        <property name="text">
-         <string>Blocks (function, menu, ..)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QRadioButton" name="MetaKeyword">
-        <property name="text">
-         <string>Meta keyword (include, timer, ..)</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
-       <widget class="QRadioButton" name="LineHighlight">
+       <widget class="QRadioButton" name="Background">
         <property name="text">
-         <string>Line highlight</string>
+         <string>Background</string>
         </property>
         <property name="checked">
          <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
+       <widget class="QRadioButton" name="FunctionDef">
+        <property name="text">
+         <string>Blocks (function, menu, ..)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QRadioButton" name="MetaKeyword">
+        <property name="text">
+         <string>Meta keyword (include, timer, ..)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QRadioButton" name="LineHighlight">
+        <property name="text">
+         <string>Line highlight</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
        <widget class="QRadioButton" name="Keyword">
         <property name="text">
          <string>Generic keywords (if, while, var, ..)</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="6" column="0">
        <widget class="QRadioButton" name="Variable">
         <property name="text">
          <string>Variables</string>
         </property>
        </widget>
       </item>
+      <item row="11" column="0" colspan="2">
+       <widget class="QPushButton" name="colorbtn">
+        <property name="text">
+         <string>Click to change color...</string>
+        </property>
+       </widget>
+      </item>
       <item row="5" column="0">
+       <widget class="QRadioButton" name="Comment">
+        <property name="text">
+         <string>Comments</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
        <widget class="QRadioButton" name="Window">
         <property name="text">
          <string>Window names</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="6" column="1">
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -106,16 +130,23 @@
        </spacer>
       </item>
       <item row="1" column="0">
-       <widget class="QRadioButton" name="Comment">
+       <widget class="QRadioButton" name="Text">
         <property name="text">
-         <string>Comments</string>
+         <string>Text</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0" colspan="2">
-       <widget class="QPushButton" name="colorbtn">
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="LineNumBackground">
         <property name="text">
-         <string>Click to change color...</string>
+         <string>Line number background</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="LineNumText">
+        <property name="text">
+         <string>Line number text</string>
         </property>
        </widget>
       </item>
@@ -124,6 +155,23 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>fontname</tabstop>
+  <tabstop>fontsize</tabstop>
+  <tabstop>Background</tabstop>
+  <tabstop>Text</tabstop>
+  <tabstop>LineNumBackground</tabstop>
+  <tabstop>LineNumText</tabstop>
+  <tabstop>LineHighlight</tabstop>
+  <tabstop>Comment</tabstop>
+  <tabstop>Variable</tabstop>
+  <tabstop>FunctionDef</tabstop>
+  <tabstop>MetaKeyword</tabstop>
+  <tabstop>Window</tabstop>
+  <tabstop>Keyword</tabstop>
+  <tabstop>colorbtn</tabstop>
+  <tabstop>saveButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -54,6 +54,10 @@ IScriptEditorSettings::IScriptEditorSettings(config *cfg, QWidget *parent) :
     editorComment = conf->editorComment;
     editorFontName = conf->editorFontName;
     editorFontSize = conf->editorFontSize;
+    editorBackground = conf->editorBackground;
+    editorText = conf->editorText;
+    editorLineNumBackground = conf->editorLineNumBackground;
+    editorLineNumText = conf->editorLineNumText;
 
     QFont f(editorFontName);
     f.setPixelSize(editorFontSize);
@@ -80,6 +84,15 @@ IScriptEditorSettings::IScriptEditorSettings(config *cfg, QWidget *parent) :
             &colorRadioSignals, SLOT(map()));
     connect(ui->Comment, SIGNAL(clicked()),
             &colorRadioSignals, SLOT(map()));
+    connect(ui->Background, SIGNAL(clicked()),
+            &colorRadioSignals, SLOT(map()));
+    connect(ui->Text, SIGNAL(clicked()),
+            &colorRadioSignals, SLOT(map()));
+    connect(ui->LineNumBackground, SIGNAL(clicked()),
+            &colorRadioSignals, SLOT(map()));
+    connect(ui->LineNumText, SIGNAL(clicked()),
+            &colorRadioSignals, SLOT(map()));
+
 
     colorRadioSignals.setMapping(ui->LineHighlight, ui->LineHighlight->objectName());
     colorRadioSignals.setMapping(ui->FunctionDef, ui->FunctionDef->objectName());
@@ -88,6 +101,10 @@ IScriptEditorSettings::IScriptEditorSettings(config *cfg, QWidget *parent) :
     colorRadioSignals.setMapping(ui->Window, ui->Window->objectName());
     colorRadioSignals.setMapping(ui->Variable, ui->Variable->objectName());
     colorRadioSignals.setMapping(ui->Comment, ui->Comment->objectName());
+    colorRadioSignals.setMapping(ui->Background, ui->Background->objectName());
+    colorRadioSignals.setMapping(ui->Text, ui->Text->objectName());
+    colorRadioSignals.setMapping(ui->LineNumBackground, ui->LineNumBackground->objectName());
+    colorRadioSignals.setMapping(ui->LineNumText, ui->LineNumText->objectName());
 }
 
 IScriptEditorSettings::~IScriptEditorSettings()
@@ -118,8 +135,8 @@ void IScriptEditorSettings::setButtonColor(QColor color)
 
 void IScriptEditorSettings::on_saveButton_clicked()
 {
-    conf->fontName = ui->fontname->currentFont().toString();
-    conf->fontSize = ui->fontsize->value();
+    conf->editorFontName = ui->fontname->currentFont().toString();
+    conf->editorFontSize = ui->fontsize->value();
 
     conf->editorLineHighlight = editorLineHighlight;
     conf->editorFunctionDef = editorFunctionDef;
@@ -128,6 +145,10 @@ void IScriptEditorSettings::on_saveButton_clicked()
     conf->editorWindow = editorWindow;
     conf->editorVariable = editorVariable;
     conf->editorComment = editorComment;
+    conf->editorBackground = editorBackground;
+    conf->editorText = editorText;
+    conf->editorLineNumBackground = editorLineNumBackground;
+    conf->editorLineNumText = editorLineNumText;
 
     conf->save();
 
@@ -163,6 +184,22 @@ void IScriptEditorSettings::colorRadioButton_clicked(QString objName)
     if (objName == "Comment") {
         setButtonColor(editorComment);
         selectedColor = ui->Comment->objectName();
+    }
+    if (objName == "Background") {
+        setButtonColor(editorBackground);
+        selectedColor = ui->Background->objectName();
+    }
+    if (objName == "Text") {
+        setButtonColor(editorText);
+        selectedColor = ui->Text->objectName();
+    }
+    if (objName == "LineNumBackground") {
+        setButtonColor(editorLineNumBackground);
+        selectedColor = ui->LineNumBackground->objectName();
+    }
+    if (objName == "LineNumText") {
+        setButtonColor(editorLineNumText);
+        selectedColor = ui->LineNumText->objectName();
     }
 }
 
@@ -204,5 +241,21 @@ void IScriptEditorSettings::colorPicked(QColor color)
     if (selectedColor == "Comment") {
         editorComment = color;
         setButtonColor(editorComment);
+    }
+    if (selectedColor == "Background") {
+        editorBackground = color;
+        setButtonColor(editorBackground);
+    }
+    if (selectedColor == "Text") {
+        editorText = color;
+        setButtonColor(editorText);
+    }
+    if (selectedColor == "LineNumBackground") {
+        editorLineNumBackground = color;
+        setButtonColor(editorLineNumBackground);
+    }
+    if (selectedColor == "LineNumText") {
+        editorLineNumText = color;
+        setButtonColor(editorLineNumText);
     }
 }

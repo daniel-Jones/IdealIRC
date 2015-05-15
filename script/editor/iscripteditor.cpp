@@ -44,9 +44,14 @@ IScriptEditor::IScriptEditor(QWidget *parent, QString script, config *cfg) :
 
     ui->splitter->addWidget(&editor);
 
-    QFont f(conf->fontName);
-    f.setPixelSize(conf->fontSize);
+    QFont f(conf->editorFontName);
+    f.setPixelSize(conf->editorFontSize);
     editor.setFont(f);
+
+    editor.setStyleSheet( QString("QPlainTextEdit { background-color: %1; color: %2; }")
+                          .arg( conf->editorBackground.name() )
+                          .arg( conf->editorText.name() )
+                         );
 
     QList<int> size;
     size << 150 << 600;
@@ -432,9 +437,16 @@ void IScriptEditor::textChanged()
 
 void IScriptEditor::settingsSaved()
 {
-    QFont f(conf->fontName);
-    f.setPixelSize(conf->fontSize);
+    QFont f(conf->editorFontName);
+    f.setPixelSize(conf->editorFontSize);
     editor.setFont(f);
+
+    editor.setStyleSheet( QString("QPlainTextEdit { background-color: %1; color: %2; }")
+                          .arg( conf->editorBackground.name() )
+                          .arg( conf->editorText.name() )
+                         );
+
+    highlight->rehighlight();
 }
 
 void IScriptEditor::on_btnSave_clicked()
