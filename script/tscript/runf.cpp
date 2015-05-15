@@ -162,7 +162,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     }
 
     for (int i = 0; i <= scpar.count()-1; ++i)
-        variables.insert(scpar[i], param[i]);
+        localVar.insert(scpar[i], param[i]);
 
     e_scriptresult res = _runf_private2(pos, &scpar, localVar, localBinVar, result);
 
