@@ -127,7 +127,8 @@ private:
     QHash<int,subwindow_t> *winList;
     QHash<int,IConnection*> *conList;
 
-    e_scriptresult _runf_private2(int pos, QStringList *parName, QString &result);
+    e_scriptresult _runf_private2(int pos, QStringList *parName, QHash<QString,QString> &localVar,
+                                  QHash<QString,QByteArray> &localBinVar, QString &result);
     e_iircevent getEvent(QString event); // Convert event string name to internal code
     void errorHandler(e_scriptresult res);
 
@@ -135,16 +136,14 @@ private:
     void delCon(QString id);
     QString readCon(QString id);
     void execCmd(QString cmd) { if (cmd.length() > 0) { emit execCmdSignal(cmd); } }
-    QString mergeVarName(QString &vname);
+    QString mergeVarName(QString &vname, QHash<QString, QString> &localVar, QHash<QString, QByteArray> &localBinVar);
     e_scriptresult escape(QString &text, int *i, QString *result);
-    e_scriptresult extract(QString &text, bool extractVariables = true); // extract functions and variables
-    e_scriptresult extractFunction(QString &text, QString &result, int *pos);
-    QString extractVarsOld(QString &text, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar);
-    QByteArray extractBinVars(QString &text);
-    bool solveBool(QString &data);
-    bool solveLogic(QString &data);
-    QString extractFunctionOld(QString &data, QStringList *varName, QStringList *varData, QHash<QString,QByteArray> *binVar); // data <- a script line to execute, replacing $function(para) with a result, if any.
-                                                                                       // We need variable data to extract any possible variables before we send the data to function.
+    e_scriptresult extract(QString &text, QHash<QString, QString> &localVar, QHash<QString, QByteArray> &localBinVar, bool extractVariables = true); // extract functions and variables
+    e_scriptresult extractFunction(QString &text, QString &result, int *pos, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar);
+    QByteArray extractBinVars(QString &text, QHash<QString,QByteArray> &localBinVar);
+    bool solveBool(QString &data, QHash<QString, QString> &localVar, QHash<QString, QByteArray> &localBinVar);
+    bool solveLogic(QString &data, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar);
+
     void delWhitespace(QString *text);
 
     QString scriptstr; // Save script here, no whitespaces

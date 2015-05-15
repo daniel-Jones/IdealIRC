@@ -21,7 +21,7 @@
 #include "../tscript.h"
 #include "constants.h"
 
-QString TScript::mergeVarName(QString &vname)
+QString TScript::mergeVarName(QString &vname, QHash<QString,QString> &localVar, QHash<QString, QByteArray> &localBinVar)
 {
     enum {
         st_begin = 0,
@@ -53,7 +53,7 @@ QString TScript::mergeVarName(QString &vname)
                 if (i == vname.length()-1)
                     keyword += c;
 
-                extract(keyword);
+                extract(keyword, localVar, localBinVar);
                 result += keyword;
                 keyword.clear();
                 continue;
@@ -106,7 +106,7 @@ e_scriptresult TScript::escape(QString &text, int *i, QString *result)
     return se_None;
 }
 
-e_scriptresult TScript::extract(QString &text, bool extractVariables)
+e_scriptresult TScript::extract(QString &text, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar, bool extractVariables)
 {
     enum {
         st_Add = 0,
@@ -140,7 +140,7 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
             if (c == '$') {
                 // fn
                 QString r;
-                e_scriptresult err = extractFunction(text, r, &i);
+                e_scriptresult err = extractFunction(text, r, &i, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -163,8 +163,10 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
 
                 if (c == ' ')
                     --i; // get space added to text.
-                if (! binVars.contains(vname))
-                    result += variables.value(vname);
+                if ((! binVars.contains(vname)) && (! localBinVar.contains(vname))) {
+                    result += variables.value(vname); // prefer local variable names
+                    result += localVar.value(vname);
+                }
                 else
                     result += vname;
                 state = st_Add;
@@ -187,7 +189,7 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
                     MergeEOL = true;
                 }
 
-                e_scriptresult r = extract(merge);
+                e_scriptresult r = extract(merge, localVar, localBinVar);
                 if (r != se_None)
                     return r;
                 vname += merge;
@@ -203,7 +205,7 @@ e_scriptresult TScript::extract(QString &text, bool extractVariables)
     return se_None;
 }
 
-e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos)
+e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {
     // Parses the very first function that occurs beginning from pos.
     // pos will update where the function ended in text.
@@ -279,7 +281,7 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
 
             if (c == ')') {
                 if ((! paramList.isEmpty()) || (! param.isEmpty())) {
-                    e_scriptresult err = extract(param);
+                    e_scriptresult err = extract(param, localVar, localBinVar);
                     if ((err != se_None) && (err != se_RunfDone))
                         return err;
 
@@ -291,7 +293,7 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
             }
             if (c == '$') {
                 QString r;
-                e_scriptresult err = extractFunction(text, r, pos);
+                e_scriptresult err = extractFunction(text, r, pos, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -301,7 +303,7 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
             }
             if (c == ',') {
                 whitespace = true;
-                e_scriptresult err = extract(param);
+                e_scriptresult err = extract(param, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -322,7 +324,7 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
     return runf(function, paramList, result);
 }
 
-QByteArray TScript::extractBinVars(QString &text)
+QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> &localBinVar)
 {
     // Scan through the text and put data into 'temp'.
     // When encountering '%' sign, do not add that to temp, but figure the complete variable name (when we encounter a space),
@@ -358,12 +360,15 @@ QByteArray TScript::extractBinVars(QString &text)
                 if ((i == text.length()-1) && (c != ' '))
                     var += c;
 
-                bool ex = binVars.contains(var);
-                if (ex)
+                // Prefer local variable names
+                if (localBinVar.contains(var))
+                    tmp += binVars.value(var);
+                else if (binVars.contains(var))
                     tmp += binVars.value(var);
 
                 if (c == ' ')
                     tmp += ' ';
+
                 continue;
             }
 

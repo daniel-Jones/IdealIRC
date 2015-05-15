@@ -209,6 +209,8 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             result = "STATUS";
         else if (sw.type == WT_TXTONLY)
             result = "TXTONLY";
+        else if (sw.type == WT_TXTINPUT)
+            result = "TXTINPUT";
         else
             result = "UNKNOWN";
 

@@ -48,6 +48,9 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
 
     int pos = fnindex.value(function.toUpper(), -1); // Get internal line number where function resides, for faster executing on large scripts.
 
+    QHash<QString,QString> localVar;
+    QHash<QString,QByteArray> localBinVar;
+
     // Retreive parameters list from script, and insert our params from here to there...
     QString par;
 
@@ -161,7 +164,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     for (int i = 0; i <= scpar.count()-1; ++i)
         variables.insert(scpar[i], param[i]);
 
-    e_scriptresult res = _runf_private2(pos, &scpar, result);
+    e_scriptresult res = _runf_private2(pos, &scpar, localVar, localBinVar, result);
 
     /* Cleaning up this way is dangerous. don't.
     for (int i = 0; i <= scpar.count()-1; ++i)
@@ -171,7 +174,8 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     return res;
 }
 
-e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &result)
+e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QString,QString> &localVar,
+                                       QHash<QString,QByteArray> &localBinVar, QString &result)
 {
     #ifdef IIRC_DEBUG_SCRIPT
     qDebug() << "TScript::_runf_private2(" << pos << "," << *parName <<  ", [&result]);";
@@ -212,10 +216,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
         if (scriptstr[i] == '\n')
             curLine++;
 
-
     // "while" level and positions:
     QVector<int> wnl; // while nest level.
     QVector<int> wbp; // contains byte positions of where every while that surrounds the outer nests.
+
+    bool setLocalVar = false; // sets to true when 'local' in f.ex. 'local var %test 123' is found.
 
     // We loop through the script byte by byte.
     for (int i = pos; i <= scriptstr.length()-1; i++) {
@@ -327,7 +332,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     keyword += scriptstr[i];
                 }
 
-                e_scriptresult err = extract(keyword);
+                e_scriptresult err = extract(keyword, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -372,7 +377,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     }
                 }
 
-                e_scriptresult err = extract(rs);
+                e_scriptresult err = extract(rs, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -424,7 +429,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 if (pn != 0)
                     return se_UnexpectedToken;
 
-                bool ok = solveLogic(logic);
+                bool ok = solveLogic(logic, localVar, localBinVar);
                 lastIFresult = ok;
 
                 if (ok == false) {
@@ -494,7 +499,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 if (pn != 0)
                     return se_UnexpectedToken;
 
-                bool ok = solveLogic(logic);
+                bool ok = solveLogic(logic, localVar, localBinVar);
 
                 if (ok == false) {
                     wbp.pop_back();
@@ -545,6 +550,14 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
             /** ################## **/
             /** VARIABLE SPECIFICS **/
             /** ################## **/
+
+            if (keywup == "LOCAL") {
+                // This can seem a little hacky, but it works.
+                // local var %x
+                setLocalVar = true;
+                i += 5;
+                keywup = "VAR";
+            }
 
             if (keywup == "VAR") {
                 // var %variable data
@@ -598,14 +611,19 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 if (st != st_Data) // In case something very weird happens, this prevents IIRC to go bananas.
                     return se_UnexpectedNewline;
 
-                e_scriptresult err = extract(data);
+                e_scriptresult err = extract(data, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
                 if (vname.contains('+'))
-                    vname = mergeVarName(vname);
+                    vname = mergeVarName(vname, localVar, localBinVar);
 
-                variables.insert(vname, data);
+                if (setLocalVar)
+                    localVar.insert(vname, data);
+                else
+                    variables.insert(vname, data);
+
+                setLocalVar = false;
 
                 keyword.clear();
                 continue;
@@ -639,7 +657,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     if (st == st_VarName) {
                         if (c == '\n') {
                             if (vname.contains('+'))
-                                vname = mergeVarName(vname);
+                                vname = mergeVarName(vname, localVar, localBinVar);
 
                             binVars.remove(vname);
                             variables.remove(vname);
@@ -648,7 +666,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                         }
                         else if ((c == ' ') || (c == '\t')) {
                             if (vname.contains('+'))
-                                vname = mergeVarName(vname);
+                                vname = mergeVarName(vname, localVar, localBinVar);
 
                             binVars.remove(vname);
                             variables.remove(vname);
@@ -723,7 +741,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                 double val = 1.0f;
                 if (value.length() > 0) {
-                    e_scriptresult err = extract(value);
+                    e_scriptresult err = extract(value, localVar, localBinVar);
                     if ((err != se_None) && (err != se_RunfDone))
                         return err;
 
@@ -746,7 +764,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     varval -= val;
 
                 if (vname.contains('+'))
-                    vname = mergeVarName(vname);
+                    vname = mergeVarName(vname, localVar, localBinVar);
 
                 variables.insert(vname, QString::number(varval));
 
@@ -801,11 +819,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     }
                 }
 
-                e_scriptresult err = extract(id);
+                e_scriptresult err = extract(id, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
-                err = extract(data);
+                err = extract(data, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -832,7 +850,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     id += c;
                 }
 
-                e_scriptresult err = extract(id);
+                e_scriptresult err = extract(id, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -907,11 +925,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     }
                 }
 
-                e_scriptresult err = extract(idx);
+                e_scriptresult err = extract(idx, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
-                err = extract(pattern);
+                err = extract(pattern, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1012,7 +1030,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                 }
 
-                e_scriptresult err = extract(id);
+                e_scriptresult err = extract(id, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1072,11 +1090,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                 }
 
-                e_scriptresult err = extract(id);
+                e_scriptresult err = extract(id, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
-                err = extract(msec);
+                err = extract(msec, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1106,7 +1124,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     id += c;
                 }
 
-                e_scriptresult err = extract(id);
+                e_scriptresult err = extract(id, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1185,12 +1203,12 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                 }
 
-                e_scriptresult err = extract(sockname);
+                e_scriptresult err = extract(sockname, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
                 QString argsEx = args;
-                err = extract(argsEx);
+                err = extract(argsEx, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1296,7 +1314,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                     if (binary) {
                         QString d(data); // This will have the binary variable name in QString format (not the data)
-                        data = extractBinVars(d); // This parses the variable, reading out the binary data.
+                        data = extractBinVars(d, localBinVar); // This parses the variable, reading out the binary data.
                     }
 
                     if (newline)
@@ -1313,7 +1331,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     if (args.length() == 0)
                         return se_InvalidParamCount;
 
-                    QString vname = mergeVarName(args);
+                    QString vname = mergeVarName(args, localVar, localBinVar);
                     QByteArray data;
 
                     if (newline)
@@ -1452,13 +1470,13 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                     if (st == st_Name) {
                         if (c == '\n') {
-                            e_scriptresult err = extract(toolname);
+                            e_scriptresult err = extract(toolname, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
                             break;
                         }
                         if (c == ' ') {
-                            e_scriptresult err = extract(toolname);
+                            e_scriptresult err = extract(toolname, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
 
@@ -1471,7 +1489,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                     if (st == st_Arg) {
                         if (c == '\n') {
-                            e_scriptresult err = extract(arg);
+                            e_scriptresult err = extract(arg, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
                             break;
@@ -1591,7 +1609,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 if (sum > 1)
                     return se_InvalidSwitches;
 
-                e_scriptresult err = extract(arg);
+                e_scriptresult err = extract(arg, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1689,7 +1707,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                             st = st_ignore;
                             stnext = st_length;
 
-                            e_scriptresult err = extract(fds);
+                            e_scriptresult err = extract(fds, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
                             continue;
@@ -1706,7 +1724,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                             st = st_ignore;
                             stnext = st_var;
 
-                            e_scriptresult err = extract(length);
+                            e_scriptresult err = extract(length, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
                             continue;
@@ -1785,7 +1803,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                         if (c == ' ') {
                             st = st_ignore;
                             stnext = st_data;
-                            e_scriptresult err = extract(fds);
+                            e_scriptresult err = extract(fds, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
 
@@ -1808,11 +1826,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
 
                 }
 
-                e_scriptresult err = extract(datas);
+                e_scriptresult err = extract(datas, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
-                data = extractBinVars(datas);
+                data = extractBinVars(datas, localBinVar);
 
                 int fd = fds.toInt();
                 if (! files.contains(fd))
@@ -1860,7 +1878,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                             st = st_ignore;
                             stnext = st_pos;
 
-                            e_scriptresult err = extract(fds);
+                            e_scriptresult err = extract(fds, localVar, localBinVar);
                             if ((err != se_None) && (err != se_RunfDone))
                                 return err;
 
@@ -1881,7 +1899,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     }
                 }
 
-                e_scriptresult err = extract(poss);
+                e_scriptresult err = extract(poss, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1913,7 +1931,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                     fds += c;
                 }
 
-                e_scriptresult err = extract(fds);
+                e_scriptresult err = extract(fds, localVar, localBinVar);
                 if ((err != se_None) && (err != se_RunfDone))
                     return err;
 
@@ -1943,7 +1961,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName, QString &r
                 keyword += scriptstr[i];
             }
 
-            e_scriptresult err = extract(keyword);
+            e_scriptresult err = extract(keyword, localVar, localBinVar);
             if ((err != se_None) && (err != se_RunfDone))
                 return err;
 

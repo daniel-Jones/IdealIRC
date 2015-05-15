@@ -35,7 +35,7 @@ TScriptEditorHighlighter::TScriptEditorHighlighter(QTextDocument *document, conf
     scriptKeywords << "VAR"      << "DEL"   << "INC"    << "DEC" << "DLG"
                    << "ECHO"     << "CON"   << "WCON"   << "SCON" << "DCON"
                    << "FREAD"    << "FSEEK" << "FWRITE" << "FCLOSE"  << "SOCK"
-                   << "TOOLBAR";
+                   << "TOOLBAR" << "LOCAL VAR";
 
     QWidget w;
     defaultForeground = w.palette().foreground().color();
@@ -48,6 +48,8 @@ void TScriptEditorHighlighter::highlightBlock(const QString &text)
 
     QString first = text.mid(skip).split(' ').at(0);
     first = first.toUpper();
+    if (first == "LOCAL")
+        first = "LOCAL VAR";
 
     if (first.length() > 0) {
 

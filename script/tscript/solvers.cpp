@@ -21,7 +21,7 @@
 #include "../tscript.h"
 #include "constants.h"
 
-bool TScript::solveBool(QString &data)
+bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {
     /// This function solves the individual bool expressions like  test == 1234
 
@@ -148,8 +148,8 @@ bool TScript::solveBool(QString &data)
 
     // TODO error checking missing.
 
-    extract(Q1);
-    extract(Q2);
+    extract(Q1, localVar, localBinVar);
+    extract(Q2, localVar, localBinVar);
 
     QString Q1u = Q1.toUpper();
     QString Q2u = Q2.toUpper();
@@ -200,7 +200,7 @@ bool TScript::solveBool(QString &data)
     return false;
 }
 
-bool TScript::solveLogic(QString &data)
+bool TScript::solveLogic(QString &data, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {
     /// This one solves a sentence with bool expressions, like: ((test == 1234) && (lol != 4))
     /// For solving of  test == 1234  see solveBool();
@@ -300,7 +300,7 @@ bool TScript::solveLogic(QString &data)
         addLt = true;
 
         if ((c == ')') && (addLt == true)) {
-            int l = solveBool(lt);
+            int l = solveBool(lt, localVar, localBinVar);
             exp += QString::number(l) + ')';
             lt.clear();
             addLt = false;
