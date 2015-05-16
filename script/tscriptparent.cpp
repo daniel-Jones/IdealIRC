@@ -531,3 +531,16 @@ void TScriptParent::resetMenuPtrList()
         si.next()->deleteLater();
     menuPtrList.clear();
 }
+
+TScript* TScriptParent::getScriptPtr(QString name)
+{
+    QVectorIterator<TScript*> i(scriptlist);
+    while (i.hasNext()) {
+        TScript *s = i.next();
+
+        if (s->getName() == name)
+            return s;
+    }
+
+    return nullptr;
+}

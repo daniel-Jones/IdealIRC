@@ -48,6 +48,7 @@ private slots:
     void on_btnLoad_clicked();
     void on_btnEdit_clicked();
     void on_btnNew_clicked();
+    void reloadScript(QString script);
 
 private:
     Ui::IScriptManager *ui;
@@ -59,7 +60,7 @@ private:
     config *conf;
     void addItem(QString name, QString path, bool select = false);
     void reloadLabel(QString text);
-    void editFile(QString filename);
+    void editFile(QString filename, QString scriptname);
 };
 
 #endif // ISCRIPTMANAGER_H

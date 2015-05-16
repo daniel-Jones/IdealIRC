@@ -27,28 +27,26 @@
 #include "iscripteditor.h"
 #include "ui_iscripteditor.h"
 
-IScriptEditor::IScriptEditor(QWidget *parent, QString script, config *cfg) :
+IScriptEditor::IScriptEditor(QWidget *parent, TScript *s, config *cfg) :
     QDialog(parent),
     ui(new Ui::IScriptEditor),
-    scriptFile(script),
+    script(s),
+    scriptFile(s->getPath()),
+    scriptName(s->getName()),
     //editor(this, cfg),
     conf(cfg),
-    current(script),
+    current(s->getPath()),
     currentEditor(nullptr),
     selection(NULL),
     ignoreNextTextChange(false),
     ignoreNextRowChange(false),
     settings(conf, this),
+    explorer(this, s),
     firstShow(true)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Window);
 
-   //highlight = new TScriptEditorHighlighter(editor.document(), conf);
-/*
-    connect(&editor, SIGNAL(textChanged()),
-            this, SLOT(textChanged()));
-*/
     connect(&settings, SIGNAL(settingsSaved()),
             this, SLOT(settingsSaved()));
 }
@@ -190,7 +188,9 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
                 return;
             }
             else if (files.contains(parent->text())) {
-                file.write( *files.value(parent->text()).text );
+                QByteArray d;
+                d.append( files.value(parent->text()).editor->toPlainText() );
+                file.write( d );
                 file.close();
             }
         }
@@ -508,4 +508,14 @@ file_t IScriptEditor::getFileStruct(QString filename)
      f.editor->hide();
 
     return f;
+}
+
+void IScriptEditor::on_toolButton_clicked()
+{
+    emit reload(scriptName);
+}
+
+void IScriptEditor::on_btnEE_clicked()
+{
+    explorer.show();
 }

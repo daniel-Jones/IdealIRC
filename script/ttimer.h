@@ -32,6 +32,7 @@ public:
     explicit TTimer(QString fn, QObject *parent = 0);
     void runTimer(int msec = 1000);
     void stopTimer();
+    QString getFnct() { return fnct; }
 
 private:
     QString fnct;

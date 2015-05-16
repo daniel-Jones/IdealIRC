@@ -30,6 +30,8 @@
 #include <QResizeEvent>
 #include <QPoint>
 
+#include "script/tscript.h"
+#include "script/editor/iscripteditoree.h"
 #include "config.h"
 #include "editorwidget.h"
 #include "tscripteditorhighlighter.h"
@@ -42,9 +44,6 @@ class IScriptEditor;
 typedef struct T_FILE {
     bool modified;
     QStandardItem *item;
-    QByteArray *text; // deprecated
-    int textCursor; // deprecated
-    QPoint scrollPos; // deprecated
     EditorWidget *editor;
     TScriptEditorHighlighter *highlight;
 } file_t;
@@ -54,12 +53,14 @@ class IScriptEditor : public QDialog
     Q_OBJECT
 
 public:
-    explicit IScriptEditor(QWidget *parent, QString script, config *cfg);
+    explicit IScriptEditor(QWidget *parent, TScript *s, config *cfg);
     ~IScriptEditor();
 
 private:
     Ui::IScriptEditor *ui;
+    TScript *script;
     QString scriptFile;
+    QString scriptName;
     //EditorWidget editor;
     //TScriptEditorHighlighter *highlight;
     config *conf;
@@ -72,6 +73,7 @@ private:
     bool ignoreNextTextChange;
     bool ignoreNextRowChange;
     IScriptEditorSettings settings;
+    IScriptEditorEE explorer;
     bool firstShow;
 
     void saveFile(QString filename); // Save given file
@@ -93,11 +95,17 @@ private slots:
     void on_btnSave_clicked();
     void on_btnSaveAll_clicked();
     void on_btnSettings_clicked();
+    void on_toolButton_clicked();
+
+    void on_btnEE_clicked();
 
 protected:
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *e);
     void resizeEvent(QResizeEvent *e);
+
+signals:
+    void reload(QString name); // script name.
 };
 
 

@@ -87,6 +87,15 @@ public:
     TScriptParent* getScriptParent();
     QWidget* getDlgParent();
 
+    QHash<QString,QString>* getCommandListPtr() { return &command; }
+    QHash<e_iircevent,QString>* getEventListPtr() { return &tevent; }
+    QHash<QString,TTimer*>* getTimerListPtr() { return &timers; }
+
+    static QString getEventStr(e_iircevent evt);
+
+    QHash<QString,QString> *getVarListPtr() { return &variables; }
+    QHash<QString,QByteArray> *getBinVarListPtr() { return &binVars; }
+
 private:
     QWidget *dlgParent;
     TScriptParent *scriptParent;
@@ -129,7 +138,7 @@ private:
 
     e_scriptresult _runf_private2(int pos, QStringList *parName, QHash<QString,QString> &localVar,
                                   QHash<QString,QByteArray> &localBinVar, QString &result);
-    e_iircevent getEvent(QString event); // Convert event string name to internal code
+    static e_iircevent getEvent(QString event); // Convert event string name to internal code
     void errorHandler(e_scriptresult res);
 
     void writeCon(QString id, QString data);

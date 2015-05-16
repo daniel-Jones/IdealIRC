@@ -69,6 +69,7 @@ public:
     QString getCurrentWindow(); // Gets the current window that's active
     void resetMenuPtrList();
     config* getConfPtr() { return conf; }
+    TScript* getScriptPtr(QString name);
 
 signals:
     void refreshToolbar();
@@ -76,12 +77,14 @@ signals:
 
 public slots:
     void execCmdSlot(QString cmd);
+    void echo(QString text) { cmdhndl.echo("STATUS", "", text); }
+    void echo(QString target, QString text) { cmdhndl.echo(target, "", text); }
+    void echo(QString text, int type) { cmdhndl.echo("STATUS", "", text, type); }
+    void echo(QString target, QString text, int type) { cmdhndl.echo(target, "", text, type); }
 
 private slots:
     void gotScriptError(QString text) { echo("Script error: " + text, PT_LOCALINFO); }
     void gotScriptWarning(QString text) { echo("Script warning: " + text, PT_LOCALINFO); }
-    void echo(QString text) { cmdhndl.echo("STATUS", "", text); } // TODO
-    void echo(QString target, QString text) { cmdhndl.echo(target, "", text); } // TODO
     void stopURLDisplay() { displayURL = false; } // to be used with event urlclick.
     void toolbarAdd(QString toolname, QString scriptname, QString tooltip);
     void toolbarDel(QString toolname);
@@ -100,8 +103,7 @@ private slots:
     QHash<int,subwindow_t> *winlist;
     QWidget *dlgParent;
     bool displayURL; // used on UrlClick event.
-    void echo(QString text, int type) { cmdhndl.echo("STATUS", "", text, type); }
-    void echo(QString target, QString text, int type) { cmdhndl.echo(target, "", text, type); }
+
     bool loader(TScript *script, int *errcode = NULL);
     void populateMenuIterate(QMenu *menu, char type, QList<scriptmenu_t> *items, int parent);
     QMenu nicklistMenu;

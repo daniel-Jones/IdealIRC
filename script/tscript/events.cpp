@@ -152,3 +152,104 @@ e_iircevent TScript::getEvent(QString event)
     else
         return te_noevent;
 }
+
+QString TScript::getEventStr(e_iircevent evt)
+{
+    switch (evt) {
+    case te_load:
+        return "Load";
+
+    case te_unload:
+        return "Unload";
+
+    case te_start:
+        return "Start";
+
+    case te_exit:
+        return "Exit";
+
+    case te_connect:
+        return "Connect";
+
+    case te_disconnect:
+        return "Disconnect";
+
+    case te_join:
+        return "Join";
+
+    case te_part:
+        return "Part";
+
+    case te_quit:
+        return "Quit";
+
+    case te_msg:
+        return "MSG";
+
+    case te_sockopen:
+        return "SockOpen";
+
+    case te_sockread:
+        return "SockRead";
+
+    case te_sockclose:
+        return "SockClose";
+
+    case te_sockerror:
+        return "SockError";
+
+    case te_socklisten:
+        return "SockListen";
+
+    case te_mousemove:
+        return "MouseMove";
+
+    case te_mouseleftdown:
+        return "MouseLeftDown";
+
+    case te_mouseleftup:
+        return "MouseLeftUp";
+
+    case te_mousemiddledown:
+        return "MouseMiddleDown";
+
+    case te_mousemiddleup:
+        return "MouseMiddleUp";
+
+    case te_mousemiddleroll:
+        return "MouseMiddleRoll";
+
+    case te_mouserightdown:
+        return "MouseRightDown";
+
+    case te_mouserightup:
+        return "MouseRightUp";
+
+    case te_urlclick:
+        return "UrlClick";
+
+    case te_dbuttonclick:
+        return "DButtonClick";
+
+    case te_dlistboxselect:
+        return "DListBoxSelect";
+
+    case te_ialhostget:
+        return "IALHostGet";
+
+    case te_input:
+        return "Input";
+
+    case te_numeric:
+        return "Numeric";
+
+    case te_activate:
+        return "Activate";
+
+    case te_deactivate:
+        return "Deactivate";
+
+    default:
+        return "";
+    }
+}
