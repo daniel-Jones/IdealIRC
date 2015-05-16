@@ -24,17 +24,17 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1">
-    <widget class="QToolButton" name="btnSaveAll">
+   <item row="0" column="2">
+    <widget class="QToolButton" name="btnSettings">
      <property name="toolTip">
-      <string>Save all files</string>
+      <string>Editor settings...</string>
      </property>
      <property name="text">
-      <string>SA</string>
+      <string>SS</string>
      </property>
      <property name="icon">
       <iconset resource="../../resources.qrc">
-       <normaloff>:/icons/gfx/saveall.png</normaloff>:/icons/gfx/saveall.png</iconset>
+       <normaloff>:/toolicons/gfx/main_options.png</normaloff>:/toolicons/gfx/main_options.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -57,21 +57,6 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="0" colspan="4">
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <widget class="QTreeView" name="treeView">
-      <property name="editTriggers">
-       <set>QAbstractItemView::NoEditTriggers</set>
-      </property>
-      <attribute name="headerVisible">
-       <bool>false</bool>
-      </attribute>
-     </widget>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QToolButton" name="btnSave">
      <property name="toolTip">
@@ -92,17 +77,17 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QToolButton" name="btnSettings">
+   <item row="0" column="1">
+    <widget class="QToolButton" name="btnSaveAll">
      <property name="toolTip">
-      <string>Editor settings...</string>
+      <string>Save all files</string>
      </property>
      <property name="text">
-      <string>SS</string>
+      <string>SA</string>
      </property>
      <property name="icon">
       <iconset resource="../../resources.qrc">
-       <normaloff>:/toolicons/gfx/main_options.png</normaloff>:/toolicons/gfx/main_options.png</iconset>
+       <normaloff>:/icons/gfx/saveall.png</normaloff>:/icons/gfx/saveall.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -110,6 +95,29 @@
        <height>32</height>
       </size>
      </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="4">
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QTreeView" name="treeView">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <attribute name="headerVisible">
+       <bool>false</bool>
+      </attribute>
+     </widget>
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

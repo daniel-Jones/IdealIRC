@@ -31,59 +31,45 @@ IScriptEditor::IScriptEditor(QWidget *parent, QString script, config *cfg) :
     QDialog(parent),
     ui(new Ui::IScriptEditor),
     scriptFile(script),
-    editor(this, cfg),
+    //editor(this, cfg),
     conf(cfg),
     current(script),
+    currentEditor(nullptr),
     selection(NULL),
     ignoreNextTextChange(false),
     ignoreNextRowChange(false),
-    settings(conf, this)
+    settings(conf, this),
+    firstShow(true)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Window);
 
-    ui->splitter->addWidget(&editor);
-
-    QFont f(conf->editorFontName);
-    f.setPixelSize(conf->editorFontSize);
-    editor.setFont(f);
-
-    editor.setStyleSheet( QString("QPlainTextEdit { background-color: %1; color: %2; }")
-                          .arg( conf->editorBackground.name() )
-                          .arg( conf->editorText.name() )
-                         );
-
-    QList<int> size;
-    size << 150 << 600;
-    ui->splitter->setSizes(size);
-
-    highlight = new TScriptEditorHighlighter(editor.document(), conf);
-
+   //highlight = new TScriptEditorHighlighter(editor.document(), conf);
+/*
     connect(&editor, SIGNAL(textChanged()),
             this, SLOT(textChanged()));
-
+*/
     connect(&settings, SIGNAL(settingsSaved()),
             this, SLOT(settingsSaved()));
-
-    setupTreeView();
-
 }
 
 IScriptEditor::~IScriptEditor()
 {
     QHashIterator<QString,file_t> i(files);
-    while (i.hasNext())
-        delete i.next().value().text;
+    while (i.hasNext()) {
+        i.next();
+        i.value().editor->deleteLater();
+        i.value().highlight->deleteLater();
+    }
 
     selection->deleteLater();
     treeModel.deleteLater();
-    highlight->deleteLater();
     delete ui;
 }
 
 void IScriptEditor::saveFile(QString filename)
 {
-    file_t ft = files.value(filename);
+    file_t ft = getFileStruct(filename);
     unsetBold(ft.item);
     if (! ft.modified)
         return;
@@ -97,13 +83,10 @@ void IScriptEditor::saveFile(QString filename)
         return;
     }
 
-    if (current == filename) {
-        // Current file is open, use data from the editor instead, this one will
-        // always have the most recent changes than the internal storage.
-        ft.text->clear();
-        ft.text->append( editor.toPlainText() );
-    }
-    file.write(*ft.text);
+    QByteArray data;
+    data.append(ft.editor->toPlainText());
+
+    file.write(data);
     file.close();
 }
 
@@ -113,7 +96,7 @@ void IScriptEditor::saveAll()
     while (i.hasNext()) {
         i.next();
         QString file = i.key();
-        file_t ft = i.value();
+        file_t ft = getFileStruct(file);
 
         if (ft.modified == true) {
             saveFile(file);
@@ -126,36 +109,33 @@ void IScriptEditor::saveAll()
     setupTreeView(); // Reload in case meta-includes are changed.
 }
 
-void IScriptEditor::store(QString file)
+void IScriptEditor::store(QString file) // deprecated
 {
+/*
     file_t ft = files.value(file);
     ft.text->clear();
-    ft.text->append( editor.toPlainText() );
+    ft.text->append( editor.toPlainText() );*/
+
 }
 
 void IScriptEditor::load(QString file, bool select, bool loadAfterSave)
 { // Load from internal memory
-    file_t ft = files.value(file);
+    file_t ft = getFileStruct(file);
     QModelIndex index = ft.item->index();
 
-    file_t prev = files.value(current);
-    prev.textCursor = editor.textCursor().position();
-    prev.scrollPos = editor.verticalScrollBar()->pos();
-    files.insert(current, prev);
+    // hiding the previous editor
+    currentEditor->hide();
 
-    if (select) {
-        ignoreNextRowChange = true;
-        selection->clearSelection();
-        selection->setCurrentIndex(index, QItemSelectionModel::Select);
-    }
-
-    ignoreNextTextChange = true;
-    editor.setPlainText(*ft.text);
-    QTextCursor c = editor.textCursor();
-    c.setPosition( ft.textCursor );
-    editor.setTextCursor(c);
-    //editor.verticalScrollBar()->move( ft.scrollPos ); //doesn't work
+    // setting new current file and editor
     current = file;
+    currentEditor = files.value(current).editor;
+
+    // show current editor
+    currentEditor->show();
+
+    QRect geo = ui->frame->geometry();
+    geo.setTopLeft(QPoint(0, 0));
+    currentEditor->setGeometry( geo );
 }
 
 void IScriptEditor::setupTreeView()
@@ -187,12 +167,8 @@ void IScriptEditor::setupTreeView()
 void IScriptEditor::setupTreeView(QStandardItem *parent)
 {
     QFile file(setRelativePath(scriptFile, parent->text()));
-    QByteArray data;
 
-    QTextCursor cursor = editor.textCursor();
-    cursor.movePosition(QTextCursor::Start);
-    int def = cursor.position();
-    QPoint scroll = editor.verticalScrollBar()->pos();
+    QByteArray data;
 
     if (! file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         int q = QMessageBox::question(this, tr("Unable to open file"),
@@ -206,12 +182,10 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
                 QMessageBox::question(this, tr("Unable to create file"),
                                       tr("Unable to create file '%1'")
                                         .arg(parent->text()));
-                file_t ft;
+
+                file_t ft = getFileStruct(parent->text());
                 ft.modified = false;
                 ft.item = parent;
-                ft.text = new QByteArray();
-                ft.textCursor = def;
-                ft.scrollPos = scroll;
                 files.insert(parent->text(), ft);
                 return;
             }
@@ -221,37 +195,37 @@ void IScriptEditor::setupTreeView(QStandardItem *parent)
             }
         }
 
-        file_t ft;
+        file_t ft = getFileStruct(parent->text());
         ft.modified = false;
         ft.item = parent;
-        ft.textCursor = def;
-        ft.scrollPos = scroll;
-        if (files.contains(parent->text())) {
-            file_t f = files.value(parent->text());
-            ft.text = f.text;
-            ft.textCursor = f.textCursor;
-            ft.scrollPos = f.scrollPos;
-        }
-        else
-            ft.text = new QByteArray();
+
         files.insert(parent->text(), ft);
     }
     else {
         data = file.readAll();
         file.close();
 
-        file_t ft;
+        ignoreNextTextChange = true;
+
+        file_t ft = getFileStruct(parent->text());
         ft.modified = false;
         ft.item = parent;
-        ft.text = new QByteArray(data);
-        ft.textCursor = def;
-        ft.scrollPos = scroll;
-        if (files.contains(current)) {
-            file_t f = files.value(current);
-            ft.textCursor = f.textCursor;
-            ft.scrollPos = f.scrollPos;
-        }
+
+        if (ft.editor->toPlainText().isEmpty())
+            ft.editor->setPlainText( data );
+
         files.insert(parent->text(), ft);
+
+        if (currentEditor == nullptr) {
+            // first time showing the editor, show the main script file.
+            currentEditor = ft.editor;
+            currentEditor->show();
+
+            QList<int> size;
+            size << 150 << 600;
+            ui->splitter->setSizes(size);
+        }
+
     }
 
     enum { st_find=0, st_meta, st_include };
@@ -409,9 +383,6 @@ void IScriptEditor::currentRowChanged(const QModelIndex &current, const QModelIn
         return;
     }
 
-    // do not confuse the argument "current" with the class member "current"! :
-    store( this->current ); // this is actually the previous document. this->current updates in load()
-
     load( current.data().toString() );
 }
 
@@ -422,31 +393,34 @@ void IScriptEditor::textChanged()
         return;
     }
 
-    if (! selection->currentIndex().isValid())
-        return;
-
-    QStandardItem *item = treeModel.itemFromIndex( selection->currentIndex() );
-    QString file = item->text();
-    file_t ft = files.value( file );
+    file_t ft = getFileStruct(current);
     ft.modified = true;
+    files.insert(current, ft);
 
-    files.insert(file, ft);
-
-    setBold(item);
+    setBold(ft.item);
 }
 
 void IScriptEditor::settingsSaved()
 {
     QFont f(conf->editorFontName);
     f.setPixelSize(conf->editorFontSize);
-    editor.setFont(f);
 
-    editor.setStyleSheet( QString("QPlainTextEdit { background-color: %1; color: %2; }")
-                          .arg( conf->editorBackground.name() )
-                          .arg( conf->editorText.name() )
-                         );
+    QHashIterator<QString, file_t> i(files);
+    while (i.hasNext()) {
+        i.next();
+        ignoreNextTextChange = true;
+        EditorWidget *editor = i.value().editor;
+        TScriptEditorHighlighter *highlight = i.value().highlight;
 
-    highlight->rehighlight();
+        editor->setFont(f);
+
+        editor->setStyleSheet( QString("QPlainTextEdit { background-color: %1; color: %2; }")
+                               .arg( conf->editorBackground.name() )
+                               .arg( conf->editorText.name() )
+                              );
+
+        highlight->rehighlight();
+    }
 }
 
 void IScriptEditor::on_btnSave_clicked()
@@ -460,6 +434,16 @@ void IScriptEditor::on_btnSaveAll_clicked()
 {
     // save all
     saveAll();
+}
+
+void IScriptEditor::showEvent(QShowEvent *)
+{
+    if (! firstShow)
+        return;
+
+    firstShow = false;
+
+    setupTreeView();
 }
 
 void IScriptEditor::closeEvent(QCloseEvent *e)
@@ -487,7 +471,41 @@ void IScriptEditor::closeEvent(QCloseEvent *e)
     }
 }
 
+void IScriptEditor::resizeEvent(QResizeEvent *e)
+{
+    if (currentEditor == nullptr)
+        return;
+
+    QRect geo = ui->frame->geometry();
+    geo.setTopLeft(QPoint(0, 0));
+    currentEditor->setGeometry( geo );
+}
+
 void IScriptEditor::on_btnSettings_clicked()
 {
     settings.show();
+}
+
+file_t IScriptEditor::getFileStruct(QString filename)
+{ // This one returns relevant file_t if we have any, or make a new one and return that.
+  // If it creates, it does NOT store it to the 'files' hash table!
+
+    if (files.contains(filename))
+        return files.value(filename);
+
+
+    file_t f;
+    f.editor = new EditorWidget(ui->frame, conf);
+    f.highlight = new TScriptEditorHighlighter(f.editor->document(), conf);
+
+     connect(f.editor, SIGNAL(textChanged()),
+             this, SLOT(textChanged()));
+
+     QRect geo = ui->frame->geometry();
+     geo.setTopLeft(QPoint(0, 0));
+     f.editor->setGeometry( geo );
+
+     f.editor->hide();
+
+    return f;
 }

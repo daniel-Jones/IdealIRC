@@ -32,6 +32,7 @@
 
 #include <QTextBlock>
 #include <QPainter>
+#include <QScrollBar>
 #include "editorwidget.h"
 
 EditorWidget::EditorWidget(QWidget *parent, config *cfg) :
@@ -48,6 +49,15 @@ EditorWidget::EditorWidget(QWidget *parent, config *cfg) :
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
+
+    QFont f(conf->editorFontName);
+    f.setPixelSize(conf->editorFontSize);
+    setFont(f);
+
+    setStyleSheet( QString("QPlainTextEdit { background-color: %1; color: %2; }")
+                    .arg( conf->editorBackground.name() )
+                    .arg( conf->editorText.name() )
+                  );
 }
 
 

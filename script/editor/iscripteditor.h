@@ -27,6 +27,7 @@
 #include <QItemSelectionModel>
 #include <QHash>
 #include <QCloseEvent>
+#include <QResizeEvent>
 #include <QPoint>
 
 #include "config.h"
@@ -41,9 +42,11 @@ class IScriptEditor;
 typedef struct T_FILE {
     bool modified;
     QStandardItem *item;
-    QByteArray *text;
-    int textCursor;
-    QPoint scrollPos;
+    QByteArray *text; // deprecated
+    int textCursor; // deprecated
+    QPoint scrollPos; // deprecated
+    EditorWidget *editor;
+    TScriptEditorHighlighter *highlight;
 } file_t;
 
 class IScriptEditor : public QDialog
@@ -57,10 +60,11 @@ public:
 private:
     Ui::IScriptEditor *ui;
     QString scriptFile;
-    EditorWidget editor;
-    TScriptEditorHighlighter *highlight;
+    //EditorWidget editor;
+    //TScriptEditorHighlighter *highlight;
     config *conf;
     QString current;
+    EditorWidget *currentEditor;
     QItemSelectionModel *selection;
     QStandardItemModel treeModel;
     QStandardItem *firstItem;
@@ -68,16 +72,19 @@ private:
     bool ignoreNextTextChange;
     bool ignoreNextRowChange;
     IScriptEditorSettings settings;
+    bool firstShow;
 
     void saveFile(QString filename); // Save given file
     void saveAll(); // Save all files
-    void store(QString file); // Store to internal memory
+    void store(QString file); // deprecated
     void load(QString file, bool select = false, bool loadAfterSave = false); // Load from internal memory
     void setupTreeView(); // Use this to (re)load the entire tree-view.
     void setupTreeView(QStandardItem *parent); // used to fill in children
     QString setRelativePath(QString folder, QString file);
     void setBold(QStandardItem *item);
     void unsetBold(QStandardItem *item);
+
+    file_t getFileStruct(QString filename);
 
 private slots:
     void currentRowChanged(const QModelIndex &current, const QModelIndex &previous);
@@ -88,7 +95,9 @@ private slots:
     void on_btnSettings_clicked();
 
 protected:
+    void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *e);
+    void resizeEvent(QResizeEvent *e);
 };
 
 
