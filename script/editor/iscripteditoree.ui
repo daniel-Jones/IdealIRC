@@ -32,7 +32,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabMeta">
       <attribute name="title">
@@ -66,6 +66,9 @@
            </property>
            <item row="0" column="0">
             <widget class="QTableView" name="commandsView">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
              <property name="alternatingRowColors">
               <bool>true</bool>
              </property>
@@ -104,6 +107,9 @@
            </property>
            <item row="0" column="0">
             <widget class="QTableView" name="eventsView">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
              <property name="alternatingRowColors">
               <bool>true</bool>
              </property>
@@ -142,6 +148,9 @@
            </property>
            <item row="0" column="0">
             <widget class="QTableView" name="timersView">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
              <property name="alternatingRowColors">
               <bool>true</bool>
              </property>
@@ -184,6 +193,9 @@
        </property>
        <item row="0" column="0">
         <widget class="QTableView" name="varView">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
          <property name="alternatingRowColors">
           <bool>true</bool>
          </property>
@@ -205,23 +217,6 @@
        <string>Functions</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0" rowspan="2">
-        <widget class="QListView" name="fnctView">
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="btnFindFnct">
-         <property name="text">
-          <string>Find function in code</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="1">
         <widget class="QGroupBox" name="fnctParamBox">
          <property name="title">
@@ -243,6 +238,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="btnExecFnct">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="font">
              <font>
               <weight>75</weight>
@@ -254,7 +252,46 @@
             </property>
            </widget>
           </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
          </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="btnFindFnct">
+         <property name="text">
+          <string>Find function in code</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" rowspan="3">
+        <widget class="QTableView" name="fnctView">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
         </widget>
        </item>
       </layout>
@@ -262,6 +299,26 @@
     </widget>
    </item>
   </layout>
+  <action name="actionAdd_new">
+   <property name="text">
+    <string>Add new...</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actionEdit_Name">
+   <property name="text">
+    <string>Edit Name...</string>
+   </property>
+  </action>
+  <action name="actionEdit_Value">
+   <property name="text">
+    <string>Edit Value...</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

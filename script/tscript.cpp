@@ -179,3 +179,53 @@ void TScript::errorHandler(e_scriptresult res)
     }
 }
 
+QString TScript::getParamList(QString fn)
+{
+    int pos = fnindex.value(fn, -1);
+    if (pos == -1)
+        return "";
+
+    QString result;
+    // Scan the script for parameters.
+    enum {
+        s_Wait = 0,
+        s_ReadParam
+    };
+
+    int state = s_Wait; // reading states...
+    for (int i = pos; i <= scriptstr.length()-1; ++i) {
+        QChar c = scriptstr[i];
+
+        if (c == '\n')
+            break;
+
+        if (state == s_Wait) {
+            if (c == '%') {
+                state = s_ReadParam;
+                result += '%';
+                continue;
+            }
+            if (c == '(') {
+                state = s_ReadParam;
+                continue;
+            }
+        }
+
+        if (state == s_ReadParam) {
+            if (c == ',') {
+                state = s_Wait;
+                result += " ";
+                continue;
+            }
+            if (c == ')')
+                break;
+
+            result += c;
+        }
+    }
+
+    if (result.isEmpty())
+        result = "None";
+
+    return result;
+}

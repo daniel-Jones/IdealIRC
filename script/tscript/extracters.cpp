@@ -21,6 +21,14 @@
 #include "../tscript.h"
 #include "constants.h"
 
+e_scriptresult TScript::externalExtract(QString &text)
+{
+    // Construct empty local var for running extract()
+    QHash<QString,QString> localVar;
+    QHash<QString, QByteArray> localBinVar;
+    return extract(text, localVar, localBinVar);
+}
+
 QString TScript::mergeVarName(QString &vname, QHash<QString,QString> &localVar, QHash<QString, QByteArray> &localBinVar)
 {
     enum {

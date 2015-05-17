@@ -96,6 +96,11 @@ public:
     QHash<QString,QString> *getVarListPtr() { return &variables; }
     QHash<QString,QByteArray> *getBinVarListPtr() { return &binVars; }
 
+    QHash<QString,int>* getFnIndexPtr() { return &fnindex; }
+    QString getParamList(QString fn);
+
+    e_scriptresult externalExtract(QString &text);
+
 private:
     QWidget *dlgParent;
     TScriptParent *scriptParent;
