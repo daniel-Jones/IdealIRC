@@ -341,6 +341,8 @@ void IScriptEditorEE::on_actionEdit_Value_triggered()
                                          oldValue,
                                           &ok);
 
-    if (ok)
+    if (ok) {
+        script->externalExtract(value);
         script->getVarListPtr()->insert(name, value);
+    }
 }
