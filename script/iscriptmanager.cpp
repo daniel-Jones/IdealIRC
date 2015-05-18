@@ -80,33 +80,13 @@ void IScriptManager::addItem(QString name, QString path, bool select)
         editFile(path, name);
 }
 
-void IScriptManager::reloadLabel(QString text)
-{
-    clearLabel.stop();
-    ui->reloadLabel->setText(text);
-    clearLabel.start(5000);
-}
-
 void IScriptManager::editFile(QString filename, QString scriptname)
 {
     IScriptEditor *editor = new IScriptEditor((QWidget*)this->parent(), scriptParent->getScriptPtr(scriptname), conf);
     connect(editor, SIGNAL(finished(int)),
             this, SLOT(deleteLater()));
 
-    connect(editor, SIGNAL(reload(QString)),
-            this, SLOT(reloadScript(QString)));
-
     editor->show();
-}
-
-void IScriptManager::on_btnReload_clicked()
-{
-    QModelIndex selected = selection->currentIndex();
-    if (! selected.isValid())
-        return;
-
-    QModelIndex index = model.index(selected.row(), 0);
-    reloadScript( index.data().toString() );
 }
 
 void IScriptManager::on_btnDelete_clicked()
@@ -218,14 +198,4 @@ void IScriptManager::on_btnNew_clicked()
     IniFile ini(CONF_FILE);
     ini.WriteIni("Script", name, file);
 
-}
-
-void IScriptManager::reloadScript(QString script)
-{
-    if (scriptParent->reloadScript(script))
-        //reloadLabel(tr("\"%1\" reloaded.").arg(name));
-        scriptParent->echo( tr("Script \"%1\" reloaded.").arg(script), PT_LOCALINFO );
-    else
-        //reloadLabel(tr("\"%1\" failed reload.").arg(name));
-        scriptParent->echo( tr("Script \"%1\" failed reload.").arg(script), PT_LOCALINFO );
 }

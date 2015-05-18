@@ -27,8 +27,8 @@
 #include <QItemSelectionModel>
 #include <QHash>
 #include <QCloseEvent>
-#include <QResizeEvent>
 #include <QPoint>
+#include <QHBoxLayout>
 
 #include "script/tscript.h"
 #include "script/editor/iscripteditoree.h"
@@ -61,8 +61,6 @@ private:
     TScript *script;
     QString scriptFile;
     QString scriptName;
-    //EditorWidget editor;
-    //TScriptEditorHighlighter *highlight;
     config *conf;
     QString current;
     EditorWidget *currentEditor;
@@ -75,15 +73,15 @@ private:
     IScriptEditorSettings settings;
     IScriptEditorEE explorer;
     bool firstShow;
+    QHBoxLayout *frameLayout;
 
-    void saveFile(QString filename); // Save given file
+    void saveFile(QString filename, bool reload = true); // Save given file
     void saveAll(); // Save all files
-    void store(QString file); // deprecated
     void load(QString file, bool select = false, bool loadAfterSave = false); // Load from internal memory
     void setupTreeView(); // Use this to (re)load the entire tree-view.
     void setupTreeView(QStandardItem *parent); // used to fill in children
     QString setRelativePath(QString folder, QString file);
-    void setBold(QStandardItem *item);
+    void setBold(QStandardItem *item); // changes made -indicator (bold text in tree view)
     void unsetBold(QStandardItem *item);
 
     file_t getFileStruct(QString filename);
@@ -95,17 +93,12 @@ private slots:
     void on_btnSave_clicked();
     void on_btnSaveAll_clicked();
     void on_btnSettings_clicked();
-    void on_toolButton_clicked();
-
     void on_btnEE_clicked();
+    void findFunction(QString name);
 
 protected:
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *e);
-    void resizeEvent(QResizeEvent *e);
-
-signals:
-    void reload(QString name); // script name.
 };
 
 

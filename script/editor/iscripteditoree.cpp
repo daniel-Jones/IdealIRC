@@ -48,8 +48,7 @@ IScriptEditorEE::IScriptEditorEE(QWidget *parent, TScript *s) :
     varModel->setHorizontalHeaderLabels(QStringList() << "Name" << "Value");
     ui->varView->setModel(varModel);
     ui->varView->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(varModel, SIGNAL(itemChanged(QStandardItem*)),
-            this, SLOT(varModelDataChange(QStandardItem*)));
+
     varMenu.addAction( ui->actionAdd_new );
     varMenu.addAction( ui->actionDelete );
     varMenu.addSeparator();
@@ -228,7 +227,12 @@ void IScriptEditorEE::on_fnctView_clicked(const QModelIndex &index)
 
 void IScriptEditorEE::on_btnFindFnct_clicked()
 {
+    int row = ui->fnctView->currentIndex().row();
+    if (row == -1)
+        return; // Nothing was selected.
 
+    QString name = fnctModel->item(row, 0)->text();
+    emit findFunction(name);
 }
 
 void IScriptEditorEE::on_btnExecFnct_clicked()
@@ -248,6 +252,7 @@ void IScriptEditorEE::on_btnExecFnct_clicked()
 
     QString fnct = fnctModel->item(row, 0)->text();
     script->runf(fnct, param, result);
+    ui->fnctResult->setText(result);
 }
 
 void IScriptEditorEE::on_varView_customContextMenuRequested(const QPoint &pos)
@@ -297,8 +302,6 @@ void IScriptEditorEE::on_actionEdit_Name_triggered()
 
     QHash<QString,QString> *varList = script->getVarListPtr();
     QHash<QString,QByteArray> *binVarList = script->getBinVarListPtr();
-
-    qDebug() << "oldName=" << oldName << " name=" << name;
 
     if (name[0] != '%')
         name.prepend('%');

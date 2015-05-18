@@ -79,6 +79,9 @@ private slots:
     void on_actionDelete_triggered();
     void on_actionEdit_Name_triggered();
     void on_actionEdit_Value_triggered();
+
+signals:
+    void findFunction(QString name);
 };
 
 #endif // ISCRIPTEDITOREE_H

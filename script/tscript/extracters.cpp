@@ -172,8 +172,11 @@ e_scriptresult TScript::extract(QString &text, QHash<QString,QString> &localVar,
                 if (c == ' ')
                     --i; // get space added to text.
                 if ((! binVars.contains(vname)) && (! localBinVar.contains(vname))) {
-                    result += variables.value(vname); // prefer local variable names
-                    result += localVar.value(vname);
+                    if (localVar.contains(vname))
+                        result += localVar.value(vname); // prefer local variable names
+                    else
+                        result += variables.value(vname);
+
                 }
                 else
                     result += vname;

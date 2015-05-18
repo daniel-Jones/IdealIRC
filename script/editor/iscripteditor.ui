@@ -24,13 +24,6 @@
    <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="3">
-    <widget class="QToolButton" name="toolButton">
-     <property name="text">
-      <string>Reload</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="2">
     <widget class="QToolButton" name="btnSettings">
      <property name="toolTip">
@@ -51,7 +44,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="5">
+   <item row="0" column="4">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -104,7 +97,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="6">
+   <item row="1" column="0" colspan="5">
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -127,7 +120,7 @@
      </widget>
     </widget>
    </item>
-   <item row="0" column="4">
+   <item row="0" column="3">
     <widget class="QToolButton" name="btnEE">
      <property name="text">
       <string>Execution Explorer</string>
@@ -140,7 +133,6 @@
   <tabstop>btnSave</tabstop>
   <tabstop>btnSaveAll</tabstop>
   <tabstop>btnSettings</tabstop>
-  <tabstop>toolButton</tabstop>
   <tabstop>treeView</tabstop>
  </tabstops>
  <resources>

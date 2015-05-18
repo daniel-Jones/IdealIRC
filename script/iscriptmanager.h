@@ -43,12 +43,10 @@ public:
     ~IScriptManager();
 
 private slots:
-    void on_btnReload_clicked();
     void on_btnDelete_clicked();
     void on_btnLoad_clicked();
     void on_btnEdit_clicked();
     void on_btnNew_clicked();
-    void reloadScript(QString script);
 
 private:
     Ui::IScriptManager *ui;
@@ -59,7 +57,6 @@ private:
     QTimer clearLabel;
     config *conf;
     void addItem(QString name, QString path, bool select = false);
-    void reloadLabel(QString text);
     void editFile(QString filename, QString scriptname);
 };
 

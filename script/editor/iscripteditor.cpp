@@ -26,6 +26,7 @@
 
 #include "iscripteditor.h"
 #include "ui_iscripteditor.h"
+#include "script/tscriptparent.h"
 
 IScriptEditor::IScriptEditor(QWidget *parent, TScript *s, config *cfg) :
     QDialog(parent),
@@ -49,6 +50,13 @@ IScriptEditor::IScriptEditor(QWidget *parent, TScript *s, config *cfg) :
 
     connect(&settings, SIGNAL(settingsSaved()),
             this, SLOT(settingsSaved()));
+
+    connect(&explorer, SIGNAL(findFunction(QString)),
+            this, SLOT(findFunction(QString)));
+
+    frameLayout = new QHBoxLayout;
+    frameLayout->setMargin(0);
+    ui->frame->setLayout(frameLayout);
 }
 
 IScriptEditor::~IScriptEditor()
@@ -65,10 +73,11 @@ IScriptEditor::~IScriptEditor()
     delete ui;
 }
 
-void IScriptEditor::saveFile(QString filename)
+void IScriptEditor::saveFile(QString filename, bool reload)
 {
     file_t ft = getFileStruct(filename);
     unsetBold(ft.item);
+
     if (! ft.modified)
         return;
 
@@ -86,6 +95,9 @@ void IScriptEditor::saveFile(QString filename)
 
     file.write(data);
     file.close();
+
+    if (reload)
+        script->getScriptParent()->reloadScript( script->getName() );
 }
 
 void IScriptEditor::saveAll()
@@ -97,23 +109,16 @@ void IScriptEditor::saveAll()
         file_t ft = getFileStruct(file);
 
         if (ft.modified == true) {
-            saveFile(file);
+            saveFile(file, false); // do not reload until we reach the end of this function.
             ft.modified = false;
         }
 
         files.insert(file, ft); // Update entry
     }
 
+    script->getScriptParent()->reloadScript( script->getName() );
+
     setupTreeView(); // Reload in case meta-includes are changed.
-}
-
-void IScriptEditor::store(QString file) // deprecated
-{
-/*
-    file_t ft = files.value(file);
-    ft.text->clear();
-    ft.text->append( editor.toPlainText() );*/
-
 }
 
 void IScriptEditor::load(QString file, bool select, bool loadAfterSave)
@@ -123,17 +128,15 @@ void IScriptEditor::load(QString file, bool select, bool loadAfterSave)
 
     // hiding the previous editor
     currentEditor->hide();
+    frameLayout->removeWidget(currentEditor);
 
     // setting new current file and editor
     current = file;
     currentEditor = files.value(current).editor;
 
     // show current editor
+    frameLayout->addWidget(currentEditor);
     currentEditor->show();
-
-    QRect geo = ui->frame->geometry();
-    geo.setTopLeft(QPoint(0, 0));
-    currentEditor->setGeometry( geo );
 }
 
 void IScriptEditor::setupTreeView()
@@ -471,16 +474,6 @@ void IScriptEditor::closeEvent(QCloseEvent *e)
     }
 }
 
-void IScriptEditor::resizeEvent(QResizeEvent *e)
-{
-    if (currentEditor == nullptr)
-        return;
-
-    QRect geo = ui->frame->geometry();
-    geo.setTopLeft(QPoint(0, 0));
-    currentEditor->setGeometry( geo );
-}
-
 void IScriptEditor::on_btnSettings_clicked()
 {
     settings.show();
@@ -501,21 +494,32 @@ file_t IScriptEditor::getFileStruct(QString filename)
      connect(f.editor, SIGNAL(textChanged()),
              this, SLOT(textChanged()));
 
-     QRect geo = ui->frame->geometry();
-     geo.setTopLeft(QPoint(0, 0));
-     f.editor->setGeometry( geo );
+     f.editor->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
 
      f.editor->hide();
 
     return f;
 }
 
-void IScriptEditor::on_toolButton_clicked()
-{
-    emit reload(scriptName);
-}
-
 void IScriptEditor::on_btnEE_clicked()
 {
     explorer.show();
+}
+
+void IScriptEditor::findFunction(QString name)
+{
+    QString patt = QString("function %1(").arg(name);
+
+    QHashIterator<QString,file_t> i(files);
+    while (i.hasNext()) {
+        i.next();
+        QString filename = i.key();
+        file_t f = i.value();
+
+        if (f.editor->find(patt)) {
+            if (filename != current)
+                load(filename, true);
+            break;
+        }
+    }
 }

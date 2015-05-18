@@ -618,7 +618,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 if (vname.contains('+'))
                     vname = mergeVarName(vname, localVar, localBinVar);
 
-                if (setLocalVar)
+                if ((setLocalVar) || (localVar.contains(vname)))
                     localVar.insert(vname, data);
                 else
                     variables.insert(vname, data);
@@ -671,6 +671,8 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                             binVars.remove(vname);
                             variables.remove(vname);
                             parName->removeAll(vname);
+                            localVar.remove(vname);
+                            localBinVar.remove(vname);
                             vname.clear();
                             st = st_VarPrefix;
                             continue;
@@ -754,7 +756,12 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 // Increment or decrement value is in 'val'
 
                 bool ok = false;
-                double varval = variables.value(vname).toDouble(&ok);
+                double varval = 0.0f;
+                if (localVar.contains(vname))
+                    varval = localVar.value(vname).toDouble(&ok);
+                else
+                    varval = variables.value(vname).toDouble(&ok);
+
                 if (!ok)
                     varval = 0.0f;
 
@@ -766,7 +773,10 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 if (vname.contains('+'))
                     vname = mergeVarName(vname, localVar, localBinVar);
 
-                variables.insert(vname, QString::number(varval));
+                if (localVar.contains(vname))
+                    localVar.insert(vname, QString::number(varval));
+                else
+                    variables.insert(vname, QString::number(varval));
 
                 keyword.clear();
                 continue;
@@ -776,6 +786,8 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             /** ########## **/
             /** CONTAINERS **/
             /** ########## **/
+
+            /// !! DEPRECATED - LOCAL VARS ARENT FIXED HERE !!
 
             if (keywup == "WCON") {
                 // wcon id data
@@ -1264,6 +1276,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 if (switchfail == true)
                     return se_InvalidSwitches;
 
+                // TODO  this is not accurate:
                 int swsum = accept + close + decline + listen + open + write; // These CANNOT be combined.
                 if (swsum > 1) // Some of them are combined, stop !
                     return se_InvalidSwitches;
@@ -1345,13 +1358,25 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
 
                     if (binary) {
                         // QHash will replace existant values.
-                        binVars.insert(vname, data);
-                        variables.remove(vname); // remove string variable of same name
+                        if (localBinVar.contains(vname)) {
+                            localBinVar.insert(vname, data);
+                            localVar.remove(vname); // remove string variable of same name
+                        }
+                        else {
+                            binVars.insert(vname, data);
+                            variables.remove(vname);
+                        }
                     }
                     else {
                         /// String variables
-                        variables.insert(vname, data);
-                        binVars.remove(vname);
+                        if (localVar.contains(vname)) {
+                            localVar.insert(vname, data);
+                            localBinVar.remove(vname);
+                        }
+                        else {
+                            variables.insert(vname, data);
+                            binVars.remove(vname);
+                        }
                     }
 
                     keyword.clear();
@@ -1766,10 +1791,18 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 else
                     data = f->read(len);
 
-                if (ts.binary)
-                    binVars.insert(var, data);
-                else
-                    variables.insert(var, data);
+                if (ts.binary) {
+                    if (localBinVar.contains(var))
+                        localBinVar.insert(var, data);
+                    else
+                        binVars.insert(var, data);
+                }
+                else {
+                    if (localVar.contains(var))
+                        localVar.insert(var, data);
+                    else
+                        variables.insert(var, data);
+                }
 
                 keyword.clear();
                 continue;
