@@ -96,8 +96,11 @@ void IScriptEditor::saveFile(QString filename, bool reload)
     file.write(data);
     file.close();
 
-    if (reload)
+    if (reload) {
         script->getScriptParent()->reloadScript( script->getName() );
+        explorer.rebuildMetaModels();
+        explorer.rebuildFunctionModel();
+    }
 }
 
 void IScriptEditor::saveAll()
@@ -117,7 +120,8 @@ void IScriptEditor::saveAll()
     }
 
     script->getScriptParent()->reloadScript( script->getName() );
-
+    explorer.rebuildMetaModels();
+    explorer.rebuildFunctionModel();
     setupTreeView(); // Reload in case meta-includes are changed.
 }
 

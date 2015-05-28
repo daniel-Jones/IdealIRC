@@ -113,6 +113,15 @@ void IScriptEditorEE::rebuildMetaModels()
 
 void IScriptEditorEE::rebuildFunctionModel()
 {
+    while (fnctModel->rowCount() > 0) {
+        QStandardItem *f = fnctModel->item(0,0);
+        QStandardItem *p = fnctModel->item(0,1);
+        delete f;
+        delete p;
+
+        fnctModel->removeRow(0);
+    }
+
     fnctModel->clear();
     fnctModel->setHorizontalHeaderLabels(QStringList() << "Function" << "Parameters");
     ui->btnExecFnct->setEnabled(false);

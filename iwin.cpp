@@ -242,14 +242,32 @@ IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptPare
     }
 
     if (textdata != NULL) {
-        connect(textdata, SIGNAL(joinChannel(QString)),
-                this, SLOT(joinChannel(QString)));
+
+        connect(textdata, SIGNAL(joinChannelMenuRequest(QPoint,QString)),
+                this, SLOT(joinChannelMenuRequest(QPoint,QString)));
+
+        connect(textdata, SIGNAL(nickMenuRequest(QPoint,QString)),
+                this, SLOT(nickMenuRequest(QPoint,QString)));
 
         connect(textdata, SIGNAL(anchorClicked(const QUrl)),
                 this, SLOT(openURL(const QUrl)));
 
         connect(textdata, SIGNAL(gotFocus()),
                 this, SLOT(GiveFocus()));
+
+        joinChannelTitle = new QAction(&joinChannelMenu);
+        joinChannelTitle->setEnabled(false);
+        QAction *separator = joinChannelMenu.addSeparator();
+        joinChannelAction = new QAction(&joinChannelMenu);
+        joinChannelAction->setText(tr("Join channel"));
+        QFont f = joinChannelTitle->font();
+        f.setBold(true);
+        joinChannelTitle->setFont(f);
+
+        joinChannelMenu.addActions(QList<QAction*>() << joinChannelTitle << separator << joinChannelAction);
+
+        connect(joinChannelAction, SIGNAL(triggered()),
+                this, SLOT(joinChannelTriggered()));
 
         textdata->changeFont(conf->fontName, conf->fontSize);
     }
@@ -943,4 +961,31 @@ void IWin::mouseDoubleClick()
 {
     if (WindowType == WT_CHANNEL)
         execChanSettings();
+}
+
+void IWin::joinChannelMenuRequest(QPoint point, QString channel)
+{
+    joinChannelTitle->setText(channel);
+    joinChannelMenu.popup( QWidget::mapToGlobal(point) );
+}
+
+void IWin::joinChannelTriggered()
+{
+    joinChannel( joinChannelTitle->text() );
+}
+
+void IWin::nickMenuRequest(QPoint point, QString nickname)
+{
+    // 'nickname' may be prepended with a mode letter! (+/@/...)
+    // So we fix this here:
+    QString nickNM = nickname; // create a copy with 'No Mode'
+    if (connection->isValidCuLetter(nickNM[0].toLatin1()))
+        nickNM.remove(0, 1);
+
+    if (WindowType == WT_CHANNEL) {
+        listbox->clearSelection();
+        QList<QListWidgetItem*> item = listbox->findItems(nickname, Qt::MatchFixedString);
+        item[0]->setSelected(true);
+        listboxMenuRequested( QWidget::mapToGlobal(point) );
+    }
 }

@@ -169,6 +169,8 @@ e_scriptresult TScript::loadScript2(QString includeFile, QString parent)
     resetMenu(customQueryMenu);
     resetMenu(customStatusMenu);
 
+    fnindex.clear(); // re-load function index
+
     for (int i = 0; i <= scriptstr.length()-1; ++i) {
         QChar cc = scriptstr[i];
 

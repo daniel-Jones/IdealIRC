@@ -45,13 +45,12 @@ class IScriptEditorEE : public QDialog
 public:
     explicit IScriptEditorEE(QWidget *parent, TScript *s);
     ~IScriptEditorEE();
+    void rebuildMetaModels();
+    void rebuildFunctionModel();
 
 private:
     Ui::IScriptEditorEE *ui;
     TScript *script;
-
-    void rebuildMetaModels();
-    void rebuildFunctionModel();
 
     // meta-data models
     QStandardItemModel *commandModel;

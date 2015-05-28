@@ -98,6 +98,8 @@ signals:
     void gotFocus();
     void menuRequested(QPoint point);
     void mouseDblClick();
+    void joinChannelMenuRequest(QPoint point, QString channel);
+    void nickMenuRequest(QPoint point, QString nickname);
 };
 
 #endif // IIRCVIEW_H

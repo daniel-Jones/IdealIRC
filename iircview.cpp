@@ -464,7 +464,19 @@ void IIRCView::paintEvent(QPaintEvent *)
 
         // Draw sender
         int sendLenPx = fm->width(pl.sender)+5; // Senders name length in px
-        painter.drawText(QPoint(splitterPos-sendLenPx-5, Y), pl.sender);
+        int x1 = splitterPos-sendLenPx-5;
+        int x2 = splitterPos-5;
+        int y1 = Y - fontSize;
+
+        if (((pl.type == PT_NORMAL) || (pl.type == PT_HIGHLIGHT) || (pl.type == PT_OWNTEXT)) && (! pl.sender.isEmpty())) {
+            t_Anchor anchor;
+            anchor.P1 = QPoint(x1, y1);
+            anchor.P2 = QPoint(x2, Y);
+            anchor.url = pl.sender;
+            anchors << anchor;
+        }
+
+        painter.drawText(QPoint(x1, Y), pl.sender);
 
 
         // Restore any customized bold or color
@@ -494,7 +506,7 @@ void IIRCView::paintEvent(QPaintEvent *)
             // fetch all instances of matching URLs
             QList<int> urlpos;
 
-            QRegExp ex("(?:https?|ftp|irc)://");
+            QRegExp ex("(?:https?|ftp|irc)://|(?:#)");
             for (int ic = 0; ; ++ic) {
                 ic = line.indexOf(ex, ic);
                 if (ic == -1)
@@ -673,36 +685,6 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                 X += fw;
 
-                /*
-                 * TODO: Remove this when all set
-                if (((url.toUpper() == "HTTP://") || (url.toUpper() == "HTTPS://")) && (! readURL)) { // TODO: needs regex for HTTP(S)/FTP/IRC
-                    readURL = true;
-                    paintLink = true;
-                    addUrl.clear();
-                    // find X to beginning of 'url'
-                    int ulen = fm->width(url);
-                    X -= ulen;
-                    // (!!) Y could be affected if there is a line shift inside 'url'
-
-                    // Erase with background color
-                    // (!!) Background images is not possible before we add some way to refresh background image...
-                    QColor bgcol = conf->colBackground;
-                    if (textCopyBg)
-                        bgcol = invertColor( conf->colBackground );
-                    painter.fillRect(X, Y-fontSize+2, ulen, fm->height()+1, bgcol);
-
-                    // Set pen color to links
-                    painter.setPen(conf->colLinks);
-
-                    // Store xy for anchor point bounding box
-                    anchor.P1 = QPoint(X, Y-fm->height()+4);
-                    painter.drawText(X, Y, url);
-
-                    // Set back X, new letter adds and we get proper X set back on next round
-                    X += ulen;
-                }*/
-
-
             } // for (int ic = 0; ic <= line.length()-1; ++ic)
 
             Y += fontSize;
@@ -862,8 +844,22 @@ void IIRCView::mouseReleaseEvent(QMouseEvent *e)
 
     if (! draggingText) {
         QString link = getLink(e->pos().x(), e->pos().y());
-        if (! link.isEmpty())
-            QDesktopServices::openUrl( QUrl(link) );
+        if (! link.isEmpty()) {
+            // TODO  this is 'hardcoded' channel anchors.
+            // Instead, find channel types presented by 005 numeric.
+            // This'll do anyway for now.
+            if (link[1] == '#')
+                link.remove(0, 1);
+            if (link[0] == '#') { // Channel clicked
+                emit joinChannelMenuRequest(e->pos(), link);
+            }
+            else if (e->pos().x() < splitterPos) {
+                // (Most likely) a nickname inside splitter clicked.
+                emit nickMenuRequest(e->pos(), link);
+            }
+            else
+                QDesktopServices::openUrl( QUrl(link) );
+        }
     }
 
     mouseDown = false;

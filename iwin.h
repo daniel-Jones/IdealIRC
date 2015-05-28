@@ -32,6 +32,7 @@
 #include <QUrl>
 #include <QFocusEvent>
 #include <QTextCodec>
+#include <QMenu>
 
 #include "constants.h"
 #include "tpicturewindow.h"
@@ -120,6 +121,12 @@ private:
       QMenu *listboxMenu;
       QMenu *opMenu;
       QMenu *textboxMenu;
+
+      // 'Join channel' menu, requested by IIRCView.
+      QMenu joinChannelMenu;
+      QAction *joinChannelTitle;
+      QAction *joinChannelAction;
+
       QMyLineEdit *input;
       QString topic;
       ICommand *cmdhndl;
@@ -165,6 +172,9 @@ private slots:
       void settingsClosed();
       void listboxDoubleClick(QListWidgetItem *item);
       void mouseDoubleClick();
+      void joinChannelMenuRequest(QPoint point, QString channel);
+      void joinChannelTriggered();
+      void nickMenuRequest(QPoint point, QString nickname);
 
 signals:
       void closed(int wid);
