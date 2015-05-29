@@ -985,6 +985,8 @@ void IWin::nickMenuRequest(QPoint point, QString nickname)
     if (WindowType == WT_CHANNEL) {
         listbox->clearSelection();
         QList<QListWidgetItem*> item = listbox->findItems(nickname, Qt::MatchFixedString);
+        if (item.count() == 0)
+            return;
         item[0]->setSelected(true);
         listboxMenuRequested( QWidget::mapToGlobal(point) );
     }
