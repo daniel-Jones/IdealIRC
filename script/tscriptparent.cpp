@@ -30,6 +30,15 @@
 #include "icommand.h"
 #include "iwin.h"
 
+/*!
+ * \param parent Pointer to IdealIRC class
+ * \param dialogParent Pointer to IdealIRC class
+ * \param cfg Pointer to config class (iirc.ini)
+ * \param cl Pointer to the list of all connections
+ * \param wl Pointer to the list of all subwindows
+ * \param aWid Pointer to current active window ID
+ * \param aConn pointer to current active connection ID
+ */
 TScriptParent::TScriptParent(QObject *parent, QWidget *dialogParent, config *cfg,
                              QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl,
                              int *aWid, int *aConn) :
@@ -49,8 +58,13 @@ TScriptParent::TScriptParent(QObject *parent, QWidget *dialogParent, config *cfg
 
 }
 
-
-
+/*!
+ * \param path Path to script
+ * \param starting True if IdealIRC is starting
+ *
+ * Loads a script.
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::loadScript(QString path, bool starting)
 {
     std::cout << "Loading '" << path.toStdString().c_str() << "'" << std::endl;
@@ -113,6 +127,12 @@ bool TScriptParent::loadScript(QString path, bool starting)
     return true;
 }
 
+/*!
+ * \param name Script name
+ *
+ * Unloads a script
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::unloadScript(QString name)
 {
     QVectorIterator<TScript*> i(scriptlist);
@@ -139,6 +159,12 @@ bool TScriptParent::unloadScript(QString name)
     return true;
 }
 
+/*!
+ * \param name Script name
+ *
+ * Reloads a script
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::reloadScript(QString name)
 {
     QVectorIterator<TScript*> i(scriptlist);
@@ -158,6 +184,14 @@ bool TScriptParent::reloadScript(QString name)
     return loader(script);
 }
 
+/*!
+ * \param event Script event
+ * \param param Parameter list
+ * \param result Pointer to store result (what 'return' gives)
+ *
+ * Executes a script event.
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::runevent(e_iircevent event, QStringList param, QString *result)
 {
     bool found = false;
@@ -180,12 +214,25 @@ bool TScriptParent::runevent(e_iircevent event, QStringList param, QString *resu
     return found;
 }
 
+/*!
+ * \param event
+ *
+ * Overloaded function.\n
+ * This runs an event with no parameters.
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::runevent(e_iircevent event)
 {
     QStringList empty;
     return runevent(event, empty);
 }
 
+/*!
+ * \param cmd Command
+ *
+ * Attempts to run a command that might be defined in a script.
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::command(QString cmd)
 {
     for (int i = 0; i <= scriptlist.count()-1; i++) {
@@ -196,11 +243,18 @@ bool TScriptParent::command(QString cmd)
     return false;
 }
 
+/*!
+ * \param cmd Command
+ *
+ * This slot runs when a command from a script is executed.\n
+ * This slot also runs when a command is ran from an input box.\n\n
+ *
+ * First it tries to run it as an internal command.\n
+ * If not found there, it'll try to run it on the scripts.\n
+ * If not found there, it'll pass the command to the server.
+ */
 void TScriptParent::execCmdSlot(QString cmd)
 {
-    // this slot runs when a command from a script is executed.
-    // this slot also runs when a command is ran from an input box.
-
     // 1. see if it's an internal command
     if (cmdhndl.parse(cmd))
         return; // command found here
@@ -216,6 +270,13 @@ void TScriptParent::execCmdSlot(QString cmd)
     cmdhndl.sockwrite(cmd);
 }
 
+/*!
+ * \param list Reference to a list to fill
+ *
+ * Fills the specified list with all scripts that's loaded.\n
+ * Key: Script name\n
+ * Value: Script file path
+ */
 void TScriptParent::getLoadedScripts(QHash<QString,QString> &list)
 {
     QVectorIterator<TScript*> i(scriptlist);
@@ -227,6 +288,9 @@ void TScriptParent::getLoadedScripts(QHash<QString,QString> &list)
     }
 }
 
+/*!
+ * Loads all scripts listed in iirc.ini
+ */
 void TScriptParent::loadAllScripts()
 {
     IniFile ini(CONF_FILE);
@@ -237,6 +301,9 @@ void TScriptParent::loadAllScripts()
         loadScript(ini.ReadIni("Script", i), true);
 }
 
+/*!
+ * Writes the list of loaded scripts into iirc.ini
+ */
 void TScriptParent::saveLoadedScripts()
 {
     IniFile ini(CONF_FILE);
@@ -249,11 +316,17 @@ void TScriptParent::saveLoadedScripts()
     }
 }
 
+/*!
+ * \param script Pointer to script
+ * \param errcode Pointer to save error code
+ *
+ * Attempts to (re)load a script.\n
+ * Errors are parsed here.
+ * \return true on success, false otherwise
+ */
 bool TScriptParent::loader(TScript *script, int *errcode)
 {
   // Handle errors from loadeing here, this is used both on load and reload.
-  // Note: Line numbers are incorrect because the scripts truncate blank lines and comments.
-    // Solution: Map actual line numbers with internal numbers?
 
     e_scriptresult sr = script->loadScript2();
     bool ok = false;

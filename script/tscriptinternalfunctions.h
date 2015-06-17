@@ -18,13 +18,14 @@
  *
  */
 
+/*! \class TScriptInternalFunctions
+ *  \brief Internal functions.
+ *
+ * Contains all pre-defined $functions such as $calc(), $token() etc.
+ */
+
 #ifndef TSCRIPTINTERNALFUNCTIONS_H
 #define TSCRIPTINTERNALFUNCTIONS_H
-
-/*
-  Gotta love long class names.
-  This one contains all pre-defined $functions such as $calc(), $token(), etc
-*/
 
 #include <QObject>
 #include <QStringList>
@@ -57,24 +58,24 @@ public:
     QString calc(QString expr); // This one should go public since it also interprets string literals for calculation.
 
 private:
-    exprtk::symbol_table<double> st;
-    exprtk::expression<double> ex;
-    exprtk::parser<double> parser;
-    TSockFactory *sockfactory;
-    QHash<QString,int> *fnindex;
-    QHash<QString,TCustomScriptDialog*> *dialogs;
-    QHash<int,t_sfile> *files;
-    int fdc; // file desc. counter
-    uint rseed;
+    exprtk::symbol_table<double> st; //!< Specifics for $calc() function, from exprtk library
+    exprtk::expression<double> ex; //!< Specifics for $calc() function, from exprtk library
+    exprtk::parser<double> parser; //!< Specifics for $calc() function, from exprtk library
+    TSockFactory *sockfactory; //!< Pointer to the custom sockets manager.
+    QHash<QString,int> *fnindex; //!< Pointer to the index of all functions.
+    QHash<QString,TCustomScriptDialog*> *dialogs; //!< Pointer to list of all dialogs.
+    QHash<int,t_sfile> *files; //!< Pointer to list of all file I/O.
+    int fdc; //!< File descriptor counter.
+    uint rseed; //!< Pseudo-random number seed. For $rand()
 
-    int *activeWid;
-    int *activeConn;
-    QHash<int,subwindow_t> *winList;
-    QHash<int,IConnection*> *conList;
+    int *activeWid; //!< Current active window ID.
+    int *activeConn; //!< Current active connection.
+    QHash<int,subwindow_t> *winList; //!< List of all subwindows. Pointer from IdealIRC class.
+    QHash<int,IConnection*> *conList; //!< List of all IRC connections.
     subwindow_t getCustomWindow(QString name);
     subwindow_t getCustomWindow(int wid);
 
-    int lastbtn;
+    int lastbtn; //!< Last button pushed within $MsgBox() function.
 
     // ALL functions, I mean -ALL-, even those with integer results, MUST return QString.
     QString sstr(QString text, int start, int stop = -1);

@@ -83,6 +83,10 @@ IConfigGeneral::~IConfigGeneral()
     delete ui;
 }
 
+/*!
+ * Stores all changes to config class.
+ * Does not save to iirc.ini.
+ */
 void IConfigGeneral::saveConfig()
 {
     // Save generic info
@@ -133,6 +137,11 @@ void IConfigGeneral::saveConfig()
     conf->password = serverpass;
 }
 
+/*!
+ * \param current Index of selected row
+ *
+ * This function runs when a server was chosen in the list.
+ */
 void IConfigGeneral::selectionRowChanged(const QModelIndex &current, const QModelIndex &)
 {
     // Todo: This code can be shortened down.
@@ -209,6 +218,9 @@ void IConfigGeneral::on_btnEditServers_clicked()
     se.show();
 }
 
+/*!
+ * Resets the model and re-builds it with servers.
+ */
 void IConfigGeneral::reloadServerList()
 {
     serverModel.resetModel();

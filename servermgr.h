@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class ServerMgr
+ *  \brief Manages the servers.ini file, similar to config class.
+ */
+
 #ifndef SERVERMGR_H
 #define SERVERMGR_H
 
@@ -57,7 +61,7 @@ public:
     QString getServerDetails(QString name, QString network = "NONE");
 
 private:
-    IniFile ini;
+    IniFile ini; //!< Opens the servers.ini file through here.
     
 };
 

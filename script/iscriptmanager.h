@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class IScriptManager
+ *  \brief Dialog to manage loaded scripts.
+ */
+
 #ifndef ISCRIPTMANAGER_H
 #define ISCRIPTMANAGER_H
 
@@ -49,14 +53,14 @@ private slots:
     void on_btnNew_clicked();
 
 private:
-    Ui::IScriptManager *ui;
-    TScriptParent *scriptParent;
-    QStandardItemModel model;
-    QItemSelectionModel *selection;
-    QHash<QString,QStandardItem*> scriptList;
+    Ui::IScriptManager *ui; //!< Qt Creator generated GUI class.
+    TScriptParent *scriptParent; //!< Pointer to the script parent.
+    QStandardItemModel model; //!< Model for the table of loaded scripts.
+    QItemSelectionModel *selection; //!< Keeps track of what's selected on the view.
+    QHash<QString,QStandardItem*> scriptList; //!< List of all loaded scripts.\n Key: Script name\n Value: Item from first row.
     QTimer clearLabel;
-    config *conf;
-    void addItem(QString name, QString path, bool select = false);
+    config *conf; //!< Pointer to the config class (iirc.ini)
+    void addItem(QString name, QString path, bool edit = false);
     void editFile(QString filename, QString scriptname);
 };
 

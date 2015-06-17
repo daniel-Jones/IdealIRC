@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TTimer
+ *  \brief Scriptable timers.
+ */
+
 #ifndef TTIMER_H
 #define TTIMER_H
 
@@ -35,8 +39,8 @@ public:
     QString getFnct() { return fnct; }
 
 private:
-    QString fnct;
-    QTimer timer;
+    QString fnct; //!< The function to run on timeout()
+    QTimer timer; //!< The timer.
 
 signals:
     void timeout(QString fn);

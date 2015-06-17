@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TSockFactory
+ *  \brief Manages all sockets.
+ */
+
 #ifndef TSOCKFACTORY_H
 #define TSOCKFACTORY_H
 
@@ -54,9 +58,9 @@ public:
     bool hasName(QString name); // Does the factory have the given sockname?
 
 private:
-    QHash<QString,TSock*> slist;
+    QHash<QString,TSock*> slist; //!< List of all sockets,\n Key: name\n Value: socket.
     TSOCK_ERR pickSocket(QString name, TSock **socket);
-    TSOCK_ERR lastErr;
+    TSOCK_ERR lastErr; //!< Last socket error.
 
 private slots:
     void processSockEvent(QString name, e_iircevent event, QStringList para);

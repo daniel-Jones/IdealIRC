@@ -18,6 +18,16 @@
  *
  */
 
+/*! \class QMyLineEdit
+ *  \brief Custom line-edit widget, for auto-complete.
+ *
+ * This class is to be renamed to ILineEdit, because this is not in any way a class of the Qt library!
+ */
+
+/*! \class LineEditStyle
+ *  \brief Helper class to QMyLineEdit to change width of text cursor.
+ */
+
 #ifndef QMYLINEEDIT_H
 #define QMYLINEEDIT_H
 
@@ -36,7 +46,7 @@ public:
     int pixelMetric(PixelMetric metric, const QStyleOption *option = 0, const QWidget *widget = 0) const;
 
 private:
-    QMyLineEdit *editptr;
+    QMyLineEdit *editptr; //!< Pointer to the QMyLineEdit.
 };
 
 class QMyLineEdit : public QLineEdit
@@ -48,18 +58,15 @@ public:
     void updateCSS();
     QString acPhrase(); // Return a phrase to match, based on where the text cursor is.
     int acBegin(); // Same as above but returns the first index of where to replace ac text.
-    int *acIndex; // Get this one from IWin. We need it here because whenever
-                  // a key NOT being TAB_KEY, we must reset it to zero.
-                  // Should not be unsafe to have it as public either.
-
-    int cursorSize;
+    int *acIndex; //!<  Get this pointer from IWin.\n We need it here because whenever a key NOT being TAB_KEY, we must reset its value to zero (not the pointer).
+    int cursorSize; //!< Pixel width of the text cursor.
 
 private:
-    int kc;
-    QStringList history; // History of line inputs
-    config *conf;
+    int kc; //!< Index of previous inputs we're scrolling trough using UP or DOWN arrows.
+    QStringList history; //!< History of line inputs
+    config *conf; //!< Pointer to config class (iirc.ini)
     QColor getColorFromCode(int num);
-    LineEditStyle *style;
+    LineEditStyle *style; //!< Helper class, to provide text cursor width.
 
 private slots:
     void lnReturn();

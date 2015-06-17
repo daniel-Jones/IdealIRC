@@ -109,6 +109,10 @@ IdealIRC::~IdealIRC()
     delete ui;
 }
 
+/*!
+ * Deletes any old instance of IConfig and creates a new one\n
+ * This function does not show the dialog.
+ */
 void IdealIRC::recreateConfDlg()
 {
     if (confDlg != NULL) {
@@ -132,6 +136,10 @@ void IdealIRC::recreateConfDlg()
         confDlg->setConnectionEnabled(true);
 }
 
+/*!
+ * Deletes any old instance of IFavourites and creates a new one\n
+ * This function does not show the dialog.
+ */
 void IdealIRC::recreateFavouritesDlg()
 {
     if (favourites != NULL)
@@ -140,6 +148,10 @@ void IdealIRC::recreateFavouritesDlg()
     favourites = new IFavourites(&conf, this);
 }
 
+/*!
+ * Deletes any old instance of IChannelList and creates a new one\n
+ * This function does not show the dialog.
+ */
 void IdealIRC::recreateChanlistDlg()
 {
     if (chanlist != NULL)
@@ -148,6 +160,10 @@ void IdealIRC::recreateChanlistDlg()
     chanlist = new IChannelList(this);
 }
 
+/*!
+ * Deletes any old instance of IScriptManager and creates a new one\n
+ * This function does not show the dialog.
+ */
 void IdealIRC::recreateScriptManager()
 {
     if (scriptManager != NULL)
@@ -298,6 +314,13 @@ void IdealIRC::keyReleaseEvent(QKeyEvent *e)
 
 }
 
+/*!
+ * \param name Window name
+ * \param parent Parent ID (typically connection ID)
+ *
+ * Checks if a given window name (case insensitive) exist under the specified parent.
+ * \return true if it exist, false otherwise
+ */
 bool IdealIRC::WindowExists(QString name, int parent)
 {
     QHashIterator<int, subwindow_t> i(winlist);
@@ -318,6 +341,11 @@ bool IdealIRC::WindowExists(QString name, int parent)
     return false;
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Runs when the specified Window ID is closed.
+ */
 void IdealIRC::subWinClosed(int wid)
 {
     subwindow_t empty;
@@ -404,12 +432,17 @@ void IdealIRC::subWinClosed(int wid)
     **/
 }
 
-// Returns -1 if failed, otherwise window id.
-// ID 0 is reserved to define "no parents" under 'int parent'.
-// DCC windows sets their parent to the IConnection that created it. It won't become the parent of this IConnection though!
-//   This is a parentless window.
-//
-//                       Name in treeview   Window type  wid parent    activate on creation
+/*!
+ * \param name Window name
+ * \param type Window type (see constants.h for WT_*)
+ * \param parent Parent ID (typically connection ID)
+ * \param activate Activate window on creation
+ *
+ * Creates a new subwindow.\n
+ * Specify Parent 0 if it's a custom (scriptable window).\n
+ * DCC windows sets their parent to the IConnection that created it. It won't be a child of this IConnection though.
+ * \return -1 if failed, otherwise Window ID
+ */
 int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
 {
 
@@ -563,6 +596,12 @@ int IdealIRC::CreateSubWindow(QString name, int type, int parent, bool activate)
     return s->getId();
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Checks if specified Window ID exist and returns its tree item.
+ * \return Pointer to Tree item
+ */
 QTreeWidgetItem* IdealIRC::GetWidgetItem(int wid)
 {
     if (wid == 0)
@@ -574,6 +613,11 @@ QTreeWidgetItem* IdealIRC::GetWidgetItem(int wid)
     return winlist.value(wid).treeitem;
 }
 
+/*!
+ * \param arg1 Pointer to subwindow
+ *
+ * Slot for MDI area, when a sub window is activated.
+ */
 void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
 {
     QHashIterator<int,subwindow_t> i(winlist);
@@ -605,6 +649,9 @@ void IdealIRC::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
     }
 }
 
+/*!
+ * Slot for tree widget, when selection changes.
+ */
 void IdealIRC::on_treeWidget_itemSelectionChanged()
 {
     QTreeWidgetItem *item = ui->treeWidget->currentItem();
@@ -641,6 +688,14 @@ void IdealIRC::on_actionOptions_triggered()
     confDlg->activateWindow();
 }
 
+/*!
+ * \param newWindow Set to true to make a new server window.
+ *
+ * "External connect to server".\n
+ * A slot for other classes to send signal to for connecting to a new server.\n
+ * Note that it's a private slot, so only IdealIRC class choses which classes to allow using this.\n
+ * Used as a slot with signal from IConfig dialog.
+ */
 void IdealIRC::extConnectServer(bool newWindow)
 {
     if (newWindow)
@@ -671,6 +726,9 @@ void IdealIRC::extConnectServer(bool newWindow)
     }
 }
 
+/*!
+ * This function determines the state of Connect buttons (either connect or disconnect).
+ */
 void IdealIRC::updateConnectionButton()
 {
     preventSocketAction = true;
@@ -711,6 +769,12 @@ void IdealIRC::updateConnectionButton()
     preventSocketAction = false;
 }
 
+/*!
+ * \param arg1 True if pushed down.
+ *
+ * Slot for Connect button's Toggled signal.\n
+ * True means pushed down, false otherwise.
+ */
 void IdealIRC::on_actionConnect_toggled(bool arg1)
 {
     if (arg1 == true)
@@ -737,6 +801,9 @@ void IdealIRC::on_actionConnect_toggled(bool arg1)
     }
 }
 
+/*!
+ * Runs when any connection is closed.
+ */
 void IdealIRC::connectionClosed()
 {
     if (reconnect != NULL) {
@@ -763,6 +830,12 @@ void IdealIRC::on_treeWidget_clicked(const QModelIndex&)
     sw.widget->setFocus();
 }
 
+/*!
+ * \param wid Window ID
+ * \param type Highlight type (see constants.h for HL_*)
+ *
+ * This function sets highlight for the specified subwindow.
+ */
 void IdealIRC::Highlight(int wid, int type)
 {
     if (! winlist.contains(wid))
@@ -800,6 +873,10 @@ void IdealIRC::on_actionAbout_IdealIRC_triggered()
     a->show();
 }
 
+/*!
+ * This function runs when the version checker got a version reply.\n
+ * It will react if the versions differ, assuming there's a new version.
+ */
 void IdealIRC::versionReceived()
 {
     if (vc.getInternVersion() != VERSION_INTEGER) {
@@ -828,6 +905,9 @@ void IdealIRC::configSaved()
     updateTreeViewColor();
 }
 
+/*!
+ * This function determines if the Join button in Favourites dialog should be enabled or disabled.
+ */
 void IdealIRC::favouritesJoinEnabler()
 {
     IConnection *current = conlist.value(activeConn, NULL);
@@ -846,6 +926,9 @@ void IdealIRC::favouritesJoinEnabler()
     favourites->setConnection(current);
 }
 
+/*!
+ * This function determines if the buttons in Channel List should be enabled or disabled.
+ */
 void IdealIRC::chanlistEnabler()
 {
     IConnection *current = conlist.value(activeConn, NULL);
@@ -969,6 +1052,11 @@ void IdealIRC::applicationFocusChanged(QWidget *old, QWidget *now)
     windowIsActive = false;
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Use this function to programatically switch between windows.
+ */
 void IdealIRC::switchWindows(int wid)
 {
     QHashIterator<int,subwindow_t> i(winlist);
@@ -1020,6 +1108,9 @@ void IdealIRC::customToolBtnClick(QString objName)
     scriptParent.runScriptFunction(btn.scriptname, btn.function);
 }
 
+/*!
+ * This function reads the custom toolbar from script parent and adds them to the toolbar.
+ */
 void IdealIRC::rebuildCustomToolbar()
 {
     // Iterate through current buttons for deletion

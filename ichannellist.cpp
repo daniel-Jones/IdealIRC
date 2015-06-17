@@ -40,18 +40,29 @@ IChannelList::~IChannelList()
     delete ui;
 }
 
+/*!
+ * Enables Download and Join button.\n
+ * Runs when we're registered with an IRC server.
+ */
 void IChannelList::enable()
 {
     ui->btnDownload->setEnabled(true);
     ui->btnJoin->setEnabled(true);
 }
 
+/*!
+ * Disables Download and Join button.\n
+ * Runs when we're disconnected from an IRC server.
+ */
 void IChannelList::disable()
 {
     ui->btnDownload->setEnabled(false);
     ui->btnJoin->setEnabled(false);
 }
 
+/*!
+ * Resets the list.
+ */
 void IChannelList::reset()
 {
     itemmap.clear();
@@ -68,6 +79,14 @@ void IChannelList::reset()
     header->setSectionResizeMode(2, QHeaderView::Stretch);
 }
 
+/*!
+ * \param channel Channel name
+ * \param users Amount of users in channel
+ * \param topic Topic of channel
+ *
+ * When downloading a /list, all items from RPL_LIST goes through here until we get RPL_LISTEND.\n
+ * The exception of this would be, when this dialog doesn't show, then all contents goes to the respective status window.
+ */
 void IChannelList::addItem(QString channel, QString users, QString topic)
 {
     QStandardItem *chanItem = new QStandardItem(channel);
@@ -81,6 +100,9 @@ void IChannelList::addItem(QString channel, QString users, QString topic)
     model.appendRow(list);
 }
 
+/*!
+ * Button slot for Download.
+ */
 void IChannelList::on_btnDownload_clicked()
 {
     if (connection == NULL)
@@ -89,6 +111,9 @@ void IChannelList::on_btnDownload_clicked()
     connection->sockwrite("LIST");
 }
 
+/*!
+ * Button slot for Join.
+ */
 void IChannelList::on_btnJoin_clicked()
 {
     QItemSelectionModel *selection = ui->chanview->selectionModel();

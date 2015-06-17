@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IConfig
+ *  \brief GUI frontend for the config class.
+ *
+ * This class got other config frontends on it, look under the folder ./iconfig/
+ */
+
 #ifndef ICONFIG_H
 #define ICONFIG_H
 
@@ -48,15 +54,15 @@ public:
     void setConnectionEnabled(bool enable); // Enable or disable Connect buttons
     
 private:
-    Ui::IConfig *ui;
-    QSignalMapper buttonSignals;
-    config *conf;
-    IConfigGeneral *wGeneral;
-    IConfigPerform *wPerform;
-    IConfigCustomize *wCustomize;
-    IConfigLogging *wLogging;
-    IConnection *current;
-    bool connectEnabled;
+    Ui::IConfig *ui; //!< Qt Creator generated GUI class.
+    QSignalMapper buttonSignals; //!< Maps the button clicks of General, Perform, Customize and Logging.
+    config *conf; //!< Pointer to the config class (iirc.ini)
+    IConfigGeneral *wGeneral; //!< Widget for General configuration.
+    IConfigPerform *wPerform; //!< Widget for Perform On connect.
+    IConfigCustomize *wCustomize; //!< Widget for Customazion.
+    IConfigLogging *wLogging; //!< Widget for Logging.
+    IConnection *current; //!< Pointer to the current IRC connection.
+    bool connectEnabled; //!< Wether or not the connect buttons is enabled
 
     void saveAll();
     void closeSubWidgets();

@@ -36,6 +36,9 @@ VersionChecker::VersionChecker(QObject *parent) :
             this, SLOT(dataRead()));
 }
 
+/*!
+ * Connects the version checker.
+ */
 void VersionChecker::runChecker()
 {
     connectToHost("www.idealirc.org", 80);
@@ -47,6 +50,9 @@ void VersionChecker::socketOpened()
     write(data.toUtf8());
 }
 
+/*!
+ * Runs when there's data available to read.
+ */
 void VersionChecker::dataRead()
 {
     while (bytesAvailable() > 0) {

@@ -50,6 +50,14 @@
 int IWin::winidCount = 1;
 int IWin::statusCount = 0; // IdealIRC always starts with no windows, but the init function increments so this should be okay.
 
+/*!
+ * \param parent Widget parent, usually the MDI area in IdealIRC class.
+ * \param wname Window name.
+ * \param WinType Window type (see constants.h for WT_*).
+ * \param cfg Pointer to config class (iirc.ini).
+ * \param sp Script parent.
+ * \param c IRC connection this window sends data to. Scriptable windows can change this.
+ */
 IWin::IWin(QWidget *parent, QString wname, int WinType, config *cfg, TScriptParent *sp, IConnection *c) :
     QWidget(parent),
     settings(NULL),
@@ -380,6 +388,12 @@ void IWin::focusInEvent(QFocusEvent *)
         input->setFocus();
 }
 
+/*!
+ * \param con New connection
+ *
+ * Changes the IRC connection to send data to.\n
+ * This will also change the command parser to the connection's one.\n
+ */
 void IWin::setConnectionPtr(IConnection *con)
 {
     connection = con;
@@ -390,6 +404,12 @@ void IWin::setConnectionPtr(IConnection *con)
     }
 }
 
+/*!
+ * \param newTopic New channel topic
+ *
+ * This function sets the channel topic in the window title.\n
+ * We do not send anything to the IRC server from here. This function is only for storing data.
+ */
 void IWin::setTopic(QString newTopic)
 {
     topic = newTopic;
@@ -399,6 +419,10 @@ void IWin::setTopic(QString newTopic)
                    );
 }
 
+/*!
+ * Used for WT_PRIVMSG types.\n
+ * Sets the hostname in titlebar.
+ */
 void IWin::updateTitleHost()
 {
     setWindowTitle( QString("%1 (%2@%3)")
@@ -408,6 +432,11 @@ void IWin::updateTitleHost()
                    );
 }
 
+/*!
+ * \param line Reference to text line.
+ *
+ * This function processes text typed in the text-input.
+ */
 void IWin::processLineInput(QString &line)
 {
     if (WindowType == WT_DCCCHAT) {
@@ -473,6 +502,9 @@ void IWin::processLineInput(QString &line)
     scriptParent->runevent(te_input, QStringList()<<objectName()<<line);
 }
 
+/*!
+ * This function runs when the Enter key is pushed.
+ */
 void IWin::inputEnterPushed()
 {
     QString text = input->text();
@@ -487,6 +519,9 @@ void IWin::inputEnterPushed()
     }
 }
 
+/*!
+ * This function runs when TAB key is pushed. Used for auto complete.
+ */
 void IWin::tabKeyPushed()
 {
     if (input == NULL)
@@ -535,6 +570,11 @@ void IWin::tabKeyPushed()
         acIndex = 0; // Reset since we're out of index.
 }
 
+/*!
+ * \param channel Channel name to join.
+ *
+ * Joins a channel.
+ */
 void IWin::joinChannel(QString channel)
 {
     connection->sockwrite(QString("JOIN :%1").arg(channel));
@@ -556,6 +596,9 @@ void IWin::openURL(const QUrl url)
         QDesktopServices::openUrl(url);
 }
 
+/*!
+ * This function attempts to give the text-input the focus.
+ */
 void IWin::GiveFocus()
 {
     if (input != NULL)
@@ -567,6 +610,12 @@ void IWin::splitterMoved(int, int)
     conf->listboxWidth = listbox->width();
 }
 
+/*!
+ * \param p Global coordinate for menu popup
+ *
+ * This function determines what menu to popup based on window type.\n
+ * Menu will also popup at the coordinate.
+ */
 void IWin::textboxMenuRequested(QPoint p)
 {
     if (WindowType == WT_CHANNEL)
@@ -581,6 +630,12 @@ void IWin::textboxMenuRequested(QPoint p)
     textboxMenu->popup(p);
 }
 
+/*!
+ * \param p Global coordinate for menu popup
+ *
+ * This function determines what menu to popup based on window type.\n
+ * Menu will also popup at the coordinate.
+ */
 void IWin::listboxMenuRequested(QPoint p)
 {
     if (WindowType == WT_CHANNEL)
@@ -591,6 +646,11 @@ void IWin::listboxMenuRequested(QPoint p)
     listboxMenu->popup(p);
 }
 
+/*!
+ * \param text Text to log
+ *
+ * If logging is enabled, this function will write to a text log.
+ */
 void IWin::writeToLog(QString text)
 {
     if (! conf->logEnabled)
@@ -611,6 +671,14 @@ void IWin::writeToLog(QString text)
     f.close();
 }
 
+/*!
+ * \param sender Sender of text (text in left margin)
+ * \param text Text to print
+ * \param ptype Type of text (see constants.h for PT_*)
+ *
+ * Prints a text in this window.\n
+ * If there's nowhere to print, this function does nothing.
+ */
 void IWin::print(const QString &sender, const QString &text, const int ptype)
 {
     if (textdata == NULL)
@@ -647,6 +715,15 @@ void IWin::print(const QString &sender, const QString &text, const int ptype)
         updateTitleHost();
 }
 
+/*!
+ * \param nickname Nickname to add
+ * \param mt Member data
+ * \param sort If true, sorts and adds to the listbox.
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * When we're joining a channel, this function runs for all nicknames with sort = false.\n
+ * When we're already in a channel, and other members are joining, we'll run this with sort = true.
+ */
 void IWin::insertMember(QString nickname, member_t mt, bool sort)
 {
     QString item = nickname;
@@ -662,6 +739,13 @@ void IWin::insertMember(QString nickname, member_t mt, bool sort)
         sortMemberList(); // This function add new member to listbox
 }
 
+/*!
+ * \param nickname Nickname to remove
+ * \param sort If true, sorts the listbox making nickname disappear.
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * When a member leaves (Part, kick, quit), this function runs.
+ */
 void IWin::removeMember(QString nickname,  bool sort)
 {
     // Remove from member stringlist
@@ -678,11 +762,25 @@ void IWin::removeMember(QString nickname,  bool sort)
         sortMemberList(nickname);
 }
 
+/*!
+ * \param nickname Nickname to check
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Tests if a given nickname is registered in this window.\n
+ * \return true if exists, false otherwise
+ */
 bool IWin::memberExist(QString nickname)
 {
     return members.contains(nickname);
 }
 
+/*!
+ * \param nickname Who changes their nickname
+ * \param newnick The new nickname
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Sets a new nickname on the specified member.
+ */
 void IWin::memberSetNick(QString nickname, QString newnick)
 {
     member_t m = members.value(nickname);
@@ -691,6 +789,10 @@ void IWin::memberSetNick(QString nickname, QString newnick)
     insertMember(newnick, m);
 }
 
+/*!
+ * This function is meant for WT_CHANNEL types.\n
+ * Resets the listbox.
+ */
 void IWin::resetMemberlist()
 {
     if (listbox == NULL)
@@ -701,6 +803,12 @@ void IWin::resetMemberlist()
     listbox->clear();
 }
 
+/*!
+ * \param memberRemoved If a member is being removed, specify here.
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Sorts and updates the listbox.
+ */
 void IWin::sortMemberList(QString memberRemoved)
 {
     // This sort uses the Insertion method.
@@ -735,6 +843,12 @@ void IWin::sortMemberList(QString memberRemoved)
     }
 }
 
+/*!
+ * \param lst Pointer to list
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Sorts a list of chars. Meant for sort-rule list.
+ */
 void IWin::sortList(QList<char> *lst)
 {
     for (int i = 0; i < lst->count(); i++) {
@@ -747,6 +861,14 @@ void IWin::sortList(QList<char> *lst)
     }
 }
 
+/*!
+ * \param s1 String 1
+ * \param s2 String 2
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Tests if s1 comes before s2.
+ * \return true if s1 is before s2, otherwise false.
+ */
 bool IWin::sortLargerThan(const QString s1, const QString s2)
 {
     // Grab smallest length.
@@ -768,6 +890,13 @@ bool IWin::sortLargerThan(const QString s1, const QString s2)
     return false;
 }
 
+/*!
+ * \param nickname Nickname
+ * \param mode Mode
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Sets a new mode on specified nickname.
+ */
 void IWin::MemberSetMode(QString nickname, char mode)
 {
     member_t mem = ReadMember(nickname);
@@ -781,6 +910,14 @@ void IWin::MemberSetMode(QString nickname, char mode)
     insertMember(nickname, mem);
 }
 
+/*!
+ * \param nickname Nickname
+ * \param mode Mode
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Removes a mode on specified nickname.
+ * \return
+ */
 void IWin::MemberUnsetMode(QString nickname, char mode)
 {
     member_t mem = ReadMember(nickname);
@@ -789,18 +926,35 @@ void IWin::MemberUnsetMode(QString nickname, char mode)
     insertMember(nickname, mem);
 }
 
+/*!
+ * \param nickname Nickname
+ *
+ * This function is meant for WT_CHANNEL types.\n
+ * Finds member-data of nickname
+ * \return Returns member-data
+ */
 member_t IWin::ReadMember(QString nickname)
 {
     member_t m = members.value(nickname);
     return m;
 }
 
+/*!
+ * \param text Text
+ *
+ * Sets text on the input box.
+ */
 void IWin::setInputText(QString text)
 {
     if (input != NULL)
         input->setText(text);
 }
 
+/*!
+ * \param font Font
+ *
+ * Changes font on all widgets used on this IWin.
+ */
 void IWin::setFont(const QFont &font)
 {
     if (textdata != NULL)
@@ -811,6 +965,10 @@ void IWin::setFont(const QFont &font)
         listbox->setFont(font);
 }
 
+/*!
+ * Function name is misleading, as there is no CSS used no more.\n
+ * However, use this to re-load colors and fonts on related widgets on this IWin.
+ */
 void IWin::reloadCSS()
 {
     /*
@@ -826,6 +984,9 @@ void IWin::reloadCSS()
         listbox->updateCSS();
 }
 
+/*!
+ * Clears the widget (not the listbox if its a channel).
+ */
 void IWin::clear()
 {
     if (textdata != NULL)
@@ -835,6 +996,10 @@ void IWin::clear()
         picwin->clear();
 }
 
+/*!
+ * Produces a list of all selected members in the listbox.
+ * \return List of selected members.
+ */
 QStringList IWin::getSelectedMembers()
 {
     if (listbox == NULL)
@@ -852,6 +1017,15 @@ QStringList IWin::getSelectedMembers()
     return list;
 }
 
+/*!
+ * \param event Script event
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param delta Mouse scroll delta. (optional)
+ *
+ * Passes event to script parent.\n
+ * If the event is mouse scroll, delta is relevant.
+ */
 void IWin::picwinMouseEvent(e_iircevent event, int x, int y, int delta)
 {
     if (event == te_mousemiddleroll) {
@@ -867,6 +1041,10 @@ void IWin::picwinMouseEvent(e_iircevent event, int x, int y, int delta)
     }
 }
 
+/*!
+ * This function is meant for WT_CHANNEL types.\n
+ * When the channel settings dialog os closed, this function runs.
+ */
 void IWin::settingsClosed()
 {
     disconnect(settings, SIGNAL(closed())); // Disconnect close signal
@@ -874,6 +1052,10 @@ void IWin::settingsClosed()
     settings = NULL; // assign a null pointer to indicate settings not open
 }
 
+/*!
+ * This function is meant for WT_CHANNEL types.\n
+ * Constructs and opens the channel settings dialog.
+ */
 void IWin::execChanSettings()
 {
     if (WindowType != WT_CHANNEL)
@@ -893,6 +1075,9 @@ void IWin::execChanSettings()
     sockwrite(QString("TOPIC %1").arg(target));
 }
 
+/*!
+ * \return Width of listbox.
+ */
 int IWin::listboxWidth()
 {
     if (listbox == NULL)
@@ -900,6 +1085,9 @@ int IWin::listboxWidth()
     return listbox->width();
 }
 
+/*!
+ * \return Height of listbox.
+ */
 int IWin::listboxHeight()
 {
     if (listbox == NULL)
@@ -907,11 +1095,21 @@ int IWin::listboxHeight()
     return listbox->height();
 }
 
+/*!
+ * This function is meant for WT_CHANNEL types.\n
+ * When double click on a listbox item, a query window is constructed.
+ */
 void IWin::listboxDoubleClick(QListWidgetItem *item)
 {
     emit RequestWindow(stripModeChar(item->text()), WT_PRIVMSG, connection->getCid(), true);
 }
 
+/*!
+ * \param nickname Nickname possibly prepended with mode letter.
+ *
+ * Removes any mode letters on nickname.
+ * \return Stripped nickname.
+ */
 QString IWin::stripModeChar(QString nickname)
 {
     char m = nickname[0].toLatin1();
@@ -920,6 +1118,10 @@ QString IWin::stripModeChar(QString nickname)
     return nickname;
 }
 
+/*!
+ * This function is meant for WT_CHANNEL types.\n
+ * Regenerates a channel menu, to be filled from script parent.
+ */
 void IWin::regenChannelMenus()
 {
     if (listboxMenu != NULL)
@@ -937,6 +1139,10 @@ void IWin::regenChannelMenus()
             this, SLOT(textboxMenuRequested(QPoint)));
 }
 
+/*!
+ * This function is meant for WT_PRIVMSG types.\n
+ * Regenerates a query menu, to be filled from script parent.
+ */
 void IWin::regenQueryMenu()
 {
     if (textboxMenu != NULL)
@@ -947,6 +1153,10 @@ void IWin::regenQueryMenu()
             this, SLOT(textboxMenuRequested(QPoint)));
 }
 
+/*!
+ * This function is meant for WT_STATUS types.\n
+ * Regenerates a status menu, to be filled from script parent.
+ */
 void IWin::regenStatusMenu()
 {
     if (textboxMenu != NULL)
@@ -963,6 +1173,13 @@ void IWin::mouseDoubleClick()
         execChanSettings();
 }
 
+/*!
+ * \param point Mouse coordinate
+ * \param channel Channel name
+ *
+ * When a channel name is clicked inside IIRCView, this slot is signaled from there.\n
+ * Here we'll show a menu making it possible to join with mouse clicking.
+ */
 void IWin::joinChannelMenuRequest(QPoint point, QString channel)
 {
     joinChannelTitle->setText(channel);
@@ -974,6 +1191,14 @@ void IWin::joinChannelTriggered()
     joinChannel( joinChannelTitle->text() );
 }
 
+/*!
+ * \param point Mouse coordinate
+ * \param nickname Nickname
+ *
+ * When a nickname is clicked in the left margin inside IIRCView, this slot is signaled from there.\n
+ * This will only work inside channel windows.\n
+ * A listbox menu will appear at the mouse.
+ */
 void IWin::nickMenuRequest(QPoint point, QString nickname)
 {
     // 'nickname' may be prepended with a mode letter! (+/@/...)
@@ -984,6 +1209,7 @@ void IWin::nickMenuRequest(QPoint point, QString nickname)
 
     if (WindowType == WT_CHANNEL) {
         listbox->clearSelection();
+        // TODO  if the selected nickname got a changed mode, it won't show a menu.
         QList<QListWidgetItem*> item = listbox->findItems(nickname, Qt::MatchFixedString);
         if (item.count() == 0)
             return;

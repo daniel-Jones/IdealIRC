@@ -23,6 +23,12 @@
 #include "iconfig.h"
 #include "ui_iconfig.h"
 
+/*!
+ * \param cfg Pointer to config class (iirc.ini)
+ * \param con Pointer to what IConnection this dialog will send data to
+ * \param parent Parent widget. Usually IdealIRC class.
+ */
+
 IConfig::IConfig(config *cfg, IConnection *con, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IConfig),
@@ -109,6 +115,12 @@ void IConfig::resizeEvent(QResizeEvent *)
         wLogging->resize(ui->frame->size());
 }
 
+/*!
+ * \param btn Mapped widget of the button performing clicked signal
+ *
+ * When either of the "tab" buttons General, Perform, Customize or Log is clicked, this function runs.\n
+ * Based on which button pushed, it will show its corresponding widget.
+ */
 void IConfig::buttonMapped(QWidget *btn)
 {
     QToolButton *toolbutton = (QToolButton*)btn;
@@ -166,6 +178,9 @@ IConfig::~IConfig()
     delete ui;
 }
 
+/*!
+ * Saves all configurations to config class and saves config to iirc.ini
+ */
 void IConfig::saveAll()
 {
     wGeneral->saveConfig();
@@ -177,6 +192,9 @@ void IConfig::saveAll()
     emit configSaved();
 }
 
+/*!
+ * Closes all sub-widgets (those who show when picking either of the 4 "big" buttons) and deletes their pointers.
+ */
 void IConfig::closeSubWidgets()
 {
     if (wGeneral != NULL) {

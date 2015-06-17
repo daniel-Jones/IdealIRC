@@ -18,6 +18,11 @@
  *
  */
 
+
+/*! \class IChannelList
+ *  \brief Simple dialog to list all (visible) IRC server channels.
+ */
+
 #ifndef ICHANNELLIST_H
 #define ICHANNELLIST_H
 
@@ -49,10 +54,10 @@ private slots:
     void on_btnJoin_clicked();
 
 private:
-    Ui::IChannelList *ui;
-    IConnection *connection;
-    QStandardItemModel model;
-    QHash<QString,QStandardItem*> itemmap;
+    Ui::IChannelList *ui; //!< Qt Creator generated GUI class.
+    IConnection *connection; //!< The IRC connection this dialog is bound to.
+    QStandardItemModel model; //!< A model which lists all channels.
+    QHash<QString,QStandardItem*> itemmap; //!< Maps all channels with their respective item in the model.
 };
 
 #endif // ICHANNELLIST_H

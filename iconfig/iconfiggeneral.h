@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IConfigGeneral
+ *  \brief A "sub widget" of IConfig, a GUI frontend for config class (iirc.ini)
+ *
+ * General configuration happens here, nicknames, servers.
+ */
+
 #ifndef ICONFIGGENERAL_H
 #define ICONFIGGENERAL_H
 
@@ -49,13 +55,13 @@ private slots:
     void reloadServerList(); // Used when editor closes
 
 private:
-    Ui::IConfigGeneral *ui;
-    config *conf;
-    IConnection *current;
-    ServerMgr sm;
-    IServerEditor se;
-    ServerModel serverModel;
-    QItemSelectionModel *selection;
+    Ui::IConfigGeneral *ui; //!< Qt Creator generated GUI class.
+    config *conf; //!< Pointer to config class (iirc.ini)
+    IConnection *current; //!< Pointer to the current active IRC connection to perform operations to.
+    ServerMgr sm; //!< Manages servers.ini file
+    IServerEditor se; //!< GUI frontend for ServerMgr class.
+    ServerModel serverModel; //!< Stores processed data from ServerMgr in here.
+    QItemSelectionModel *selection; //!< Keeps track of selections within serverModel.
 };
 
 #endif // ICONFIGGENERAL_H

@@ -21,6 +21,14 @@
 #include "../tscript.h"
 #include "constants.h"
 
+/*!
+ * \param data Expression to solve
+ * \param localVar Local variables
+ * \param localBinVar Local binary variables
+ *
+ * This function solves an expression such as test == 1234
+ * \return
+ */
 bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {
     /// This function solves the individual bool expressions like  test == 1234
@@ -200,13 +208,21 @@ bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<Q
     return false;
 }
 
+/*!
+ * \param data Expression to solve
+ * \param localVar Local variables
+ * \param localBinVar Local binary variables
+ *
+ * \brief This function solves expressions such as: ((test == 1234) && (x < 5))
+ *
+ * First this function will solve the individual expressions (such as test == 1234) using solveBool() and return 1 or 0.\n
+ * Given the above example, this function will then end up with something as such:\n
+ * ((1) && (0))\n
+ * This is then passed to the exprtk library for solving, and in this case, result will be 0.
+ * \return True if expression result is 1, false otherwise.
+ */
 bool TScript::solveLogic(QString &data, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {
-    /// This one solves a sentence with bool expressions, like: ((test == 1234) && (lol != 4))
-    /// For solving of  test == 1234  see solveBool();
-
-    //data = extractFunctionOld(data, varName, varData, binVar);
-
     int tl = data.length();
 
     if (tl == 0)
@@ -273,7 +289,7 @@ bool TScript::solveLogic(QString &data, QHash<QString,QString> &localVar, QHash<
             if (nst == 0) {
                 if (i < tl-1) {
                     // apparently we're on the end of parsing but looking on the numbers, something wrong probably happened.
-                    /// echo("Script error: Mismatching paranthesis count");
+                    // echo("Script error: Mismatching paranthesis count");
                     exp.clear();
                     break;
                 }

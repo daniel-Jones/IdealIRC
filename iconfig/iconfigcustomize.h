@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IConfigCustomize
+ *  \brief A "sub widget" of IConfig, a GUI frontend for config class (iirc.ini)
+ *
+ * Here most of the customization happens- common stuff, colors, text appearance and background image.
+ */
+
 #ifndef ICONFIGCUSTOMIZE_H
 #define ICONFIGCUSTOMIZE_H
 
@@ -42,13 +48,13 @@ public:
     void saveConfig();
 
 private:
-    Ui::IConfigCustomize *ui;
-    config *conf;
-    ColorPickerScene scene;
-    QPalette pp; // preview palette
-    QSignalMapper colorSignals;
-    bool slidersMovingRGB;
-    bool slidersMovingHSV;
+    Ui::IConfigCustomize *ui; //!< Qt Creator generated GUI class.
+    config *conf; //!< Pointer to config class (iirc.ini)
+    ColorPickerScene scene; //!< Color picker palette
+    QPalette pp; //!< Preview of picked color
+    QSignalMapper colorSignals; //!< Maps all color radio-buttons on their Clicked signal.
+    bool slidersMovingRGB; //!< true if one of the R,G,B sliders are moving.
+    bool slidersMovingHSV; //!< true if one of the H,S,V sliders are moving.
 
     QString colDefault;
     QString colLocalInfo;

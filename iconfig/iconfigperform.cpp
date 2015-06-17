@@ -80,6 +80,10 @@ IConfigPerform::~IConfigPerform()
     delete ui;
 }
 
+/*!
+ * Attempts to store changes to the "perform" file.\n
+ * Warning dialog will appear if it was unable to.
+ */
 void IConfigPerform::saveConfig()
 {
     QString fname = QString("%1/perform")

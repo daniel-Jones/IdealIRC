@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class IAbout
+ *  \brief IdealIRC about dialog.
+ */
+
 #ifndef IABOUT_H
 #define IABOUT_H
 
@@ -36,7 +40,7 @@ public:
     ~IAbout();
 
 private:
-    Ui::IAbout *ui;
+    Ui::IAbout *ui; //!< Qt Creator generated GUI class.
 };
 
 #endif // IABOUT_H

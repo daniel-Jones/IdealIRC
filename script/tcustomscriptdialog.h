@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TCustomScriptDialog
+ *  \brief Custom scriptable dialog.
+ */
+
 #ifndef TCUSTOMSCRIPTDIALOG_H
 #define TCUSTOMSCRIPTDIALOG_H
 
@@ -54,8 +58,8 @@ public:
     void showDlg();
     void hideDlg();
     void closeDlg();
-    QString getName() { return dialog.objectName(); }
-    void setTitle(QString title) { dialog.setWindowTitle(title); }
+    QString getName() { return dialog.objectName(); } //!< \return QString of dialog name.
+    void setTitle(QString title) { dialog.setWindowTitle(title); } //!< Sets dialog title.
     void setGeometry(int X, int Y, int W, int H);
     bool addLabel(QString oname, int X, int Y, int W, int H, QString text);
     bool addButton(QString oname, int X, int Y, int W, int H, QString text);
@@ -74,15 +78,15 @@ public:
     bool clear(QString oname);
 
 private:
-    TScript *script; // pointer to the script this belongs to
-    TSDialog dialog;
-    QSignalMapper buttonmap;
-    QSignalMapper listmap;
-    QHash<QString,QLabel*> label;
-    QHash<QString,QPushButton*> button;
-    QHash<QString,QLineEdit*> editbox;
-    QHash<QString,QTextEdit*> textbox;
-    QHash<QString,QListWidget*> listbox;
+    TScript *script; //!< Pointer to the script this belongs to.
+    TSDialog dialog; //!< The actual dialog box.
+    QSignalMapper buttonmap; //!< Maps all buttons clicked signals. These pass on as script events.
+    QSignalMapper listmap; //!< Maps all listboxes' clicked signals. These pass on as script events.
+    QHash<QString,QLabel*> label; //!< List of all labels.\n Key: Object name.\n Value: Pointer to label.
+    QHash<QString,QPushButton*> button; //!< List of all buttons.\n Key: Object name.\n Value: Pointer to button.
+    QHash<QString,QLineEdit*> editbox; //!< List of all editboxes.\n Key: Object name.\n Value: Pointer to editbox
+    QHash<QString,QTextEdit*> textbox; //!< List of all textboxes.\n Key: Object name.\n Value: Pointer to textbox.
+    QHash<QString,QListWidget*> listbox; //!< List of all listboxes.\n Key: Object name.\n Value: Pointer to listbox.
 
 protected:
     void dialogClosed();

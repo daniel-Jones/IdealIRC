@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IServerEditor
+ *  \brief Dialog used by IConfigGeneral to edit servers.
+ *
+ * This is a GUI frontend for ServerMgr class.
+ */
+
 #ifndef ISERVEREDITOR_H
 #define ISERVEREDITOR_H
 
@@ -47,23 +53,20 @@ private slots:
     void on_actionNewNetwork_triggered();
     void on_actionNewServerNetwork_triggered();
     void selectionRowChanged(const QModelIndex& current, const QModelIndex &);
-
     void on_btnSave_clicked();
-
     void on_actionNewServerNoNetwork_triggered();
 
 private:
-    Ui::IServerEditor *ui;
-    QMenu MenuNew;
-    QMenu MenuNewServer;
-    //ServerTreeModel *model;
-    ServerMgr smgr;
-    QItemSelectionModel *selection; // Selection model for the QTreeView in UI.
-    QString selNetwork; // Current network we're in
-    QString selServer; // Current server name we're on
+    Ui::IServerEditor *ui; //!< Qt Creator generated GUI class.
+    QMenu MenuNew; //!< The menu for when clicking New button. Actions are found in the Ui file.
+    QMenu MenuNewServer; //!< The sub-menu "New server", under MenuNew menu. Actions are found in the Ui file.
+    ServerMgr smgr; //!< Manages the servers.ini file.
+    QItemSelectionModel *selection; //!< Selection model for the QTreeView in UI.
+    QString selNetwork; //!< Current network we're in
+    QString selServer; //!< Current server name we're on
     void setupModelView();
 
-    ServerModel model;
+    ServerModel model; //!< Model that contains all servers from servers.ini
 
 protected:
     void closeEvent(QCloseEvent*) { emit closed(); }

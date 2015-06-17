@@ -13,6 +13,10 @@
 #include "constants.h"
 #include "math.h"
 
+/*!
+ * \param cfg Pointer to config class (iirc.ini)
+ * \param parent Parent of the text view (usually IWin)
+ */
 IIRCView::IIRCView(config *cfg, QWidget *parent) :
     QWidget(parent),
     conf(cfg),
@@ -53,6 +57,12 @@ void IIRCView::resizeEvent(QResizeEvent *e)
 {
 }
 
+/*!
+ * \param size New size
+ *
+ * Makes a copy of backgroundImage to pBackgroundImage.\n
+ * Then, pBackgroundImage resizes according to the config and new size.
+ */
 void IIRCView::resizeBackground(QSize size)
 {
     bgImgPos.setX(0);
@@ -114,6 +124,12 @@ void IIRCView::resizeBackground(QSize size)
     }
 }
 
+/*!
+ * \param fontName Name of new font
+ * \param pxSize Size of font in pixles
+ *
+ * Sets a new font on the widget.
+ */
 void IIRCView::changeFont(QString fontName, int pxSize)
 {
     QFont f(fontName);
@@ -125,12 +141,18 @@ void IIRCView::changeFont(QString fontName, int pxSize)
     update();
 }
 
+/*!
+ * Clears all text in the widget.
+ */
 void IIRCView::clear()
 {
     lines.clear();
     update();
 }
 
+/*!
+ * Re-draw the widget, updating the background image first.
+ */
 void IIRCView::redraw()
 {
     if (backgroundImage != nullptr)
@@ -201,6 +223,12 @@ QColor IIRCView::getColorFromCode(int num)
       }
 }
 
+/*!
+ * \param c Color to invert
+ *
+ * Inverts a color using XOR.
+ * \return Inverted color
+ */
 QColor IIRCView::invertColor(QColor c)
 {
     // Bitwise XOR to invert colors.
@@ -247,6 +275,13 @@ QColor IIRCView::getColorFromType(int type)
     }
 }
 
+/*!
+ * \param sender Sender of message (text in left margin)
+ * \param text Text to add
+ * \param type Type of text (see constants.h for PT_*)
+ *
+ * Adds text to the widget.
+ */
 void IIRCView::addLine(QString sender, QString text, int type)
 {
     t_text t;
@@ -272,6 +307,13 @@ void IIRCView::addLine(QString sender, QString text, int type)
     update();
 }
 
+/*!
+ * \param lstPtr Pointer to list
+ *
+ * Counts all lines within the list.\n
+ * Every t_printLine can have multiple lines, so this function counts these aswell.
+ * \return Number of lines
+ */
 int IIRCView::getLineCount(QVector<t_printLine> *lstPtr)
 {
     int total = 0;
@@ -284,6 +326,13 @@ int IIRCView::getLineCount(QVector<t_printLine> *lstPtr)
     return total;
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ *
+ * Tests the coordinates to see if there's a link there.
+ * \return URL, or empty on failure
+ */
 QString IIRCView::getLink(int x, int y)
 {
     QVectorIterator<t_Anchor> ia(anchors);
@@ -299,6 +348,13 @@ QString IIRCView::getLink(int x, int y)
     return QString();
 }
 
+/*!
+ * \param lstPtr List of anchors
+ * \param url URL to set
+ *
+ * Sets URL on the specified anchors.\n
+ * A list is required, in case a long URL splits over multiple lines, we need multiple anchors aswell.
+ */
 void IIRCView::setAnchorUrl(QVector<t_Anchor> *lstPtr, QString url)
 {
     for (int i = 0; i <= lstPtr->count()-1; ++i) {
@@ -692,8 +748,6 @@ void IIRCView::paintEvent(QPaintEvent *)
         } // while (si.hasNext())
 
     } // while (i.hasNext())
-
-
 
 }
 

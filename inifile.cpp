@@ -62,6 +62,9 @@ void IniFile::clearNewline(char *data)
     }
 }
 
+/*!
+ * \return Value
+ */
 QString IniFile::ReadIni(QString Section, QString Item)
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
@@ -98,6 +101,9 @@ QString IniFile::ReadIni(QString Section, QString Item)
     return QString();
 }
 
+/*!
+ * \return Value
+ */
 QString IniFile::ReadIni(QString Section, int ItemPos)
 {
     // POSITION BEGINS AT 1.
@@ -142,6 +148,9 @@ QString IniFile::ReadIni(QString Section, int ItemPos)
     return QString();
 }
 
+/*!
+ * \return Section name
+ */
 QString IniFile::ReadIni(int SectionPos)
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
@@ -175,6 +184,9 @@ QString IniFile::ReadIni(int SectionPos)
     return QString();
 }
 
+/*!
+ * \return Item name
+ */
 QString IniFile::ReadIniItem(QString Section, int ItemPos)
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
@@ -215,6 +227,9 @@ QString IniFile::ReadIniItem(QString Section, int ItemPos)
     return "";
 }
 
+/*!
+ * \return true on success, false otherwise
+ */
 bool IniFile::WriteIni(QString Section, QString Item, QString Value)
 {
     Section = QString("[%1]")
@@ -289,6 +304,9 @@ bool IniFile::WriteIni(QString Section, QString Item, QString Value)
     return true;
 }
 
+/*!
+ * \return Number of items inside a section
+ */
 int IniFile::CountItems(QString Section)
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
@@ -327,6 +345,9 @@ int IniFile::CountItems(QString Section)
     return count;
 }
 
+/*!
+ * \return Number of sections inside ini file
+ */
 int IniFile::CountSections()
 {
     if (! file->open(QIODevice::ReadOnly | QIODevice::Text))
@@ -350,6 +371,9 @@ int IniFile::CountSections()
     return count;
 }
 
+/*!
+ * \return true on success, false otherwise
+ */
 bool IniFile::DelSection(QString Section)
 {
     Section = QString("[%1]")
@@ -398,6 +422,9 @@ bool IniFile::DelSection(QString Section)
     return true;
 }
 
+/*!
+ * \return true on success, false otherwise
+ */
 bool IniFile::DelIni(QString Section, QString Item)
 {
     Section = QString("[%1]")
@@ -472,6 +499,9 @@ bool IniFile::DelIni(QString Section, QString Item)
     return true;
 }
 
+/*!
+ * \return true if exist, false otherwise
+ */
 bool IniFile::SectionExists(QString section)
 {
     section = QString("[%1]")
@@ -495,6 +525,9 @@ bool IniFile::SectionExists(QString section)
     return false;
 }
 
+/*!
+ * \return true on success, false otherwise
+ */
 bool IniFile::AppendSection(QString Section)
 {
     if (SectionExists(Section))
@@ -512,6 +545,9 @@ bool IniFile::AppendSection(QString Section)
     return true;
 }
 
+/*!
+ * \return true on success, false otherwise
+ */
 bool IniFile::RenameSection(QString OldName, QString NewName)
 {
     OldName = QString("[%1]")

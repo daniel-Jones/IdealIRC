@@ -29,6 +29,14 @@
 #include "numerics.h"
 #include "script/tscriptparent.h"
 
+/*!
+ * \param parent Parent of this connection. Usually its respective status window.
+ * \param clptr Pointer to channel list dialog
+ * \param connId ID of this connection, shares ID with its corresponding status window.
+ * \param cfg Pointer to config class (iirc.ini)
+ * \param sp Pointer to the script parent.
+ * \param ws Pointer to the window switcher.
+ */
 IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
                          config *cfg, TScriptParent *sp, IWindowSwitcher *ws) :
     QObject(parent),
@@ -88,6 +96,11 @@ IConnection::IConnection(QObject *parent, IChannelList **clptr, int connId,
     checkConnection.setInterval(180000); // 3 min.
 }
 
+/*!
+ * \param server Connection info formatted as server.addr:port
+ * \param passwd Password to IRC server
+ *
+ */
 //                          server:port   optional, server passwd.
 void IConnection::setServer(QString server, QString passwd)
 {
@@ -100,6 +113,9 @@ void IConnection::setServer(QString server, QString passwd)
     password = passwd;
 }
 
+/*!
+ * Attempts to connect to the IRC server.
+ */
 void IConnection::tryConnect()
 {
     setServer();
@@ -116,6 +132,14 @@ void IConnection::tryConnect()
     socket.connectToHost(host, port, QIODevice::ReadWrite | QIODevice::Text);
 }
 
+/*!
+ * \param name Name of subwindow.
+ * \param win Subwindow structure.
+ *
+ * Adds a window to the window list of this IConnection.\n
+ * Before this is run, we must be sure it already exist in the IdealIRC class.\n
+ * This function does not create new subwindows.
+ */
 void IConnection::addWindow(QString name, subwindow_t win)
 {
     winlist.insert(name.toUpper(), win);
@@ -123,13 +147,24 @@ void IConnection::addWindow(QString name, subwindow_t win)
         acList << name;
 }
 
+/*!
+ * \param name Subwindow name
+ *
+ * Removes the subwindow from this connection.\n
+ * This function does not delete/close the subwindow.
+ */
 void IConnection::freeWindow(QString name)
 {
     winlist.remove(name.toUpper());
-
     acList.removeAll(name);
 }
 
+/*!
+ * \param data Data to send
+ *
+ * Sends data to the IRC server. The CR+LF is appended inside this function, so do not add that in the data yourself.
+ * \return false if socket is disconnected or no data to send. true on (apparent) success.
+ */
 bool IConnection::sockwrite(QString data)
 {
     if (! socket.isOpen()) {
@@ -157,6 +192,10 @@ bool IConnection::sockwrite(QString data)
     return true;
 }
 
+/*!
+ * Runs when we're successfully connected to the IRC server, however not yet registered with it.\n
+ * In here we send registration details (PASS, USER and NICK).
+ */
 void IConnection::onSocketConnected()
 {
     emit updateConnectionButton();
@@ -182,6 +221,10 @@ void IConnection::onSocketConnected()
     conTimeout.stop();
 }
 
+/*!
+ * Runs when we're disconnected from the IRC server.\n
+ * This function will also reset all data to defaults, such as isupport stuff, IAL, sorting.
+ */
 void IConnection::onSocketDisconnected()
 {
     if (ShuttingDown) { // Close all windows related to this connection
@@ -234,6 +277,15 @@ void IConnection::onSocketDisconnected()
     scriptParent->runevent(te_disconnect, QStringList()<<hostinfo);
 }
 
+/*!
+ * \param shutdown Set to true if IdealIRC is about to shut down.
+ *
+ * This will close our connection to the IRC server in two ways.\n
+ * Either, if we're only at the trying-to-connect stage, we'll close the socket.\n
+ * Or, if we're registered with an IRC server, we'll send the IRC server a QUIT command.
+ *
+ * \bug If our network connection is lost and attempting to quit a registered connection, we'll seem to not being able to disconnect.
+ */
 void IConnection::closeConnection(bool shutdown)
 {
     if (tryingConnect == true) {
@@ -254,15 +306,16 @@ void IConnection::closeConnection(bool shutdown)
     }
 }
 
+/*!
+ * Runs when we're got stuff in the socket buffer ready to read.\n\n
+ *
+ * This function reads data to variable IConnection::linedata until we reach a LF.\n
+ * Qt converts CR+LF to LF since socket is opened in Text mode.\n
+ * When we reach the LF, we'll parse the "linedata" with parse() function, and reset it
+ * and continue reading in until our buffer is empty.
+ */
 void IConnection::onSocketReadyRead()
 {
-    /*
-      Define a global (class) variable (linedata) to read in each IRC line to parse.
-      Qt converts \r\n to \n since socket is opened in Text mode.
-      We insert our received data to "linedata", until we reach \n. Then we'll parse the "linedata"
-      and reset it and continue reading in until our buffer is empty.
-    */
-
     QByteArray in = socket.readAll();
     tryingConnect = false;
 
@@ -288,6 +341,12 @@ void IConnection::onSocketReadyRead()
     }
 }
 
+/*!
+ * Timer slot for IConnection::checkConnection that checks if socket is still alive.\n
+ *
+ * See IConnection::checkConnection\n
+ * and IConnection::checkState
+ */
 void IConnection::checkConnectionTimeout()
 {
     if (checkState == 0) {
@@ -306,6 +365,9 @@ void IConnection::checkConnectionTimeout()
     }
 }
 
+/*!
+ * Timer slot for IConnection::conTimeout\n
+ */
 void IConnection::connectionAttemptTimeout()
 {
     if (socket.isOpen())
@@ -316,6 +378,12 @@ void IConnection::connectionAttemptTimeout()
     closeConnection();
 }
 
+/*!
+ * \param name Window name
+ *
+ * Tries to find a subwindow by a given name.
+ * \return Pointer to IWin or NULL on failure
+ */
 IWin* IConnection::getWinObj(QString name)
 {
     subwindow_t empty;
@@ -329,6 +397,12 @@ IWin* IConnection::getWinObj(QString name)
         return w.widget;
 }
 
+/*!
+ * \param name Window name
+ *
+ * Tries to find a subwindow by a given name.
+ * \return true if window exist, false otherwise.
+ */
 bool IConnection::windowExist(QString name)
 {
     subwindow_t empty;
@@ -342,6 +416,13 @@ bool IConnection::windowExist(QString name)
         return true;
 }
 
+/*!
+ * \param channel A channel name
+ *
+ * Tests if a given name is a valid channel name.\n
+ * The test is checked against the channel types we receive from the server via isupport.
+ * \return true if it's a valid channel name, false otherwise.
+ */
 bool IConnection::isValidChannel(QString channel)
 {
     if (channel.isEmpty())
@@ -351,24 +432,50 @@ bool IConnection::isValidChannel(QString channel)
     return chantype.contains(prefix);
 }
 
-char IConnection::getCuLetter(char l)
+/*!
+ * \param mode Channel user-mode (such as o, v, h, etc)
+ *
+ * Checks if the usermode is a letter and returns the letter.
+ * \return Channel user-mode letter (such as @, +, %, etc) or 0x00 on failure.
+ */
+char IConnection::getCuLetter(char mode)
 {
-    if (cumode.contains(l))
-        return culetter.at( cumode.indexOf(l) );
+    if (cumode.contains(mode))
+        return culetter.at( cumode.indexOf(mode) );
     else
         return 0x00;
 }
 
+/*!
+ * \param mode Channel user-mode (such as o, v, h, etc)
+ *
+ * Checks if the usermode is valid.
+ * \return true if valid, false otherwise.
+ */
 bool IConnection::isValidCuMode(char mode)
 {
     return cumode.contains(mode);
 }
 
+/*!
+ * \param l Channel user-mode letter (such as @, +, %, etc)
+ *
+ * Checks if the usermode letter is valid.
+ * \return true if valid, false otherwise.
+ */
 bool IConnection::isValidCuLetter(char l)
 {
     return culetter.contains(l);
 }
 
+/*!
+ * \param text Reference to a text
+ *
+ * Removes any CTRL codes (bold, underline, text) from a text.
+ * \return Modified QString copy of the text
+ *
+ * \note This function could serve better as a static within IIRCView.
+ */
 QString IConnection::trimCtrlCodes(QString &text)
 {
     /*
@@ -406,6 +513,14 @@ QString IConnection::trimCtrlCodes(QString &text)
     return result;
 }
 
+/*!
+ * \param window Window target
+ * \param sender Sender, text in left margin
+ * \param line Text to print
+ * \param ptype Print type (see config.h for PT_*)
+ *
+ * Prints a line in the given window.
+ */
 void IConnection::print(const QString &window, const QString &sender, const QString &line, const int ptype)
 {
     IWin *w = NULL; // Default value of *w is NULL to make sure we can error-check.
@@ -418,6 +533,12 @@ void IConnection::print(const QString &window, const QString &sender, const QStr
     w->print(sender, line, ptype); // Do printing
 }
 
+/*!
+ * \param addr IPv4 address
+ *
+ * Converts an IPv4 string to its unsigned integer equavilent.
+ * \return Unsigned integer address
+ */
 unsigned int IConnection::ipv4toint(QString addr)
 {
     QStringList token = addr.split('.');
@@ -435,6 +556,12 @@ unsigned int IConnection::ipv4toint(QString addr)
     return r;
 }
 
+/*!
+ * \param addr Unsigned integer address
+ *
+ * Converts an unsigned integer address to its string equavilent.
+ * \return IPv4 as QString address
+ */
 QString IConnection::intipv4toStr(unsigned int addr)
 {
     unsigned int byte[4];
@@ -458,6 +585,9 @@ QString IConnection::intipv4toStr(unsigned int addr)
             .arg(byte[3]);
 }
 
+/*!
+ * Clears the sort rules and rebuild it.
+ */
 void IConnection::resetSortRules()
 {
     // sortrule is a QList of char that is inserted in what order we like it to be.
@@ -482,6 +612,9 @@ void IConnection::resetSortRules()
         sortrule.append(i); // {|}
 }
 
+/*!
+ * \return QString of active window name, in uppercase.
+ */
 QString IConnection::activewin()
 {
     if (*activeConn != cid)
@@ -490,12 +623,24 @@ QString IConnection::activewin()
         return activeWname->toUpper();
 }
 
+/*!
+ * \param wn Pointer to IdealIRC::activeWname
+ * \param ac Pointer to IdealIRC::activeConn
+ *
+ * This function also passes these data to the command handler.
+ */
 void IConnection::setActiveInfo(QString *wn, int *ac) {
     activeWname = wn;
     activeConn = ac;
     cmdhndl.setActiveInfo(wn, ac);
 }
 
+/*!
+ * \param uinfo Userinfo in the format nickname!ident@hostname
+ *
+ * Parses the userinfo and returns an user_t of it.
+ * \return user_t of the inputted data.
+ */
 user_t IConnection::parseUserinfo(QString uinfo)
 {
     if (uinfo[0] == ':')
@@ -525,12 +670,26 @@ user_t IConnection::parseUserinfo(QString uinfo)
     return u;
 }
 
+/*!
+ * \param channel Name of channel
+ *
+ * \return Pointer to the given channel's channel config dialog. On failure, returns NULL.
+ */
 IChanConfig* IConnection::getChanConfigPtr(QString channel)
 {
     subwindow_t sw = winlist.value(channel.toUpper());
     return sw.widget->settings;
 }
 
+/*!
+ * \param data Reference to data
+ *
+ * Parses the data and returns the message of it.\n
+ * :server.name 001 MyNickname :Welcome to the SomeNetwork IRC Network MyNickname\n
+ * Anything after the second colon is a message.\n
+ * If the data had no colon, it will return the last token of that line.
+ * \return QString with the message.
+ */
 QString IConnection::getMsg(QString &data)
 {
     /*
@@ -541,15 +700,21 @@ QString IConnection::getMsg(QString &data)
         data = data.mid(1);
 
     // No colon, return last token
-    if (! data.contains(':')) {
+    if (! data.contains(" :")) {
         QStringList t = data.split(' ');
         return t[t.length()-1];
     }
 
-    int l = data.split(":").at(0).length()+1;
+    int l = data.split(" :").at(0).length()+2;
     return data.mid(l);
 }
 
+/*!
+ * \param data Reference to data
+ *
+ * Parses all incoming data from IRC server.\n
+ * Numeric messages will be parsed at parseNumeric()
+ */
 void IConnection::parse(QString &data)
 {
 /*
@@ -651,7 +816,7 @@ void IConnection::parse(QString &data)
 
             request.append(0x01);
             request.append("ACTION");
-            if (tx.at(0).toUpper() == request) { /// NOT CTCP, ACTION
+            if (tx.at(0).toUpper() == request) { // NOT CTCP, but ACTION
                 // ACTION
                 text.remove(0x01);
                 text = text.mid(7);
@@ -684,7 +849,7 @@ void IConnection::parse(QString &data)
             request.append(0x01);
             request.append("VERSION");
             request.append(0x01);
-            if (tx[0].toUpper() == request) { /// VERSION
+            if (tx[0].toUpper() == request) { // VERSION
                 // VERSION
                 QString reply = QString("%1VERSION IdealIRC %2 @ %3 by Tomatix%1")
                                   .arg(QChar(0x01))
@@ -702,7 +867,7 @@ void IConnection::parse(QString &data)
             request.append(0x01);
             request.append("TIME");
             request.append(0x01);
-            if (tx.at(0).toUpper() == request) { /// TIME
+            if (tx.at(0).toUpper() == request) { // TIME
                 // TIME
                 QString time = QDateTime::currentDateTime().time().toString("hh:mm:ss");
                 QString date = QDateTime::currentDateTime().date().toString("dddd MMMM d, yyyy");
@@ -722,7 +887,7 @@ void IConnection::parse(QString &data)
 
             request.append(0x01);
             request.append("PING");
-            if (tx.at(0).toUpper() == request) { /// PING
+            if (tx.at(0).toUpper() == request) { // PING
                 // PING
                 QString reply = QString("%1PING %2%1")
                                   .arg(QChar(0x01))
@@ -739,7 +904,7 @@ void IConnection::parse(QString &data)
 
             request.append(0x01);
             request.append("DCC");
-            if (tx.at(0).toUpper() == request) { /// DCC
+            if (tx.at(0).toUpper() == request) { // DCC
                 return; // FIXME dcc is disabled for now.
 
                 // DCC
@@ -1216,6 +1381,12 @@ xchat
     print("STATUS", "", text);
 }
 
+/*!
+ * \param numeric IRC numeric
+ * \param data Reference to data
+ *
+ * Parses all incoming numeric messages.
+ */
 void IConnection::parseNumeric(int numeric, QString &data)
 {
 /*
@@ -2386,7 +2557,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
     }
 
     else if ((numeric >= 200) && (numeric <= 244)) {
-        /// @note See RFC1459 for which numerics this is about.
+        // @note See RFC1459 for which numerics this is about.
         int l = 0;
         for (int i = 0; i <= 2; i++)
             l += token[i].length() + 1;
@@ -2397,7 +2568,7 @@ void IConnection::parseNumeric(int numeric, QString &data)
     }
 
     else if ((numeric >= 252) && (numeric <= 254)) {
-        /// @note RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS
+        // @note RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS
         QString text = token.at(3);
         text += " "+ getMsg(data);
         print("STATUS", "", text);

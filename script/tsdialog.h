@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TSDialog
+ *  \brief Empty dialog to put scriptable items on.
+ */
+
 #ifndef TSDIALOG_H
 #define TSDIALOG_H
 

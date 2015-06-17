@@ -18,6 +18,18 @@
  *
  */
 
+/*! \class ICommand
+ *  \brief IRC command parser.
+ *
+ * This class is bound to an IConnection.\n
+ * Not all IRC commands are parsed through here, but those
+ * commonly used and/or which require colons to perform, is parsed here.\n
+ * Example, /part #channel parting reason\n
+ * This one sends PART #channel :reason\n\n
+ *
+ * It is thought about, but not decided yet, to merge this class with TScriptCommand (script command parser).
+ */
+
 #ifndef ICOMMAND_H
 #define ICOMMAND_H
 #include <QObject>
@@ -40,7 +52,7 @@ public:
     // Otherwise we can directly access given commands:
     void join(QString channel, QString password = "");
     void part(QString channel, QString reason = "");
-    void quit(QString reason);
+    void quit(QString reason = "");
     void notice(QString target, QString message);
     void msg(QString target, QString message);
     void me(QString target, QString message);
@@ -59,13 +71,13 @@ public slots:
     bool parse(QString command); // Returns true if command was found in this class
 
 private:
-    QHash<QString,subwindow_t> *winlist;
-    QString *activeWname;
-    int *activeConn;
-    int *cid;
-    QString tstar;
-    config *conf;
-    IConnection *connection;
+    QHash<QString,subwindow_t> *winlist; //!< Pointer to the IRC connection's window list.
+    QString *activeWname; //!< Pointer to string of current active window name, given by ICommand.
+    int *activeConn; //!< Pointer to integer of current active IRC connection.
+    int *cid; //!< Pointer to integer of bound connection ID.
+    QString tstar; //!< Just a string with three stars (***).
+    config *conf; //!< Pointer to the configuration (iirc.ini)
+    IConnection *connection; //!< Pointer to the bound IRC connection.
     QString activewin();
     void localMsg(QString message);
     void echo(QString sender, QString message, int ptype = PT_NORMAL);
@@ -73,12 +85,12 @@ private:
     QString getCurrentTarget();
     QString getCurrentNickname();
     subwindow_t getCurrentSubwin();
-    QString NotConnectedToServer(QString command) { return tr("%1: Not connected to server.").arg(command); }
-    QString InsufficientParameters(QString command) { return tr("%1: Insufficient parameters.").arg(command); }
-    QString NotInAChannel(QString command) { return tr("%1: Not in a channel.").arg(command); }
+    QString NotConnectedToServer(QString command) { return tr("%1: Not connected to server.").arg(command); } //!< \return QString: "%1: Not connected to server." where %1 is 'command'.
+    QString InsufficientParameters(QString command) { return tr("%1: Insufficient parameters.").arg(command); } //!< \return QString: "%1: Insufficient parameters." where %1 is 'command'.
+    QString NotInAChannel(QString command) { return tr("%1: Not in a channel.").arg(command); } //!< \return QString: "%1: Not in a channel." where %1 is 'command'.
 
 signals:
-    void requestWindow(QString name, int type, int parent, bool activate = true);
+    void requestWindow(QString name, int type, int parent, bool activate = true); //!< Requests creation of a new subwindow.
 };
 
 #endif // ICOMMAND_H

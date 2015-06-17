@@ -18,19 +18,20 @@
  *
  */
 
+/*! \class IWindowSwitcher
+ *  \brief Contains methods of programatically switching between windows.
+ *
+ * This class is merely a proxy to IButtonBar for now, but
+ * it is planned to make a Model for the TreeWidget (making it a TreeView) for window tree view,
+ * and place it inside here to make this class handle all window switching and alike.
+ */
+
 #ifndef IWINDOWSWITCHER_H
 #define IWINDOWSWITCHER_H
 
 #include <QObject>
 #include "ibuttonbar.h"
 #include "constants.h"
-
-/*
-
-    This class is merely a proxy to IButtonBar for now, but
-    it is planned to make a Model for the TreeWidget (making it a TreeView) for window tree view,
-    and place it inside here to make this class handle all window switching and alike.
-*/
 
 class IWindowSwitcher : public QObject
 {
@@ -40,13 +41,13 @@ public:
     void addWindow(int wtype, QString name, int id, int parent);
     void delWindow(int wid);
     void delGroup(int group);
-    QToolBar* getToolbar() { return bb.getToolbar(); }
+    QToolBar* getToolbar() { return bb.getToolbar(); } //!< Returns a pointer to the buttonbar toolbar.
     void setHighlight(int wid, int type = HL_NONE);
     void setTitle(int wid, QString title);
     void setActiveWindow(int wid);
 
 private:
-    IButtonBar bb;
+    IButtonBar bb; //!< The buttonbar.
 
 signals:
     int windowSwitched(int wid);

@@ -18,6 +18,11 @@
  *
  */
 
+/*! \class TScriptParent
+ *  \brief Script parent. All scripts are loaded through here.
+ */
+
+
 #ifndef TSCRIPTPARENT_H
 #define TSCRIPTPARENT_H
 
@@ -68,7 +73,7 @@ public:
     QStringList getCurrentNickSelection(); // Gets selected nicknames in active window (used for custom nicklist menu items)
     QString getCurrentWindow(); // Gets the current window that's active
     void resetMenuPtrList();
-    config* getConfPtr() { return conf; }
+    config* getConfPtr() { return conf; }  //!< \return Pointer to the config class (iirc.ini)
     TScript* getScriptPtr(QString name);
 
 signals:
@@ -92,24 +97,24 @@ private slots:
     void toolbarSetFunction(QString toolname, QString scriptname, QString function);
 
   private:
-    config *conf;
-    TScriptCommand cmdhndl;
-    int *activeWid;
-    int *activeConn;
-    QVector<TScript*> scriptlist;
-    QList<QMenu*> menuPtrList; // delete these before populating a menu.
-    QHash<QString,toolbar_t> toolbar;
-    QHash<int,IConnection*> *conlist;
-    QHash<int,subwindow_t> *winlist;
-    QWidget *dlgParent;
-    bool displayURL; // used on UrlClick event.
+    config *conf; //!< Pointer to the config class (iirc.ini)
+    TScriptCommand cmdhndl; //!< Script command parser
+    int *activeWid; //!< Current active window ID.
+    int *activeConn; //!< Current active connection ID.
+    QVector<TScript*> scriptlist; //!< List of all scripts loaded.
+    QList<QMenu*> menuPtrList; //!< Used for populating different menus. Reset before use.
+    QHash<QString,toolbar_t> toolbar; //!< Custom toolbar items.\n Key: Object name\n Value: Toolbar button specifics.
+    QHash<int,IConnection*> *conlist; //!< List of all connections.
+    QHash<int,subwindow_t> *winlist; //!< List of all subwindows. Pointer from IdealIRC class.
+    QWidget *dlgParent; //!< Pointer to the IdealIRC class. Used as parent for scriptable dialogs.
+    bool displayURL;
 
     bool loader(TScript *script, int *errcode = NULL);
     void populateMenuIterate(QMenu *menu, char type, QList<scriptmenu_t> *items, int parent);
-    QMenu nicklistMenu;
-    QMenu channelMenu;
-    QMenu statusMenu;
-    QMenu privmsgMenu;
+    QMenu nicklistMenu; //!< The processed nicklist menu, pointer passed to all relevant IWin.
+    QMenu channelMenu; //!< The processed channel menu, pointer passed to all relevant IWin.
+    QMenu statusMenu; //!< The processed status menu, pointer passed to all relevant IWin.
+    QMenu privmsgMenu; //!< The processed query menu, pointer passed to all relevant IWin.
 };
 
 #endif // TSCRIPTPARENT_H

@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class IFavourites
+ *  \brief Favourites dialog.
+ */
+
 #ifndef IFAVOURITES_H
 #define IFAVOURITES_H
 
@@ -40,7 +44,7 @@ class IFavourites : public QDialog
 public:
     explicit IFavourites(config *cfg, QWidget *parent = 0);
     void enableJoin(bool ok);
-    void setConnection(IConnection *c) { current = c; }
+    void setConnection(IConnection *c) { current = c; } //!< Sets what connection the favourites dialog should write to.
     ~IFavourites();
 
 private slots:
@@ -54,13 +58,13 @@ private slots:
     void on_btnJoin_clicked();
 
 private:
-    Ui::IFavourites *ui;
-    config *conf;
-    IniFile *ini;
-    QStandardItemModel model;
-    QItemSelectionModel *selection;
-    QHash<QString,QStandardItem*> chanmap;
-    IConnection *current;
+    Ui::IFavourites *ui; //!< Qt Creator generated GUI class.
+    config *conf; //!< Pointer to config class (iirc.ini)
+    IniFile *ini; //!< ini file parser, to maintain the favourites.ini file.
+    QStandardItemModel model;  //!< Model for the list view in GUI.
+    QItemSelectionModel *selection; //!< Keeps track of what's selected in the list view.
+    QHash<QString,QStandardItem*> chanmap; //!< Maps each channel to their respective item in model.
+    IConnection *current; //!< Pointer to the IRC connection which this dialog writes to.
     void loadChannel(const QString &channel);
 
 };

@@ -21,6 +21,14 @@
 #include "../tscript.h"
 #include "constants.h"
 
+/*!
+ * \param evt Script event
+ * \param param Parameter list
+ * \param result Pointer to a QString for storing the 'return' value
+ *
+ * Attempts to run specified event.
+ * \return true if event is run, false otherwise
+ */
 bool TScript::runEvent(e_iircevent evt, QStringList param, QString *result)
 {
     QHashIterator<e_iircevent,QString> i(tevent);
@@ -52,6 +60,12 @@ bool TScript::runEvent(e_iircevent evt, QStringList param, QString *result)
     return found;
 }
 
+/*!
+ * \param event Script event as string
+ *
+ * Converts a string to a script event
+ * \return Script event
+ */
 e_iircevent TScript::getEvent(QString event)
 {
     QString evt = event.toUpper();
@@ -153,6 +167,12 @@ e_iircevent TScript::getEvent(QString event)
         return te_noevent;
 }
 
+/*!
+ * \param evt Script event
+ *
+ * Converts a script event to string
+ * \return Script event as string
+ */
 QString TScript::getEventStr(e_iircevent evt)
 {
     switch (evt) {

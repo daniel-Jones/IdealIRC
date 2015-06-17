@@ -21,6 +21,12 @@
 #include "../tscript.h"
 #include "constants.h"
 
+/*!
+ * \param text Reference to text for extraction. This text will be changed.
+ *
+ * Used for external calls, extracts functions and global variables.
+ * \return Script result.
+ */
 e_scriptresult TScript::externalExtract(QString &text)
 {
     // Construct empty local var for running extract()
@@ -29,6 +35,21 @@ e_scriptresult TScript::externalExtract(QString &text)
     return extract(text, localVar, localBinVar);
 }
 
+/*!
+ * \param vname Variable name
+ * \param localVar Local variables
+ * \param localBinVar Local binary variables
+ *
+ * \brief Insert a (compound of) variable name(s).
+ *
+ * Consider the following:\n
+ * var %i 1
+ * var %test_1 hello
+ * var %test_2 world
+ *
+ * %test_+%i will in this function be converted to %test_1 which holds the text "hello".
+ * \return Merged, usable variable name
+ */
 QString TScript::mergeVarName(QString &vname, QHash<QString,QString> &localVar, QHash<QString, QByteArray> &localBinVar)
 {
     enum {
@@ -75,6 +96,14 @@ QString TScript::mergeVarName(QString &vname, QHash<QString,QString> &localVar, 
     return result;
 }
 
+/*!
+ * \param text Reference to the script that's parsing
+ * \param i Counter of where to excpect escaping
+ * \param result Pointer to text where to store results of escaping
+ *
+ * Runs escape sequences.
+ * \return Script result
+ */
 e_scriptresult TScript::escape(QString &text, int *i, QString *result)
 {
     // i is a pointer from a loop for text.
@@ -114,6 +143,16 @@ e_scriptresult TScript::escape(QString &text, int *i, QString *result)
     return se_None;
 }
 
+/*!
+ * \param text Reference to text to extract
+ * \param localVar Local variables
+ * \param localBinVar Local binary variables
+ * \param extractVariables Set to true for extracting of variables
+ *
+ * Extracts functions (return result of functions) and variables found inside of text.\n
+ * Binary variables won't be extracted, their variable names will stay untouched.
+ * \return Script result
+ */
 e_scriptresult TScript::extract(QString &text, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar, bool extractVariables)
 {
     enum {
@@ -216,6 +255,20 @@ e_scriptresult TScript::extract(QString &text, QHash<QString,QString> &localVar,
     return se_None;
 }
 
+/*!
+ * \param text Text to parse function
+ * \param result Reference to a string to store the functions 'return' data
+ * \param pos Pointer to position where function is found.
+ * \param localVar Local variables
+ * \param localBinVar Local binary variables
+ *
+ * \note This function is a helper function for extract() and should never be called elsewhere.
+ *
+ * This function parses the very first function that occurs, beginning at pos.\n
+ * The 'pos' will increase as parsing goes along.\n
+ * The result of the function will be stored in the 'result' variable.
+ * \return Script result
+ */
 e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {
     // Parses the very first function that occurs beginning from pos.
@@ -335,6 +388,13 @@ e_scriptresult TScript::extractFunction(QString &text, QString &result, int *pos
     return runf(function, paramList, result);
 }
 
+/*!
+ * \param text The text where binary variable should occur.
+ * \param localBinVar Binary variables.
+ *
+ * Extracts binary variables from text.
+ * \return Byte array of parsed text.
+ */
 QByteArray TScript::extractBinVars(QString &text, QHash<QString,QByteArray> &localBinVar)
 {
     // Scan through the text and put data into 'temp'.

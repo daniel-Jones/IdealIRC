@@ -38,6 +38,9 @@ void QMyListWidget::contextMenuEvent(QContextMenuEvent *e)
    emit MenuRequested(e->globalPos());
 }
 
+/*!
+ * Reloads the stylesheet as defined in config.
+ */
 void QMyListWidget::updateCSS()
 {
     QPalette pal = palette();

@@ -76,11 +76,21 @@ IFavourites::~IFavourites()
     delete ui;
 }
 
+/*!
+ * \param ok Set to true to enable Join button.
+ *
+ * Enables the Join button.
+ */
 void IFavourites::enableJoin(bool ok)
 {
     ui->btnJoin->setEnabled(ok);
 }
 
+/*!
+ * \param current New index
+ *
+ * This function runs when there's a change in the selection in the listbox.
+ */
 void IFavourites::selectionRowChanged(const QModelIndex &current, const QModelIndex&)
 {
     if (! current.isValid())
@@ -92,6 +102,11 @@ void IFavourites::selectionRowChanged(const QModelIndex &current, const QModelIn
     loadChannel(channel);
 }
 
+/*!
+ * \param item Item in the model
+ *
+ * This function runs when an item changed its text.
+ */
 void IFavourites::itemChanged(QStandardItem *item)
 {
     QString mapname = chanmap.key(item);
@@ -103,6 +118,13 @@ void IFavourites::itemChanged(QStandardItem *item)
     ini->RenameSection(mapname, newname);
 }
 
+/*!
+ * \param arg1 Text
+ *
+ * This function runs when the text in textbox changed.\n
+ * Used to search for channels in the listbox.\n
+ * When a channel matches, it'll select the channel.
+ */
 void IFavourites::on_edChannel_textChanged(const QString &arg1)
 {
     QStandardItem *item = chanmap.value(arg1.toUpper(), NULL);

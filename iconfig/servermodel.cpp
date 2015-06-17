@@ -27,11 +27,23 @@ ServerModel::ServerModel(QObject *parent) :
     resetModel();
 }
 
+/*!
+ * \param hostname Hostname to find
+ *
+ * Finds a model index based on a hostname.
+ * \return Index. Can be an invalid index.
+ */
 QModelIndex ServerModel::indexFromHost(QString hostname)
 {
     return hostmap.value(hostname);
 }
 
+/*!
+ * \param name Name of network
+ * \param server Default server details
+ *
+ * Adds a network to the model.
+ */
 void ServerModel::addNetwork(QString name, QString server)
 {
     QStandardItem *root = invisibleRootItem();
@@ -46,6 +58,12 @@ void ServerModel::addNetwork(QString name, QString server)
     netmap.insert(name, pname->index());
 }
 
+/*!
+ * \param name Name of network
+ * \param server Default server address
+ *
+ * Changes the server details of default network server.
+ */
 void ServerModel::setNetworkServer(QString name, QString server)
 {
     QModelIndex current = netmap.value(name);
@@ -56,6 +74,12 @@ void ServerModel::setNetworkServer(QString name, QString server)
     item->setText(server);
 }
 
+/*!
+ * \param name Name of network
+ * \param newname New name of network
+ *
+ * Renames a network
+ */
 void ServerModel::renameNetwork(QString name, QString newname)
 {
     QModelIndex current = netmap.value(name);
@@ -69,6 +93,11 @@ void ServerModel::renameNetwork(QString name, QString newname)
     netmap.insert(newname, current);
 }
 
+/*!
+ * \param name Network name
+ *
+ * Deletes a network from the model.
+ */
 void ServerModel::delNetwork(QString name)
 {
     QModelIndex current = netmap.value(name);
@@ -78,6 +107,14 @@ void ServerModel::delNetwork(QString name)
     removeRow(row, invisibleRootItem()->index());
 }
 
+/*!
+ * \param name Server name
+ * \param server Server details
+ * \param network Network name (optional)
+ *
+ * Adds a server to specified network.\n
+ * If network is not set, it'll have no parent.
+ */
 void ServerModel::addServer(QString name, QString server, QString network)
 {
     QStandardItem *parent;
@@ -101,6 +138,14 @@ void ServerModel::addServer(QString name, QString server, QString network)
         nonemap.insert(name, indexFromItem(sname));
 }
 
+/*!
+ * \param name Name of server
+ * \param server Server details
+ * \param network Network name (optional
+ *
+ * Changes server details of specified server.\n
+ * If network isn't specified, this applies to servers without parents.
+ */
 void ServerModel::setServer(QString name, QString server, QString network)
 {
     QStandardItem *parent;
@@ -144,6 +189,14 @@ void ServerModel::setServer(QString name, QString server, QString network)
     hostmap.insert(server, nameIndex);
 }
 
+/*!
+ * \param name Server name
+ * \param newname New server name
+ * \param network Network name (optional)
+ *
+ * Changes a server name.\n
+ * If network isn't specified, this applies to servers without parents.
+ */
 void ServerModel::renameServer(QString name, QString newname, QString network)
 {
     QStandardItem *parent;
@@ -186,6 +239,13 @@ void ServerModel::renameServer(QString name, QString newname, QString network)
     item->setText(newname);
 }
 
+/*!
+ * \param name Server name
+ * \param network Network name (optional)
+ *
+ * Deletes a server.\n
+ * If network isn't specified, this applies to servers without parents.
+ */
 void ServerModel::delServer(QString name, QString network)
 {
     QStandardItem *parent;
@@ -225,6 +285,9 @@ void ServerModel::delServer(QString name, QString network)
     removeRow(row, current.parent());
 }
 
+/*!
+ * Clears the model.
+ */
 void ServerModel::resetModel()
 {
     clear();

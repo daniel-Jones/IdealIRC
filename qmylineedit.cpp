@@ -75,6 +75,9 @@ void QMyLineEdit::focusOutEvent(QFocusEvent *e)
     }
 }
 
+/*!
+ * Slot for the returnPressed() signal.
+ */
 void QMyLineEdit::lnReturn()
 {
     if (text().length() == 0)
@@ -133,7 +136,7 @@ void QMyLineEdit::keyPressEvent(QKeyEvent *e)
     }
 
     else {
-        if ((e->key() == Qt::Key_Return) && (text().length() > 0)) /// Note: It is Key_Return and NOT Key_Enter !!
+        if ((e->key() == Qt::Key_Return) && (text().length() > 0))
             kc = -1;
 
         if (e->modifiers() == Qt::ControlModifier) {
@@ -160,6 +163,9 @@ void QMyLineEdit::keyPressEvent(QKeyEvent *e)
     QLineEdit::keyPressEvent(e);
 }
 
+/*!
+ * Re-loads stylesheet as defined in config
+ */
 void QMyLineEdit::updateCSS()
 {
     QString bg = conf->colInputBackground;
@@ -171,10 +177,14 @@ void QMyLineEdit::updateCSS()
                   );
 }
 
+/*!
+ * Finds the text written from the cursor position back to first space character, or if none, beginning of the text.
+ * \return QString of text from the text-cursor to space or beginning
+ */
 QString QMyLineEdit::acPhrase()
 {
     QString phrase;
-    for (int i = cursorPosition()-1; i >= 0; i--) {
+    for (int i = cursorPosition()-1; i >= 0; --i) {
         QChar c = text()[i];
         if (c == ' ')
             break;
@@ -184,10 +194,14 @@ QString QMyLineEdit::acPhrase()
     return phrase;
 }
 
+/*!
+ * Finds the beginning position of the word to autocomplete.
+ * \return Beginning position of word to autocomplete
+ */
 int QMyLineEdit::acBegin()
 {
     int i = cursorPosition()-1;
-    for (; i >= 0; i--) {
+    for (; i >= 0; --i) {
         QChar c = text()[i];
         if (c == ' ')
             break;

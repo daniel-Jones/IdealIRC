@@ -21,6 +21,20 @@
 #include "../tscript.h"
 #include "constants.h"
 
+/*!
+ * \param function Function name
+ * \param param Parameter list
+ * \param result Reference to a string for storing 'return' data
+ * \param ignoreParamCount if true, ignores the parameter count (_can_ be unsafe)
+ *
+ * Runs a function.\n
+ * This function is safe to call directly.\n\n
+ *
+ * It will locate the position of the function, prepare the parameters as local variables and
+ * call the helper function _runf_private2() for actual parsing of the function.
+ *
+ * \return Script result
+ */
 e_scriptresult TScript::runf(QString function, QStringList param, QString &result, bool ignoreParamCount)
 {
     #ifdef IIRC_DEBUG_SCRIPT
@@ -112,7 +126,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
             if (param.count() != scpar.count())
                 return se_InvalidParamCount;
 
-            /// @note From here, parameter names are found in 'scpar', while the data is in 'param'.
+            // From here, parameter names are found in 'scpar', while the data is in 'param'.
         }
         if (ignoreParamCount == true) {
             // Fill out parameters until we got no more data; and the rest will be put at last variable.
@@ -124,7 +138,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
 
             // Got more tokenized data than variable parameters. The overflow of input data goes to last variable in list.
             if (scpar.count() < param.count()) {
-                /**
+                /*
 
                 example to run:
                 prototype: test(%somevar, %temp, %i, %x, %text)
@@ -164,7 +178,7 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     for (int i = 0; i <= scpar.count()-1; ++i)
         localVar.insert(scpar[i], param[i]);
 
-    e_scriptresult res = _runf_private2(pos, &scpar, localVar, localBinVar, result);
+    e_scriptresult res = _runf_private2(pos, localVar, localBinVar, result);
 
     /* Cleaning up this way is dangerous. don't.
     for (int i = 0; i <= scpar.count()-1; ++i)
@@ -174,7 +188,18 @@ e_scriptresult TScript::runf(QString function, QStringList param, QString &resul
     return res;
 }
 
-e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QString,QString> &localVar,
+/*!
+ * \param pos Position in script (after the opening bracket)
+ * \param localVar Local variables
+ * \param localBinVar Local binary variables
+ * \param result Reference to a string for storing 'return' data
+ *
+ * \note This is a helper function for runf() and should never be run elsewhere.
+ *
+ * This is the actual function parser.
+ * \return Script result
+ */
+e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar,
                                        QHash<QString,QByteArray> &localBinVar, QString &result)
 {
     #ifdef IIRC_DEBUG_SCRIPT
@@ -324,7 +349,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 continue;
             }
 
-            /// Run function
+            // Run function
             if (keyword[0] == '$') {
                 for (; i <= scriptstr.length()-1; i++) {
                     if (scriptstr[i] == '\n')
@@ -342,9 +367,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
 
 
 
-            /** ***************************************** **/
-            /** Parser keywords IF, WHILE, VAR, CON, etc. **/
-            /** ***************************************** **/
+            /***********************************************
+             ** Parser keywords IF, WHILE, VAR, CON, etc. **
+             ***********************************************/
 
             /* Notes on adding new keywords:
             *
@@ -355,9 +380,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             QString keywup = keyword.toUpper();
 
 
-            /** ############## **/
-            /** RETURN KEYWORD **/
-            /** ############## **/
+            /*##################*
+             *# RETURN KEYWORD #*
+             *##################*/
 
             if (keywup == "RETURN") {
                 QString rs; // Whatever's being returned. Not binary safe yet... oops.
@@ -391,12 +416,12 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ################## **/
-            /** CONTROL STATEMENTS **/
-            /** ################## **/
+            /*######################*
+             *# CONTROL STATEMENTS #*
+             *######################*/
 
             if (keywup == "IF") {
-                /// @note This one can do some cleaning up or rewrite... Remember to fix "while" too.
+                // This one can do some cleaning up or rewrite... Remember to fix "while" too.
 
                 int pn = 0; // Paranthesis nest
                 bool waitPB = true; // Wait for paranthesis at beginning
@@ -547,9 +572,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ################## **/
-            /** VARIABLE SPECIFICS **/
-            /** ################## **/
+            /*######################*
+             *# VARIABLE SPECIFICS #*
+             *######################*/
 
             if (keywup == "LOCAL") {
                 // This can seem a little hacky, but it works.
@@ -661,7 +686,6 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
 
                             binVars.remove(vname);
                             variables.remove(vname);
-                            parName->removeAll(vname);
                             break; // no need to clear vname
                         }
                         else if ((c == ' ') || (c == '\t')) {
@@ -670,7 +694,6 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
 
                             binVars.remove(vname);
                             variables.remove(vname);
-                            parName->removeAll(vname);
                             localVar.remove(vname);
                             localBinVar.remove(vname);
                             vname.clear();
@@ -783,11 +806,11 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ########## **/
-            /** CONTAINERS **/
-            /** ########## **/
+            /*##############*
+             *# CONTAINERS #*
+             *##############*/
 
-            /// !! DEPRECATED - LOCAL VARS ARENT FIXED HERE !!
+            // !! DEPRECATED - LOCAL VARS ARENT FIXED HERE !!
 
             if (keywup == "WCON") {
                 // wcon id data
@@ -974,7 +997,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                         continue;
                     }
 
-                } /// while (i.hasNext())
+                } // while (i.hasNext())
 
 
                 if (index == 0)
@@ -1053,9 +1076,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ###### **/
-            /** TIMERS **/
-            /** ###### **/
+            /*##########*
+             *# TIMERS #*
+             *##########*/
 
             if (keywup == "TIMER") {
                 // timer id msec
@@ -1151,9 +1174,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ####### **/
-            /** SOCKETS **/
-            /** ####### **/
+            /*###########*
+             *# SOCKETS #*
+             *###########*/
 
             if (keywup == "SOCK") {
                 // sock switch arguments
@@ -1368,7 +1391,7 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                         }
                     }
                     else {
-                        /// String variables
+                        // String variables
                         if (localVar.contains(vname)) {
                             localVar.insert(vname, data);
                             localBinVar.remove(vname);
@@ -1425,9 +1448,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ####### **/
-            /** TOOLBAR **/
-            /** ####### **/
+            /*###########*
+             *# TOOLBAR #*
+             *###########*/
 
             if (keywup == "TOOLBAR") {
                 /* toolbar -aidf name args
@@ -1555,9 +1578,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ############## **/
-            /** DIALOG CONTROL **/
-            /** ############## **/
+            /*##################*
+             *# DIALOG CONTROL #*
+             *##################*/
 
             if (keywup == "DLG") {
 
@@ -1694,9 +1717,9 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
             }
 
 
-            /** ############ **/
-            /** FILE CONTROL **/
-            /** ############ **/
+            /*################*
+             *# FILE CONTROL #*
+             *################*/
 
             if (keywup == "FREAD") {
                 // fread %fd length %var
@@ -1982,12 +2005,12 @@ e_scriptresult TScript::_runf_private2(int pos, QStringList *parName,QHash<QStri
                 continue;
             }
 
-            /** ############################################################################## **/
-            /** ############################################################################## **/
-            /** ############################################################################## **/
+            /*##################################################################################*
+             *##################################################################################*
+             *##################################################################################*/
 
 
-            /// If we reach here, treat it as /command.
+            // If we reach here, treat it as /command.
             for (; i <= scriptstr.length()-1; i++) {
                 if (scriptstr[i] == '\n')
                     break;

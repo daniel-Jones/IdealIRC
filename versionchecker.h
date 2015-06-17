@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class VersionChecker
+ *  \brief A simple version checker.
+ */
+
 #ifndef VERSIONCHECKER_H
 #define VERSIONCHECKER_H
 
@@ -29,14 +33,14 @@ class VersionChecker : public QTcpSocket
 
 public:
     explicit VersionChecker(QObject *parent = 0);
-    QString getVersion() { return version; }
-    int getInternVersion() { return internversion; }
+    QString getVersion() { return version; } //!< \return QString of the received version.
+    int getInternVersion() { return internversion; } //!< \return Integer of the received version.
     void runChecker(); // Run this once, and signal gotVersion() will emit when finished.
 
 private:
-    QString version;
-    int internversion;
-    bool htmldata;
+    QString version; //!< Version string we received.
+    int internversion; //!< The version integer we received.
+    bool htmldata; //!< If true, we're receiving HTTP headers, otherwse it's data.
 
 public slots:
     void socketOpened();

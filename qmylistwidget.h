@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class QMyListWidget
+ *  \brief Custom list widget, to provide context menus.
+ *
+ * This class is to be renamed to IListWidget, because this is not in any way a class of the Qt library!
+ */
+
 #ifndef QMYLISTWIDGET_H
 #define QMYLISTWIDGET_H
 
@@ -42,7 +48,7 @@ signals:
     void MenuRequested(QPoint p);
 
 private:
-    config *conf;
+    config *conf; //!< Pointer to config class (iirc.ini)
     QColor getColorFromCode(int num);
 };
 

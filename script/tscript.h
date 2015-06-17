@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TScript
+ *  \brief Script parser.
+ */
+
 #ifndef TSCRIPT_H
 #define TSCRIPT_H
 
@@ -70,14 +74,14 @@ public:
     bool runCommand(QString cmd);
     bool hasCommand(QString cmd);
 
-    QString getName() { return name; }
-    QString getPath() { return filename; }
-    QString getErrorKeyword() { return errorKeyword; }
-    int getCurrentLine() { return curLine; }
-    QList<scriptmenu_t> *getCustomNicklistMenu() { return &customNicklistMenu; }
-    QList<scriptmenu_t> *getCustomChannelMenu() { return &customChannelMenu; }
-    QList<scriptmenu_t> *getCustomQueryMenu() { return &customQueryMenu; }
-    QList<scriptmenu_t> *getCustomStatusMenu() { return &customStatusMenu; }
+    QString getName() { return name; } //!< \return QString of script name
+    QString getPath() { return filename; }  //!< \return QString of /path/to/script
+    QString getErrorKeyword() { return errorKeyword; }  //!< \return QString of where last error occured.
+    int getCurrentLine() { return curLine; }  //!< \return Integer of current line that's parsing
+    QList<scriptmenu_t> *getCustomNicklistMenu() { return &customNicklistMenu; } //!< \return List of all menu entries for Nicklist
+    QList<scriptmenu_t> *getCustomChannelMenu() { return &customChannelMenu; } //!< \return List of all menu entries for Channel
+    QList<scriptmenu_t> *getCustomQueryMenu() { return &customQueryMenu; } //!< \return List of all menu entries for Query
+    QList<scriptmenu_t> *getCustomStatusMenu() { return &customStatusMenu; } //!< \return List of all menu entries for Status
 
     QString lm(int line); // Line map.
 
@@ -87,61 +91,61 @@ public:
     TScriptParent* getScriptParent();
     QWidget* getDlgParent();
 
-    QHash<QString,QString>* getCommandListPtr() { return &command; }
-    QHash<e_iircevent,QString>* getEventListPtr() { return &tevent; }
-    QHash<QString,TTimer*>* getTimerListPtr() { return &timers; }
+    QHash<QString,QString>* getCommandListPtr() { return &command; } //!< \return Pointer to list of commands tied to function.
+    QHash<e_iircevent,QString>* getEventListPtr() { return &tevent; } //!< \return Pointer to list of events tied to function.
+    QHash<QString,TTimer*>* getTimerListPtr() { return &timers; } //!< \return Pointer to list of timers tied to timer object.
 
     static QString getEventStr(e_iircevent evt);
 
-    QHash<QString,QString> *getVarListPtr() { return &variables; }
-    QHash<QString,QByteArray> *getBinVarListPtr() { return &binVars; }
+    QHash<QString,QString> *getVarListPtr() { return &variables; } //!< \return Pointer to list of all variables.
+    QHash<QString,QByteArray> *getBinVarListPtr() { return &binVars; } //!< \return Pointer to list of all binary variables.
 
-    QHash<QString,int>* getFnIndexPtr() { return &fnindex; }
+    QHash<QString,int>* getFnIndexPtr() { return &fnindex; } //!< \return Pointer to list of functions tied to index.
     QString getParamList(QString fn);
 
     e_scriptresult externalExtract(QString &text);
 
 private:
-    QWidget *dlgParent;
-    TScriptParent *scriptParent;
-    TScriptInternalFunctions ifn;
-    TSockFactory sockets;
-    QString filename;
-    QString name;
-    QStringList include; // files to include its functions.
-    QHash<QString,QString> command; // list of commands, 1: command 2: function
-    QHash<e_iircevent,QString> tevent; // list of events in script, 1: event 2: function
-    QHash<QString,int> fnindex; // index over functions, which line to find them in ('script')
-    QHash<QString,TTimer*> timers; // list of timers, 1: id, 2: timer object
-    QHash<QString,QString> container; // data container that's accessible by all function in current script.
-    QHash<QString,TCustomScriptDialog*> dialogs;
-    QHash<int,t_sfile> files; // file descriptor, QFile
-    QHash<QString,QString> variables;
-    QHash<QString,QByteArray> binVars;
-    QMap<int,QString> lineMap; // key: internal line, value: line number with filename
+    QWidget *dlgParent; //!< Pointer to the IdealIRC class. Used as parent to scriptable dialogs.
+    TScriptParent *scriptParent; //!< Pointer to the script parent.
+    TScriptInternalFunctions ifn; //!< All internal script functions.
+    TSockFactory sockets; //!< Scriptable sockets.
+    QString filename; //!< /path/to/script
+    QString name; //!< Script name
+    QStringList include; //!< files to include its functions.
+    QHash<QString,QString> command;  //!< List of commands.\n Key: command\n Value: function
+    QHash<e_iircevent,QString> tevent;  //!< List of events in script.\n Key: event\n Value: function
+    QHash<QString,int> fnindex; //!< Index over functions, which byte positon to find them in.\n Key: Function\n Value: Position
+    QHash<QString,TTimer*> timers; //!< List of timers.\n Key: name\n Value: timer object
+    QHash<QString,QString> container; //!< Containers. Deprecated functionality.\n Key: Name\n Value: value
+    QHash<QString,TCustomScriptDialog*> dialogs; //!< Scriptable dialogs.\n Key: Name\n Value: Dialog handler
+    QHash<int,t_sfile> files; //!< Scriptable file I/O.\n Key: File descriptor\n Value: File handler
+    QHash<QString,QString> variables; //!< Global text variables.\n Key: Name\n Value: data
+    QHash<QString,QByteArray> binVars; //!< Global binary variables.\n Key: Name\n Value: data
+    QMap<int,QString> lineMap; //!< Line mapping. Since lines are skewed internally due to removal of whitespace, this is needed.\n Key: internal line\n Value: line number with filename
 
-    QAction *rootNicklistMenu;
-    QAction *rootChannelMenu;
-    QAction *rootQueryMenu;
-    QAction *rootStatusMenu;
-    QList<scriptmenu_t> customNicklistMenu;
-    QList<scriptmenu_t> customChannelMenu;
-    QList<scriptmenu_t> customQueryMenu;
-    QList<scriptmenu_t> customStatusMenu;
+    QAction *rootNicklistMenu; //!< The root of custom nicklist menu.
+    QAction *rootChannelMenu; //!< The root of custom channel menu.
+    QAction *rootQueryMenu; //!< The root of custom query menu.
+    QAction *rootStatusMenu; //!< The root of custom status menu.
+    QList<scriptmenu_t> customNicklistMenu; //!< Custom nicklist menu. Pointer passed to Script Parent for processing this list.
+    QList<scriptmenu_t> customChannelMenu; //!< Custom channel menu. Pointer passed to Script Parent for processing this list.
+    QList<scriptmenu_t> customQueryMenu; //!< Custom query menu. Pointer passed to Script Parent for processing this list.
+    QList<scriptmenu_t> customStatusMenu; //!< Custom status menu. Pointer passed to Script Parent for processing this list.
     void createMenu(int &pos, char type);
     void createMenuIterate(int &pos, char type, int parent); // position is where the given menu block starts in script (byte pos). (after {)
     void resetMenu(QList<scriptmenu_t> &menu); // Use for re-parsing the menu structure
-    QSignalMapper nicklistMenuMapper;
-    QSignalMapper channelMenuMapper;
-    QSignalMapper queryMenuMapper;
-    QSignalMapper statusMenuMapper;
+    QSignalMapper nicklistMenuMapper; //!< Map of all menu items in nicklist, tied to their triggered action.
+    QSignalMapper channelMenuMapper; //!< Map of all menu items in channel, tied to their triggered action.
+    QSignalMapper queryMenuMapper; //!< Map of all menu items in query, tied to their triggered action.
+    QSignalMapper statusMenuMapper; //!< Map of all menu items in status, tied to their triggered action.
 
-    int *activeWid;
-    int *activeConn;
-    QHash<int,subwindow_t> *winList;
-    QHash<int,IConnection*> *conList;
+    int *activeWid; //!< Current active window ID.
+    int *activeConn; //!< Current active connection ID.
+    QHash<int,subwindow_t> *winList; //!< All subwindows, pointer to the list in IdealIRC class.
+    QHash<int,IConnection*> *conList; //!< All connections.
 
-    e_scriptresult _runf_private2(int pos, QStringList *parName, QHash<QString,QString> &localVar,
+    e_scriptresult _runf_private2(int pos, QHash<QString,QString> &localVar,
                                   QHash<QString,QByteArray> &localBinVar, QString &result);
     static e_iircevent getEvent(QString event); // Convert event string name to internal code
     void errorHandler(e_scriptresult res);
@@ -160,11 +164,12 @@ private:
 
     void delWhitespace(QString *text);
 
-    QString scriptstr; // Save script here, no whitespaces
-    QString errorKeyword;
-    int curLine;
-    int loadIntLine; // used when mapping line numbers, this is for internal line numbers.
-    bool lastIFresult;
+    QString scriptstr; //!< The script resides here, without whitespaces.
+    QString errorKeyword; //!< What portion of code that produced last error.
+
+    int curLine; //!< Current real line number.
+    int loadIntLine; //!< Used when mapping line numbers, this is for internal line numbers.
+    bool lastIFresult; //!< The last IF result, to be used with ELSE statement.\n \bug This is sort of a bad practise, not allowing to nest ELSE statements.
 
     bool customDialogShow(QString oname);
     bool customDialogHide(QString oname);

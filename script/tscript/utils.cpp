@@ -21,6 +21,12 @@
 #include "constants.h"
 #include "../tscript.h"
 
+/*!
+ * \param line Internal line number
+ *
+ * Finds the actual line number based in internal line number
+ * \return String actual line number, with the filename
+ */
 QString TScript::lm(int line)
 {
     if (! lineMap.contains(line))
@@ -29,6 +35,11 @@ QString TScript::lm(int line)
     return lineMap.value(line);
 }
 
+/*!
+ * \param text Pointer to a text
+ *
+ * Removes all whitespace on the string pointed to
+ */
 void TScript::delWhitespace(QString *text)
 {
     int i = 0;

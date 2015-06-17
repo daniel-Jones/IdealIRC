@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class ColorPickerScene
+ *  \brief Used with the IConfigCustomize dialog, for chosing colors.
+ *
+ * This widget only shows a color palette to pick colors from.
+ */
+
 #ifndef COLORPICKERSCENE_H
 #define COLORPICKERSCENE_H
 
@@ -35,8 +41,8 @@ public:
     explicit ColorPickerScene(QObject *parent = 0);
 
 private:
-    QGraphicsPixmapItem *gradient;
-    QPixmap pm;
+    QGraphicsPixmapItem *gradient; //!< The actual visible item of the color palette.
+    QPixmap pm; //!< The color palette image, loaded from disk. This one is used with the 'gradient' member.
 
 protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);

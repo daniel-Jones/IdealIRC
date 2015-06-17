@@ -207,6 +207,11 @@ void IServerEditor::on_actionNewServerNoNetwork_triggered()
     model.addServer(newname, "host.name:6667");
 }
 
+/*!
+ * \param current Index of selected row
+ *
+ * This function runs when a server was chosen in the list.
+ */
 void IServerEditor::selectionRowChanged(const QModelIndex& current, const QModelIndex &)
 {
     // Todo: This code can be shortened down.

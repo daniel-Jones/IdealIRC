@@ -1,4 +1,24 @@
 /*
+ *   IdealIRC - Internet Relay Chat client
+ *   Copyright (C) 2014  Tom-Andre Barstad
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
+/*
  * This file contains code example from the Qt website
  *
 ** You may use this file under the terms of the BSD license as follows:
@@ -30,6 +50,14 @@
 ** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 */
 
+/*! \class EditorWidget
+ *  \brief The script editor text widget.
+ */
+
+/*! \class LineNumberArea
+ *  \brief Helper class for EditorWidget. Provides a line number area.
+ */
+
 #ifndef EDITORWIDGET_H
 #define EDITORWIDGET_H
 
@@ -56,8 +84,8 @@ private slots:
     void updateLineNumberArea(const QRect &, int);
 
 private:
-    QWidget *lineNumberArea;
-    config *conf;
+    QWidget *lineNumberArea; //!< The widget with line numbers.
+    config *conf; //!< Pointer to config class (iirc.ini)
 
 };
 

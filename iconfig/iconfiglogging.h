@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IConfigLogging
+ *  \brief A "sub widget" of IConfig, a GUI frontend for config class (iirc.ini)
+ *
+ * Log viewing.
+ */
+
 #ifndef ICONFIGLOGGING_H
 #define ICONFIGLOGGING_H
 
@@ -44,10 +50,10 @@ private slots:
     void currentRowChanged(const QModelIndex &current, const QModelIndex &);
 
 private:
-    Ui::IConfigLogging *ui;
-    config *conf;
-    QStandardItemModel *model;
-    QItemSelectionModel *selection;
+    Ui::IConfigLogging *ui; //!< Qt Creator generated GUI class.
+    config *conf; //!< Pointer to config class (iirc.ini)
+    QStandardItemModel *model; //!< Model for ui->logList
+    QItemSelectionModel *selection; //!< Keeps track of selection in the model.
     void loadFiles();
 };
 

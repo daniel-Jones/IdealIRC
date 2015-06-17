@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class UnsupportedModel
+ *  \brief Model that's used in IChanConfig to display if current listing is unsupported.
+ */
+
 #ifndef UNSUPPORTEDMODEL_H
 #define UNSUPPORTEDMODEL_H
 
@@ -31,7 +35,7 @@ public:
     explicit UnsupportedModel(QString msg, QObject *parent = 0);
 
 private:
-    QString message;
+    QString message; //!< Text to display.
 
 protected:
     int rowCount(const QModelIndex &parent = QModelIndex()) const ;

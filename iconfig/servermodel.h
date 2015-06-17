@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class ServerModel
+ *  \brief A model used for server editing.
+ *
+ * This class will NOT manipulate the servers.ini file. See ServerMgr.
+ */
+
 #ifndef SERVERMODEL_H
 #define SERVERMODEL_H
 
@@ -45,11 +51,11 @@ public:
     void resetModel();
 
 private:
-    ServerMgr smgr;
+    ServerMgr smgr; //!< Manages the servers.ini file.
 
-    QHash<QString,QModelIndex> hostmap; // host:port to index
-    QHash<QString,QModelIndex> netmap; // network to index
-    QHash<QString,QModelIndex> nonemap; // All names (servers) in NONE to index
+    QHash<QString,QModelIndex> hostmap; //!< Keeps track of hostname:port\n Key: hostname:port\n Value: Model index
+    QHash<QString,QModelIndex> netmap; //!< Keeps track of networks.\n Key: Network name\n Value: Model index
+    QHash<QString,QModelIndex> nonemap; //!< Keeps track of solitary servers (not bound with a network).\n Key: hostname:port\n Value: Model index
 };
 
 #endif // SERVERMODEL_H

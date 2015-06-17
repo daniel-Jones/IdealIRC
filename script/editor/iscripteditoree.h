@@ -18,6 +18,13 @@
  *
  */
 
+/*! \class IScriptEditorEE
+ *  \brief The script editor's Execution Explorer.
+ *
+ * This will display all events, commands, timers, variables and functions.\n
+ * You're able to manually execute functions and edit variables on-the-fly.
+ */
+
 #ifndef ISCRIPTEDITOREE_H
 #define ISCRIPTEDITOREE_H
 
@@ -49,24 +56,24 @@ public:
     void rebuildFunctionModel();
 
 private:
-    Ui::IScriptEditorEE *ui;
-    TScript *script;
+    Ui::IScriptEditorEE *ui; //!< Qt Creator generated GUI class.
+    TScript *script; //!< Pointer to the script we're looking at.
 
     // meta-data models
-    QStandardItemModel *commandModel;
-    QStandardItemModel *eventModel;
-    QStandardItemModel *timerModel;
+    QStandardItemModel *commandModel; //!< Model that contains all commands.
+    QStandardItemModel *eventModel; //!< Model that contains all events.
+    QStandardItemModel *timerModel; //!< Model that contains all timers.
 
     // variable model + internal lookup store
-    QStandardItemModel *varModel;
-    QHash<QString, varEntry_t> varItemList;
-    QTimer varUpdate;
-    QMenu varMenu;
+    QStandardItemModel *varModel; //!< Model that contains all variables.
+    QHash<QString, varEntry_t> varItemList; //!< Copy of all variables. Binary ones only display their size.
+    QTimer varUpdate; //!< Timer to copy an update of all variables.
+    QMenu varMenu; //!< Context menu for variable view.
     bool ignoreNextVarChange;
 
     // function model
-    QStandardItemModel *fnctModel;
-    QList<QLineEdit*> paraEdit; // List of parameter inputs
+    QStandardItemModel *fnctModel; //!< Model that contains all functions.
+    QList<QLineEdit*> paraEdit; //!< List of parameter input widgets.
 
 private slots:
     void varUpdateTimeout();

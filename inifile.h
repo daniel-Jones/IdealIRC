@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class IniFile
+ *  \brief Parser to read/write any ini file.
+ */
+
 #ifndef INIFILE_H
 #define INIFILE_H
 
@@ -75,7 +79,7 @@ public:
 
 private:
     void clearNewline(char *data);
-    QFile *file;
+    QFile *file; //!< File object on the ini file.
 
 };
 

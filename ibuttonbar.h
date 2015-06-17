@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IButtonBar
+ *  \brief The button bar which is used to switch between windows, similar to the tree view.
+ *
+ * Bound to the IWindowSwitcher, the IButtonBar class holds the QToolBar widget which is visible in the GUI.
+ */
+
 #ifndef IBUTTONBAR_H
 #define IBUTTONBAR_H
 
@@ -35,18 +41,25 @@
 #define DisconnectSignals disconnect(&sigmap, SIGNAL(mapped(int)), this, SLOT(buttonSelected(int)))
 #define ConnectSignals connect(&sigmap, SIGNAL(mapped(int)), this, SLOT(buttonSelected(int)))
 
+/*!
+ * Used in IButtonBar.\n
+ * This structure holds the actual button pointer and some relevant data for it.
+ */
 typedef struct T_BUTTON
 {
-    QAction *button; // data of these contains Highlight info
-    int group;
-    int wid;
-    int wtype;
+    QAction *button; //!< Pointer to button. The data() of this contains highlight info, in type of action_data_t
+    int group; //!< Group the button is in, a connection ID.
+    int wid; //!< Window ID
+    int wtype; //!< Window type
 } button_t;
 
+/*!
+ * Used in QAction for their data.\n
+ */
 typedef struct T_ACTION_DATA
 {
-    int wid;
-    int highlight; // HL_* type
+    int wid; //!< Window ID
+    int highlight; //!< Highlight type. See constants.h for HL_*
 } action_data_t;
 
 class IButtonBar : public QObject
@@ -69,18 +82,18 @@ private:
     action_data_t getActionData(QAction *a);
     void setActionData(QAction *a, action_data_t ad);
 
-    QToolBar toolbar;
-    QList<button_t> buttons;
-    QSignalMapper sigmap; // signal map for QAction toggle event (buttons)
-    QTimer flasher; // for highlighted msgs, 500ms cycle
-    bool flashtoggle; // on/off for flashing icon (highlight message)
-    int activewid; // active button wid
+    QToolBar toolbar; //!< The visible widget in the GUI.
+    QList<button_t> buttons; //!< List of all the buttons.
+    QSignalMapper sigmap; //<! Signal map for QAction Toggle event (when a button is clicked)
+    QTimer flasher; //!< Timer for highlighted messages, 500ms cycle.
+    bool flashtoggle; //!< On/off for flashing icon (highlight message)
+    int activewid; //!< The active button window ID.
 
     // Context menu and its actions
     // Todo: Move menu and menu handling to IWindowSwitcher when tree model is added there
-    QMenu menu;
-    QAction actionTitle;
-    QAction actionClose;
+    QMenu menu; //!< Context menu (right click a button)
+    QAction actionTitle; //!< First menu item, window title in bold text.
+    QAction actionClose; //!< Close menu item.
 
 private slots:
     void buttonSelected(int wid);

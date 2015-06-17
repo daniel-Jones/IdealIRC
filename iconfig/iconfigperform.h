@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class IConfigPerform
+ *  \brief A "sub widget" of IConfig, a GUI frontend for config class (iirc.ini)
+ *
+ * A text editor where you put IRC commands line by line to perform when connected to an IRC server.
+ */
+
 #ifndef ICONFIGPERFORM_H
 #define ICONFIGPERFORM_H
 
@@ -39,8 +45,8 @@ public:
     void saveConfig();
 
 private:
-    Ui::IConfigPerform *ui;
-    config *conf;
+    Ui::IConfigPerform *ui; //!< Qt Creator generated GUI class.
+    config *conf; //!< Pointer to config class (iirc.ini)
 };
 
 #endif // ICONFIGPERFORM_H

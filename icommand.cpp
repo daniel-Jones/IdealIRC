@@ -25,6 +25,11 @@
 #include "iwin.h"
 #include "iconnection.h"
 
+/*!
+ * \param con IRC connection which we send data to.
+ * \param cfg Pointer to config class (iirc.ini)
+ * \param parent Parent object (usually IConnection)
+ */
 ICommand::ICommand(IConnection *con, config *cfg, QObject *parent) :
     QObject(parent),
     tstar("***"),
@@ -33,6 +38,11 @@ ICommand::ICommand(IConnection *con, config *cfg, QObject *parent) :
 {
 }
 
+/*!
+ * \param command A command to parse, for example "/join #channel key"
+ *
+ * \return true when command was found, false otherwise.\n Note that, even if a command fails to execute, true is still returned.
+ */
 bool ICommand::parse(QString command)
 {
     /*
@@ -286,6 +296,12 @@ bool ICommand::parse(QString command)
     return false; // Command wasn't found.
 }
 
+/*!
+ * \param channel Channel to join
+ * \param password Channel password (optional)
+ *
+ * Joins a channel.
+ */
 void ICommand::join(QString channel, QString password)
 {
     if (password.length() > 0)
@@ -297,6 +313,12 @@ void ICommand::join(QString channel, QString password)
               );
 }
 
+/*!
+ * \param channel Channel to leave
+ * \param reason Reason for leaving (optional)
+ *
+ * Leaves a channel.
+ */
 void ICommand::part(QString channel, QString reason)
 {
     if (reason.length() > 0)
@@ -308,6 +330,11 @@ void ICommand::part(QString channel, QString reason)
               );
 }
 
+/*!
+ * \param reason Quit reason (optional)
+ *
+ * Sends QUIT message to the IRC server.\n Will eventually result in IConnection loses connection.
+ */
 void ICommand::quit(QString reason)
 {
     sockwrite( QString("QUIT :%1")
@@ -315,6 +342,13 @@ void ICommand::quit(QString reason)
               );
 }
 
+/*!
+ * \param target Who to receive the notice
+ * \param message The message
+ *
+ * Sends a notice message to the target.\n
+ * The target must be either a channel or a nickname. IdealIRC need no relations to these.
+ */
 void ICommand::notice(QString target, QString message)
 {
     sockwrite( QString("NOTICE %1 :%2")
@@ -327,6 +361,13 @@ void ICommand::notice(QString target, QString message)
     echo( target, message, PT_NOTICE );
 }
 
+/*!
+ * \param target Who to receive the message
+ * \param message The message
+ *
+ * Sends a message to the target.\n
+ * The target must be either a channel or a nickname. IdealIRC need no relations to these.
+ */
 void ICommand::msg(QString target, QString message)
 {
     sockwrite( QString("PRIVMSG %1 :%2")
@@ -339,6 +380,14 @@ void ICommand::msg(QString target, QString message)
     echo(target, message);
 }
 
+/*!
+ * \param target Who to receive the "action"
+ * \param message The "action"
+ *
+ * Sends an action-style message to the target.\n
+ * Example message: /me eats potato chips.\n
+ * * John_Doe eats potato chips.
+ */
 void ICommand::me(QString target, QString message)
 {
     QString send = QString("%1ACTION %2%3")
@@ -358,6 +407,14 @@ void ICommand::me(QString target, QString message)
          );
 }
 
+/*!
+ * \param channel Target channel
+ * \param nickname Target nickname
+ * \param reason Reason for kick (optional)
+ *
+ * Granted we've got operator status in the channel, this command forces a member
+ * to leave the given channel.
+ */
 void ICommand::kick(QString channel, QString nickname, QString reason)
 {
     if (channel.isEmpty()) {
@@ -376,6 +433,13 @@ void ICommand::kick(QString channel, QString nickname, QString reason)
               );
 }
 
+/*!
+ * \param nickname Nickname to disconnect
+ * \param reason Reason for forced disconnection
+ *
+ * Granted we've got server operator status, this command forces a member
+ * to disconnect from the server.
+ */
 void ICommand::kill(QString nickname, QString reason)
 {
     sockwrite( QString("KILL %1 :%2")
@@ -384,6 +448,13 @@ void ICommand::kill(QString nickname, QString reason)
               );
 }
 
+/*!
+ * \param channel Target channel
+ * \param nickname Target nickname
+ *
+ * This command utilizes IAL to set a ban on the given member.\n
+ * IAL sees if it got the hostname on the given nickname, if not, it will obtain it and set the ban.
+ */
 void ICommand::ban(QString channel, QString nickname)
 {
     if (channel.isEmpty()) {
@@ -398,6 +469,11 @@ void ICommand::ban(QString channel, QString nickname)
     connection->ial.setChannelBan(channel, nickname);
 }
 
+/*!
+ * \param data Data
+ *
+ * Sends raw data to the IRC server.
+ */
 void ICommand::raw(QString data)
 {
     sockwrite(data); // Send raw data.
@@ -406,6 +482,12 @@ void ICommand::raw(QString data)
          );
 }
 
+/*!
+ * \param target Target nickname
+ * \param message CTCP message
+ *
+ * Sends a CTCP (Client-To-Client-Protocol) message.\n
+ */
 void ICommand::ctcp(QString target, QString message)
 {
 
@@ -425,6 +507,12 @@ void ICommand::ctcp(QString target, QString message)
               );
 }
 
+/*!
+ * \param newCodec Text codec
+ *
+ * Changes text encoding to a different codec.\n
+ * For example, UTF-8
+ */
 void ICommand::charset(QString newCodec)
 {
     QList<QByteArray> codecList = QTextCodec::availableCodecs();
@@ -453,6 +541,11 @@ void ICommand::charset(QString newCodec)
     }
 }
 
+/*!
+ * This is not CTCP PING.\n
+ * Use this command to test your latency against the server.\n
+ * It responds with the amount of miliseconds.
+ */
 void ICommand::ping()
 {
     QString ms = QString::number(QDateTime::currentMSecsSinceEpoch());
@@ -463,11 +556,21 @@ void ICommand::ping()
               );
 }
 
+/*!
+ * \param nickname Nickname
+ *
+ * Opens a query subwindow on the nickname.\n
+ * The nickname doesn't need to exist on the server.
+ */
 void ICommand::query(QString nickname)
 {
     emit requestWindow(nickname, WT_PRIVMSG, *cid, true);
 }
 
+/*!
+ * Opens the channel settings dialog, given this command runs from a channel window.\n
+ * If it isn't a channel window, nothing happens.
+ */
 void ICommand::chansettings()
 {
     subwindow_t sw = winlist->value(activewin());
@@ -476,35 +579,63 @@ void ICommand::chansettings()
 
 /// -------------------------------------------------------------
 
+/*!
+ * \param message Message
+ *
+ * Prints a message formatted as PT_LOCALINFO (see constants.h)
+ */
 void ICommand::localMsg(QString message)
 {
     subwindow_t wt = getCurrentSubwin();
     wt.widget->print(message, tstar, PT_LOCALINFO);
 }
 
+/*!
+ * \param sender Sender. Text goes in left margin.
+ * \param message The message.
+ * \param ptype Print type. See constants.h for PT_*
+ *
+ * Prints (echoes) a message onto the current active subwindow.\n
+ * If the subwindow is a custom picture window, it'll print in a status window.
+ */
 void ICommand::echo(QString sender, QString message, int ptype)
 {
     subwindow_t wt = getCurrentSubwin();
     wt.widget->print(sender, message, ptype);
 }
 
+/*!
+ * \param data Data
+ *
+ * Sends (raw) data to the socket in IConnection.
+ */
 void ICommand::sockwrite(QString data)
 {
     connection->sockwrite(data);
 }
 
+
+/*!
+ * \return QString of current target we can send to.
+ */
 QString ICommand::getCurrentTarget()
 {
      subwindow_t wt = getCurrentSubwin();
      return wt.widget->getTarget();
 }
 
+/*!
+ * \return QString of our current nickname.
+ */
 QString ICommand::getCurrentNickname()
 {
     subwindow_t wt = getCurrentSubwin();
     return wt.widget->getConnection()->getActiveNickname();
 }
 
+/*!
+ * \return QString of active window name.
+ */
 QString ICommand::activewin()
 {
     if (*activeConn != *cid)
@@ -513,6 +644,9 @@ QString ICommand::activewin()
         return activeWname->toUpper();
 }
 
+/*!
+ * \return Subwindow structure of current sub window.
+ */
 subwindow_t ICommand::getCurrentSubwin()
 {
     if (*activeConn != *cid)

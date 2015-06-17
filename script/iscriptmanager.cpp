@@ -29,6 +29,11 @@
 #include "ui_iscriptmanager.h"
 #include "constants.h"
 
+/*!
+ * \param parent Parent widget, should be IdealIRC class.
+ * \param sp Pointer to script parent
+ * \param cfg Pointer to config class (iirc.ini)
+ */
 IScriptManager::IScriptManager(QWidget *parent, TScriptParent *sp, config *cfg) :
     QDialog(parent),
     ui(new Ui::IScriptManager),
@@ -67,7 +72,14 @@ IScriptManager::~IScriptManager()
     delete ui;
 }
 
-void IScriptManager::addItem(QString name, QString path, bool select)
+/*!
+ * \param name Script name
+ * \param path Path to script
+ * \param edit If true, open editor on file when added.
+ *
+ * Adds a row to the list.
+ */
+void IScriptManager::addItem(QString name, QString path, bool edit)
 {
     QStandardItem *nameItem = new QStandardItem(name);
     QStandardItem *pathItem = new QStandardItem(path);
@@ -76,10 +88,16 @@ void IScriptManager::addItem(QString name, QString path, bool select)
     model.appendRow(items);
 
     scriptList.insert(name, nameItem);
-    if (select)
+    if (edit)
         editFile(path, name);
 }
 
+/*!
+ * \param filename Path to file to edit
+ * \param scriptname Name of script to edit
+ *
+ * Opens the editor.
+ */
 void IScriptManager::editFile(QString filename, QString scriptname)
 {
     IScriptEditor *editor = new IScriptEditor((QWidget*)this->parent(), scriptParent->getScriptPtr(scriptname), conf);

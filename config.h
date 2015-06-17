@@ -18,14 +18,21 @@
  *
  */
 
+/*! \class config
+ *  \brief IdealIRC configuration class. Data from iirc.ini is stored here.
+ *
+ * All data from iirc.ini should be stored here, as public variables.
+ * Whenever data is changed, run save() to write to iirc.ini, however
+ * not required as save() is run upon IdealIRC exit.
+ * Running rehash() will re-read all config from iirc.ini. This shouldn't
+ * be done during run-time, only on startup.
+ *
+ * The class definition should be pretty self-explainatory, if you compare it
+ * to the contents of an iirc.ini.
+ */
+
 #ifndef CONFIG_H
 #define CONFIG_H
-
-/*
-  Save whatever configuration we want to the public members.
-  When we're satisfied with whatever, call save().
-  Run rehash() to reload the ini file back to class.
-*/
 
 #include <QObject>
 #include <QImage>
@@ -33,6 +40,11 @@
 #include <QColor>
 #include "inifile.h"
 
+/*! \enum BgImageScale
+ *
+ * Defines how to scale background images within IdealIRC.
+ * This enum is used in member bgImageScale.
+ */
 enum BgImageScale {
     Bg_Scale = 1,
     Bg_ScaleAndCut,
@@ -48,8 +60,8 @@ class config : public QObject
 public:
     explicit config(QObject *parent = 0);
     ~config();
-    void rehash();
-    void save();
+    void rehash(); //!< Re-read iirc.ini and store the contents in the class. Shouldn't be run other times than when starting IdealIRC.
+    void save(); //!< Saves the class data to iirc.ini.
     IniFile *ini;
     QRect mainWinGeo;
     bool maximized;
@@ -68,7 +80,7 @@ public:
     int treeWidth;
     int listboxWidth;
     int trayNotifyDelay;
-    int bgZoomLevel; // -50 % to +50 %
+    int bgZoomLevel;
     int timeout;
     bool showTimestmap;
     bool showOptionsStartup;
@@ -134,10 +146,10 @@ public:
 
     bool connectionActive;
 
-    int bti(bool b); // bool to int, true=1, false=0
-    bool itb(int i); // int to bool, true>=1, false<=0
-    bool stb(QString s); // string to bool, '1'=true, else false
-    void copyDir(QString path, QString target);
+    int bti(bool b); ///!< bool to int, true=1, false=0
+    bool itb(int i); //!< int to bool, true>=1, false<=0
+    bool stb(QString s); //!< string to bool, '1'=true, else false
+    void copyDir(QString path, QString target); //!< Recursively copies path to target. Used when copying from SKEL_PATH to CONF_PATH.
 };
 
 #endif // CONFIG_H

@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TScriptEditorHighlighter
+ *  \brief Helper class for IScriptEditorSettings to add a highlighter.
+ */
+
 #ifndef TSCRIPTEDITORHIGHLIGHTER_H
 #define TSCRIPTEDITORHIGHLIGHTER_H
 
@@ -40,19 +44,19 @@ class TScriptEditorHighlighter : public QSyntaxHighlighter
 
   public:
     explicit TScriptEditorHighlighter(QTextDocument *document, config *cfg);
-    QSet<QString> getBlockKeywords() { return blockKeywords; }
+    QSet<QString> getBlockKeywords() { return blockKeywords; } //!< Returns a copy of the block keywords (script, meta, function, ++)
   
   protected:
     void highlightBlock(const QString &text);
   
   private:
-    QSet<QString> blockKeywords; // script, meta, function, ++
-    QSet<QString> metaKeywords; // include, event, command, timers, ++
-    QSet<QString> scriptKeywords; // if, while, var, con, ++
+    QSet<QString> blockKeywords; //!< Block keywords.\n script, meta, function, ++
+    QSet<QString> metaKeywords; //!< Meta keywords.\n include, event, command, timers, ++
+    QSet<QString> scriptKeywords; //!< Script keywords.\n var, inc, dec ++
     int pState;
     int skipWhitespace(const QString &text);
-    QColor defaultForeground; // From the window manager, default color of text
-    config *conf;
+    QColor defaultForeground; //!< From the system's window manager, default color of text
+    config *conf; //!< Pointer to config class (iirc.ini)
 
 };
 

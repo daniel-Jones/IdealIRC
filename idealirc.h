@@ -18,6 +18,14 @@
  *
  */
 
+/*! \class IdealIRC
+ *  \brief IdealIRC Main GUI
+ *
+ * This can be considered the "central" of all things, more or less.\n
+ * Here we have the main instance of script parent, list of _all_ subwindows,
+ * all IConnection instances, etc.
+ */
+
 #ifndef IDEALIRC_H
 #define IDEALIRC_H
 
@@ -62,30 +70,30 @@ public:
       int currentStatus();
     
 private:
-      Ui::IdealIRC *ui;
-      bool firstShow; // True on startup. See showEvent();
-      bool windowIsActive;
-      bool readyToClose;
-      QHash<int,subwindow_t> winlist; // Windows list
-      QHash<int,IConnection*> conlist; // Connections list. int is "parent" from CreateSubWindow.
-      int activeWid;
-      QString activeWname;
-      int activeConn;
-      config conf;
-      IConfig *confDlg;
-      IFavourites *favourites;
-      IChannelList *chanlist;
-      IScriptManager *scriptManager;
-      int connectionsRemaining; // When closing IIRC we must wait for all connections to close before exiting IIRC. This one counts backwards for each disconneciton.
-      bool preventSocketAction; // Used when updating connection toolbutton, when using setChecked it also performs its signal.
-      IConnection *reconnect; // When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
-      VersionChecker vc;
-      TScriptParent scriptParent;
-      QSystemTrayIcon trayicon;
-      IWindowSwitcher wsw;
-      QHash<QString,toolbar_t> *customToolbar; // toolbar buttons from script
-      QList<QAction*> customToolButtons;
-      QSignalMapper *toolBtnMap;
+      Ui::IdealIRC *ui; //!< Qt Creator generated GUI class.
+      bool firstShow; //!< Initializer list sets this to true. Once showEvent() has run, it will set to false.\n See showEvent()
+      bool windowIsActive; //!< IdealIRC is the active window (got the focus).
+      bool readyToClose; //!< By default, this variable "floats", got no apparent value until we are about to close IdealIRC.\n When we're about to close, this one sets to false until all IRC connections are closed, then it's set to true and IdealIRC will close down.
+      QHash<int,subwindow_t> winlist; //!< Windows list. All subwindows is stored here.\n Key: Window ID\n Value: Subwindow.
+      QHash<int,IConnection*> conlist; //!< Connections list.\n Key: Connection ID. This ID is bound to its Status subwindow ID.\n Value: Connection.
+      int activeWid; //!< Current active window ID.
+      QString activeWname; //!< Current active window name.\n Use activeWid for lookup methods.
+      int activeConn; //!< Current active connection ID.
+      config conf; //!< The main config class instance. Pass a pointer to this one, wherever it's needed.
+      IConfig *confDlg; //!< Configuration dialog pointer.
+      IFavourites *favourites; //!< Favourites dialog pointer.
+      IChannelList *chanlist; //!< Channel list dialog pointer.
+      IScriptManager *scriptManager; //!< Script manager diaog pointer.
+      int connectionsRemaining; //!< When closing IdealIRC, we must wait for all connections to close before exiting IdealIRC. This one counts backwards for each disconneciton.
+      bool preventSocketAction; //!< Used when updating connection toolbutton, when using setChecked it also performs its signal.
+      IConnection *reconnect; //!< When re-using a current active connection, to connect somewhere else, set this to the pointer of that connection.
+      VersionChecker vc; //!< As the class name suggest, a version checker. Disabled by default.
+      TScriptParent scriptParent; //!< Main instance of the script parent, where all scripts are loaded and events are pushed into.
+      QSystemTrayIcon trayicon; //!< System tray icon.
+      IWindowSwitcher wsw; //!< Window switcher.
+      QHash<QString,toolbar_t> *customToolbar; //!< Toolbar buttons from scripts.
+      QList<QAction*> customToolButtons; //!< List of QAction, parsed from customToolbar.
+      QSignalMapper *toolBtnMap; //!< Signal mapper, for each custom toolbar button mapped to their triggered signal.
 
       void recreateConfDlg();
       void recreateFavouritesDlg();

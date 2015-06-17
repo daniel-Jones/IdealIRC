@@ -18,6 +18,18 @@
  *
  */
 
+/*! \class IAL
+ *  \brief Internal Address List. Stores hostname for nicknames, shared channels with us, etc.
+ *
+ * Every IConnection got their own IAL. IdealIRC will dynamicly modify the data here, so when
+ * we pick up a nickname that joins, we will add its hostname and channel to the IAL.
+ * If same nickname joins another channel we're on, we add that channel aswell.\n
+ * We will also store its channel modes (op, voice, etc).
+ *
+ * Quitting from IRC will delete that nickname, as for when it parts all channels we're on too.
+ */
+
+
 #ifndef IAL_H
 #define IAL_H
 
@@ -79,14 +91,14 @@ public:
     void setChannelBan(QString channel, QString nickname);
 
 private:
-    QString *activeNick; // My current nickname of this connection.
-    QHash<QString,IALEntry_t*> entries;
-    QStringList garbage;
-    QTimer garbageTimer;
-    QStringList banSet;
-    QList<char> *sortrule;
-    TScriptParent *scriptParent;
-    IConnection *connection;
+    QString *activeNick; //!< Our current nickname of this connection.
+    QHash<QString,IALEntry_t*> entries; //!< All IAL entries.
+    QStringList garbage; //!< List of nicknames considered garbage.
+    QTimer garbageTimer; //!< Runs every 1 minute to clean the garbage.
+    QStringList banSet; //!< List of bans that's postponed. See setChannelBan().
+    QList<char> *sortrule; //!< Large list of characters allowed in nicknames, including channel modes such as @ + etc on top. Used for sorting.
+    TScriptParent *scriptParent; //!< Pointer to the script parent.
+    IConnection *connection; //!< The IRC connection this IAL is bound to.
     IALEntry_t* getEntry(QString nickname, bool cs = true);
     IALChannel_t* getChannel(QString nickname, QString channel, bool cs = true);
     void sortList(QList<char> *lst);

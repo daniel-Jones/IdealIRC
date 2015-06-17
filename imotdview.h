@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class IMotdView
+ *  \brief Dialog that displays MOTD on connect.
+ */
+
 #ifndef IMOTDVIEW_H
 #define IMOTDVIEW_H
 
@@ -38,13 +42,13 @@ class IMotdView : public QDialog
 public:
     explicit IMotdView(config *cfg, QWidget *parent = 0);
     ~IMotdView();
-    void reset() { view->clear(); }
+    void reset() { view->clear(); } //!< Clears the display widget.
     void print(QString sender, QString &line);
 
 private:
-    Ui::IMotdView *ui;
-    IIRCView *view;
-    config *conf;
+    Ui::IMotdView *ui; //!< Qt Creator generated GUI class.
+    IIRCView *view; //!< Text display widget
+    config *conf; //!< Pointer to config class (iirc.ini)
 
 protected:
     void showEvent(QShowEvent *);

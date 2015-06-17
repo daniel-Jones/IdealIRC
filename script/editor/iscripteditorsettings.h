@@ -1,3 +1,31 @@
+/*
+ *   IdealIRC - Internet Relay Chat client
+ *   Copyright (C) 2015  Tom-Andre Barstad
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
+/*! \class IScriptEditorSettings
+ *  \brief The settings dialog for script editor.
+ */
+
+/*! \class ColorPicker
+ *  \brief Helper class for IScriptEditorSettings to show a color picker.
+ */
+
 #ifndef ISCRIPTEDITORSETTINGS_H
 #define ISCRIPTEDITORSETTINGS_H
 
@@ -27,7 +55,7 @@ protected:
 
 private:
     bool firstShow;
-    QPixmap colormap;
+    QPixmap colormap; //!< Same color picker as used in the IConfig dialog.
 
 signals:
     void colorPicked(QColor color);
@@ -48,8 +76,8 @@ private slots:
     void colorPicked(QColor color);
 
 private:
-    Ui::IScriptEditorSettings *ui;
-    config *conf;
+    Ui::IScriptEditorSettings *ui; //!< Qt Creator generated GUI class.
+    config *conf; //!< Pointer to config class (iirc.ini)
     QColor invertColor(QColor c);
     void setButtonColor(QColor color);
 
@@ -71,10 +99,10 @@ private:
 
     // Group of radio slots directed to correct
     // color to switch and change
-    QSignalMapper colorRadioSignals;
-    QString selectedColor;
+    QSignalMapper colorRadioSignals; //!< Map of all color radio buttons, tied to their clicked signal.
+    QString selectedColor; //!< The color that's selected to edito.
 
-    ColorPicker cpick;
+    ColorPicker cpick; //!< Color picker dialog.
 
 signals:
     void settingsSaved();

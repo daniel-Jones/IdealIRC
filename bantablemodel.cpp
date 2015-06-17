@@ -30,6 +30,15 @@ BanTableModel::BanTableModel(QObject *parent) :
     setHorizontalHeaderItem(0, i);
     setHorizontalHeaderLabels(l);
 }
+
+/*!
+ * \param m List of masks.
+ * \param d List of dates.
+ * \param a List of authors.
+ * Used when constructing the model. Inserts all received masks.\n
+ * The parameters list indexes are all linked. For example,
+ * Mask 'm[0]' set on 'd[0]' by author a[0].
+ */
 void BanTableModel::setBanList(QStringList m, QStringList d, QStringList a)
 {
     int c = m.count();
@@ -47,6 +56,12 @@ void BanTableModel::setBanList(QStringList m, QStringList d, QStringList a)
 
 }
 
+/*!
+ * \param m Mask.
+ * \param d Date.
+ * \param a Author.
+ * Adds a mask to list if someone sets it while dialog is open.
+ */
 void BanTableModel::addBan(QString m, QString d, QString a)
 {
     QStandardItem *maskItem = new QStandardItem(m);
@@ -59,7 +74,10 @@ void BanTableModel::addBan(QString m, QString d, QString a)
     appendRow(items);
     maskmap.insert(m, maskItem);
 }
-
+/*!
+ * \param m Mask.
+ * Deletes a ban from list if someone removes it while dialog is open
+ */
 void BanTableModel::delBan(QString m)
 {
     QStandardItem *item = maskmap.value(m);

@@ -77,21 +77,35 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
             this, SLOT(statusMenuItemTriggered(QString)));
 }
 
+/*!
+ * \return Pointer to config class (iirc.ini)
+ */
 config* TScript::getConfPtr()
 {
     return scriptParent->getConfPtr();
 }
 
+/*!
+ * \return Pointer to script parent
+ */
 TScriptParent* TScript::getScriptParent()
 {
     return scriptParent;
 }
 
+/*!
+ * \return Pointer to IdealIRC class
+ */
 QWidget* TScript::getDlgParent()
 {
     return dlgParent;
 }
 
+/*!
+ * \param fn Function name
+ *
+ * Runs when a scripted timer timeouts.
+ */
 void TScript::timerTimeout(QString fn)
 {
     QStringList par;
@@ -99,6 +113,12 @@ void TScript::timerTimeout(QString fn)
     runf(fn, par, r);
 }
 
+/*!
+ * \param res Script result
+ *
+ * Prints a suitable text for the specified result.\n
+ * The result doesn't need to be an error.
+ */
 void TScript::errorHandler(e_scriptresult res)
 {
 
@@ -179,6 +199,12 @@ void TScript::errorHandler(e_scriptresult res)
     }
 }
 
+/*!
+ * \param fn Function with parameter list
+ *
+ *
+ * \return String with parameters separated by space.\n If no parameters, "None" is the result.
+ */
 QString TScript::getParamList(QString fn)
 {
     int pos = fnindex.value(fn, -1);

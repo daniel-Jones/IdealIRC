@@ -29,6 +29,10 @@ ServerMgr::ServerMgr(QObject *parent) :
 {
 }
 
+/*!
+ * Finds all networks.
+ * \return List of all networks
+ */
 QStringList ServerMgr::networkList()
 {
     int count = ini.CountSections();
@@ -40,6 +44,12 @@ QStringList ServerMgr::networkList()
     return r;
 }
 
+/*!
+ * \param network Network name
+ *
+ * Finds all servers within a given network name.
+ * \return List of servers.\n Key: Server name\n Value: hostname:port|password (password is optional)
+ */
 QHash<QString,QString> ServerMgr::serverList(QString network)
 {
     int count = ini.CountItems(network);
@@ -56,11 +66,24 @@ QHash<QString,QString> ServerMgr::serverList(QString network)
     return r;
 }
 
+/*!
+ * \param network Network name
+ *
+ * Finds default server of specified network.
+ * \return Default server details
+ */
 QString ServerMgr::defaultServer(QString network)
 {
     return ini.ReadIni(network, "DEFAULT");
 }
 
+/*!
+ * \param name Network name
+ *
+ * Adds a new network to servers.ini\n
+ * This function also adds a default server with a placeholder hostname ("server.name").
+ * \return true on success, false otherwise.
+ */
 bool ServerMgr::newNetwork(QString name)
 {
     if (name == "NONE")
@@ -72,6 +95,13 @@ bool ServerMgr::newNetwork(QString name)
     return ini.WriteIni(name, "DEFAULT", "server.name");
 }
 
+/*!
+ * \param o_name Current network name
+ * \param n_name New network name
+ *
+ * Renames a network.
+ * \return true on success, false otherwise.
+ */
 bool ServerMgr::renameNetwork(QString o_name, QString n_name)
 {
     if ((o_name == "NONE") || (n_name == "NONE"))
@@ -79,6 +109,15 @@ bool ServerMgr::renameNetwork(QString o_name, QString n_name)
     return ini.RenameSection(o_name, n_name);
 }
 
+/*!
+ * \param name Name of network
+ * \param keep_servers Set to true to keep the servers.
+ *
+ * Deletes a network from servers.ini.\n\n
+ * If keep_servers is true, all servers will be moved to 'NONE' section of servers.ini.\n
+ * If there's a name collision, the servers name will append "_N" where N is a number not in use.
+ * \return
+ */
 bool ServerMgr::delNetwork(QString name, bool keep_servers)
 {
     // If servers=true, we will keep the servers by moving them to the NONE section.
@@ -106,6 +145,16 @@ bool ServerMgr::delNetwork(QString name, bool keep_servers)
     return true;
 }
 
+/*!
+ * \param name Server name
+ * \param host Hostname
+ * \param pw Password (optional)
+ * \param network Network (optional)
+ *
+ * Adds a server to servers.ini.\n
+ * If there's no network to add it under, it'll be placed under the 'NONE' section of servers.ini.
+ * \return true on success, false otherwise
+ */
 bool ServerMgr::addServer(QString name, QString host, QString pw, QString network)
 {
     if (pw.length() > 0)
@@ -122,16 +171,38 @@ bool ServerMgr::addServer(QString name, QString host, QString pw, QString networ
     return true;
 }
 
+/*!
+ * \param name Name of server
+ * \param network Network (optional)
+ *
+ * Deletes a server from a given network.\n
+ * If there's no network sepcified, it'll delete server from 'NONE' section of servers.ini
+ * \return true on success, false otherwise
+ */
 bool ServerMgr::delServer(QString name, QString network)
 {
     return ini.DelIni(network, name);
 }
 
+/*!
+ * \param name Network name
+ *
+ * Checks if given network is within servers.ini
+ * \return true if exist, false otherwise
+ */
 bool ServerMgr::hasNetwork(QString name)
 {
     return ini.SectionExists(name);
 }
 
+/*!
+ * \param name Server name
+ * \param network Network name (optional)
+ *
+ * Checks if specified server is within the specified network.\n
+ * If network name isn't specified, it'll check under the 'NONE' section of servers.ini
+ * \return true if exist, false otherwise
+ */
 bool ServerMgr::hasServer(QString name, QString network)
 {
     QString data = ini.ReadIni(network, name);
@@ -141,6 +212,14 @@ bool ServerMgr::hasServer(QString name, QString network)
         return false;
 }
 
+/*!
+ * \param name Server name
+ * \param network Network name (optional)
+ *
+ * Finds specified server within a specified network.\n
+ * If network name isn't specified, it'll check under the 'NONE' section of servers.ini
+ * \return Server details, hostname:port|password (password is optional)
+ */
 QString ServerMgr::getServerDetails(QString name, QString network)
 {
     return ini.ReadIni(network, name);

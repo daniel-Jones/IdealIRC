@@ -27,6 +27,11 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
+/*!
+ * \param c The connection the dialog will send data to.
+ * \param chan The channel the dialog will send data to.
+ * \param parent The IWin that parents this dialog.
+ */
 IChanConfig::IChanConfig(IConnection *c, QString chan, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::IChanConfig),
@@ -73,7 +78,7 @@ IChanConfig::IChanConfig(IConnection *c, QString chan, QWidget *parent) :
         ui->exceptionView->setModel(loading);
     }
     else {
-        UnsupportedModel *m = new UnsupportedModel("This server doesn't support ban exceptions");
+        UnsupportedModel *m = new UnsupportedModel(tr("This server doesn't support ban exceptions"));
         ui->exceptionView->setModel(m);
         ui->tab_exception->setEnabled(false);
     }
@@ -83,7 +88,7 @@ IChanConfig::IChanConfig(IConnection *c, QString chan, QWidget *parent) :
         ui->inviteView->setModel(loading);
     }
     else {
-        UnsupportedModel *m = new UnsupportedModel("This server doesn't support invites list");
+        UnsupportedModel *m = new UnsupportedModel(tr("This server doesn't support invites list"));
         ui->inviteView->setModel(m);
         ui->tab_invite->setEnabled(false);
     }
@@ -98,6 +103,13 @@ IChanConfig::~IChanConfig()
     delete ui;
 }
 
+/*!
+ * \param mode Modes, for example "+ntl 40"
+ *
+ * Sets the default channel modes, as received from the IRC server.\n
+ * When Save button is pushed, these default modes will be compared against the dialog data.\n
+ * If they differ, new modes will be set.
+ */
 void IChanConfig::setDefaultMode(QString mode)
 {
     QStringList param = mode.split(' ');
@@ -167,12 +179,28 @@ void IChanConfig::setMode(char mode, bool enabled, QString data)
     defaultMode.insert(mode, def);
 }
 
+/*!
+ * \param topic Topic
+ *
+ * Sets the default channel topic, as received from the IRC server.\n
+ * When Save button is pushed, this topic will be compared against the dialog data.\n
+ * If they differ, new topic will be set.
+ */
 void IChanConfig::setDefaultTopic(QString topic)
 {
     defaultTopic = topic;
     ui->edTopic->setText(topic);
 }
 
+/*!
+ * \param mask Hostmask
+ * \param author Author, who set it
+ * \param created Creation time
+ * \param mt Mask type
+ *
+ * Adds a mask to the respective model upon receiving new data to store.\n
+ * This is used after models are filled.
+ */
 void IChanConfig::addMask(QString mask, QString author, QString created, MaskType mt)
 {
     if (mt == MT_BAN)
@@ -183,6 +211,14 @@ void IChanConfig::addMask(QString mask, QString author, QString created, MaskTyp
         inviteTable.addBan(mask, created, author);
 }
 
+/*!
+ * \param mask Hostmask
+ * \param author Author, who set it
+ * \param created Creation time
+ *
+ * When dialog is showing up, this function is used when building data to the mask models\n
+ * Bans, Exceptions and Invites go through here.
+ */
 void IChanConfig::addMask(QString mask, QString author, QString created)
 {
     maskL << mask;
@@ -190,6 +226,12 @@ void IChanConfig::addMask(QString mask, QString author, QString created)
     dateL << created;
 }
 
+/*!
+ * \param type Mask type
+ *
+ * When we've reached end of ban list, exception list or invite list,
+ * this function is run to send received data to the models for displaying.
+ */
 void IChanConfig::finishModel(MaskType type)
 {
     if (type == MT_BAN) {
@@ -211,6 +253,12 @@ void IChanConfig::finishModel(MaskType type)
     dateL.clear();
 }
 
+/*!
+ * \param mask Hostmask
+ * \param mt Mask type
+ *
+ * Removes a hostmask from a given model.
+ */
 void IChanConfig::delMask(QString mask, MaskType mt)
 {
     if (mt == MT_BAN)
@@ -221,6 +269,11 @@ void IChanConfig::delMask(QString mask, MaskType mt)
         inviteTable.delBan(mask);
 }
 
+/*!
+ * \param type MaskType
+ *
+ * This function will remove items from ban, exception or invite list based upon which is selected in the respective view.
+ */
 void IChanConfig::deleteMasks(MaskType type)
 {
     QItemSelectionModel *sel = NULL;
@@ -288,21 +341,33 @@ void IChanConfig::deleteMasks(MaskType type)
                               );
 }
 
+/*!
+ * Button slot for Delete ban.
+ */
 void IChanConfig::on_banDel_clicked()
 {
     deleteMasks(MT_BAN);
 }
 
+/*!
+ * Button slot for Delete exception.
+ */
 void IChanConfig::on_exceptionDel_clicked()
 {
     deleteMasks(MT_EXCEPT);
 }
 
+/*!
+ * Button slot for Delete invite.
+ */
 void IChanConfig::on_inviteDel_clicked()
 {
     deleteMasks(MT_INVITE);
 }
 
+/*!
+ * Button slot for Save.
+ */
 void IChanConfig::on_btnSave_clicked()
 {
     if (ui->edTopic->text() != defaultTopic)
@@ -453,6 +518,12 @@ void IChanConfig::on_btnSave_clicked()
 
 }
 
+/*!
+ * \param type Mask type
+ *
+ * This function is called via Add button slots.\n
+ * It shows a dialog box to enter a hostmask to add to the respective model.
+ */
 void IChanConfig::btnAddMask(MaskType type)
 {
     char modeset; // This one WILL be set properly right below
@@ -486,21 +557,36 @@ void IChanConfig::btnAddMask(MaskType type)
     connection->sockwrite(data);
 }
 
+/*!
+ * Button slot for Add ban.\n See btnAddMask()
+ */
 void IChanConfig::on_banAdd_clicked()
 {
     btnAddMask(MT_BAN);
 }
 
+/*!
+ * Button slot for Add exception.\n See btnAddMask()
+ */
 void IChanConfig::on_exceptionAdd_clicked()
 {
     btnAddMask(MT_EXCEPT);
 }
 
+/*!
+ * Button slot for Add invite.\n See btnAddMask()
+ */
 void IChanConfig::on_inviteAdd_clicked()
 {
     btnAddMask(MT_INVITE);
 }
 
+/*!
+ * \param type Mask type
+ *
+ * This function is called via Edit button slots.\n
+ * It shows a dialog box to edit a hostmask in the respective model.
+ */
 void IChanConfig::btnEditMask(MaskType type)
 {
     QItemSelectionModel *sel = NULL;
@@ -548,16 +634,25 @@ void IChanConfig::btnEditMask(MaskType type)
     connection->sockwrite(data);
 }
 
+/*!
+ * Button slot for Edit invite.\n See btnEditMask()
+ */
 void IChanConfig::on_inviteEdit_clicked()
 {
     btnEditMask(MT_INVITE);
 }
 
+/*!
+ * Button slot for Edit exception.\n See btnEditMask()
+ */
 void IChanConfig::on_exceptionEdit_clicked()
 {
     btnEditMask(MT_EXCEPT);
 }
 
+/*!
+ * Button slot for Edit ban.\n See btnEditMask()
+ */
 void IChanConfig::on_banEdit_clicked()
 {
     btnEditMask(MT_BAN);

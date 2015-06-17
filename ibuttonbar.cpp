@@ -58,6 +58,14 @@ IButtonBar::IButtonBar(QObject *parent) :
     ConnectSignals;
 }
 
+/*!
+ * \param group Group ID, same as connection ID. Scripted windows will be group -1.
+ * \param wid Window ID.
+ * \param wtype Window type. See constants.h WT_*
+ * \param name Window name, also caption of button.
+ *
+ * Adds a button to the button toolbar.
+ */
 void IButtonBar::addButton(int group, int wid, int wtype, QString name)
 {
     // Adds a button to group.
@@ -93,6 +101,11 @@ void IButtonBar::addButton(int group, int wid, int wtype, QString name)
     rebuild();
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Removes a button from the button toolbar.
+ */
 void IButtonBar::delButton(int wid)
 {
     // Deletes a button
@@ -113,6 +126,12 @@ void IButtonBar::delButton(int wid)
     }
 }
 
+/*!
+ * \param group Group ID.
+ *
+ * Removes all buttons inside specified group.\n
+ * This is used when, for example, a status window is closed. Then we want to remove all its related windows.
+ */
 void IButtonBar::delGroup(int group)
 {
     // Delete all buttons from group
@@ -148,6 +167,12 @@ void IButtonBar::delGroup(int group)
     }
 }
 
+/*!
+ * \param wid Window ID
+ * \param title New title
+ *
+ * Sets a new text on the specified button.
+ */
 void IButtonBar::setTitle(int wid, QString title)
 {
     QAction *a = getAction(wid);
@@ -157,6 +182,13 @@ void IButtonBar::setTitle(int wid, QString title)
     a->setText(title);
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Programatically changes the active button.\n
+ * This is useful when we switch to other windows not using the buttons, for example
+ * when we click between windows or using the tree view.
+ */
 void IButtonBar::setActive(int wid)
 {
     DisconnectSignals;
@@ -179,6 +211,13 @@ void IButtonBar::setActive(int wid)
     ConnectSignals;
 }
 
+/*!
+ * \param wid Window ID.
+ * \param type Highlight Type. See constants.h for HL_*
+ *
+ * Sets a highlight on specified button.\n
+ * This can be for small activity, messages or someone saying our nickname.
+ */
 void IButtonBar::highlight(int wid, int type)
 {
     /*
@@ -277,6 +316,13 @@ void IButtonBar::highlight(int wid, int type)
     }
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Returns the Window Type of a given Window ID.\n
+ * See constants.h for WT_*
+ * \return Integer of window type.
+ */
 int IButtonBar::getWtype(int wid)
 {
     QListIterator<button_t> i(buttons);
@@ -291,6 +337,12 @@ int IButtonBar::getWtype(int wid)
     return WT_NOTHING;
 }
 
+/*!
+ * \param a Button pointer
+ *
+ * Returns the custom data set for specified button.\n
+ * \return action_data_t
+ */
 action_data_t IButtonBar::getActionData(QAction *a)
 {
     QByteArray data = a->data().toByteArray();
@@ -299,6 +351,12 @@ action_data_t IButtonBar::getActionData(QAction *a)
     return ad;
 }
 
+/*!
+ * \param a Button pointer
+ * \param ad Data
+ *
+ * Sets custom data for specified button.
+ */
 void IButtonBar::setActionData(QAction *a, action_data_t ad)
 {
     char data[sizeof(action_data_t)];
@@ -310,6 +368,10 @@ void IButtonBar::setActionData(QAction *a, action_data_t ad)
     a->setData(ba);
 }
 
+/*!
+ * Resets and rebuilds the entire button bar.\n
+ * Loops through the groups, gathers the buttons and sorts them.
+ */
 void IButtonBar::rebuild()
 { // todo: This function should be rewritten
 
@@ -362,6 +424,12 @@ void IButtonBar::rebuild()
     }
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Finds and returns the button (QAction pointer) based on window id.
+ * \return On success: Pointer to the QAction, On failure: nullptr
+ */
 QAction* IButtonBar::getAction(int wid)
 {
     QListIterator<button_t> i(buttons);
@@ -376,6 +444,11 @@ QAction* IButtonBar::getAction(int wid)
     return nullptr;
 }
 
+/*!
+ * \param wid Window ID
+ *
+ * Finds and selects the given button based on window id.
+ */
 void IButtonBar::buttonSelected(int wid)
 {
     QAction *a = getAction(wid);
@@ -389,6 +462,9 @@ void IButtonBar::buttonSelected(int wid)
     emit buttonSwitched(wid);
 }
 
+/*!
+ * Timer slot that flashes all window icons set to highlight as such.
+ */
 void IButtonBar::onFlasher()
 {
     flashtoggle = !flashtoggle;
@@ -430,6 +506,12 @@ void IButtonBar::onFlasher()
     }
 }
 
+/*!
+ * \param pos Local position
+ *
+ * Attempts to find a given button (QAtion pointer) at a given coordinate.\n
+ * If found, its context menu will popup at the mouse coordinate.
+ */
 void IButtonBar::contextMenu(QPoint pos)
 {
     QAction *action = toolbar.actionAt(pos);

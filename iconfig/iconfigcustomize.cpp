@@ -163,6 +163,11 @@ IConfigCustomize::~IConfigCustomize()
     delete ui;
 }
 
+/*!
+ * \param color Color picked
+ *
+ * Runs when a color was picked in the color picker scene.
+ */
 void IConfigCustomize::colorPicked(QColor color)
 {
     QString name = color.name();
@@ -255,6 +260,10 @@ void IConfigCustomize::on_spinBox_valueChanged(int arg1)
     ui->fontComboBox->setCurrentFont(f);
 }
 
+/*!
+ * Stores all changes to config class.
+ * Does not save to iirc.ini.
+ */
 void IConfigCustomize::saveConfig()
 {
     QFont f = ui->fontComboBox->currentFont();
@@ -298,6 +307,11 @@ void IConfigCustomize::saveConfig()
     conf->colWindowlistBackground   = colWindowlistBackground;
 }
 
+/*!
+ * \param objName Name of radio button
+ *
+ * Runs when either of the Color radio buttons is selected.
+ */
 void IConfigCustomize::colorSelected(QString objName)
 {
     QString color;
@@ -356,6 +370,9 @@ void IConfigCustomize::colorSelected(QString objName)
     colorPicked(c);
 }
 
+/*!
+ * runs when either of the R, G or B slider moved.
+ */
 void IConfigCustomize::colorSlidersMoveRGB(int)
 {
     QColor color;
@@ -363,6 +380,9 @@ void IConfigCustomize::colorSlidersMoveRGB(int)
     colorPicked(color);
 }
 
+/*!
+ * Runs when either of the H, S or V slider moved
+ */
 void IConfigCustomize::colorSlidersMoveHSV(int)
 {
     QColor color;

@@ -21,6 +21,19 @@
 #include "../tscript.h"
 #include "constants.h"
 
+/*!
+ * \param pos Position in script
+ * \param type Type of menu
+ *
+ * \note This function is a helper function for loadScript2() and should never be used elsewhere.
+ *
+ * Generates a menu starting from the given script position.\n
+ * Valid types:\n
+ * * n - Nicklist
+ * * c - Channel
+ * * q - Query
+ * * s - Status
+ */
 void TScript::createMenu(int &pos, char type)
 {
     if (type == 'n') {
@@ -51,10 +64,17 @@ void TScript::createMenu(int &pos, char type)
         createMenuIterate(pos, type, parent);
 }
 
+/*!
+ * \param pos Position in script
+ * \param type Type of menu (see createMenu())
+ * \param parent Parent ID
+ *
+ * \note This is a helper function for createMenu() and should not be called elsewhere.
+ *
+ * Iterates through the menu{} code for creating a menu.
+ */
 void TScript::createMenuIterate(int &pos, char type, int parent)
 {
-    // do not use this function, use createMenu() instead.
-
     /*
 
       menu type {

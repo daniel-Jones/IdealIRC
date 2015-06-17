@@ -37,6 +37,9 @@ TPictureWindow::TPictureWindow(QWidget *parent) :
     setMouseTracking(true);
 }
 
+/*!
+ * Resets the current layer.
+ */
 void TPictureWindow::clear()
 {
     if (pixmap == nullptr)
@@ -51,10 +54,11 @@ void TPictureWindow::clear()
     update();
 }
 
+/*!
+ * Resets all layers.
+ */
 void TPictureWindow::clearAll()
 {
-    // clear all layers
-
     QMutableHashIterator<QString,QPixmap*> i(layers);
     while (i.hasNext()) {
         i.next();
@@ -183,6 +187,12 @@ void TPictureWindow::wheelEvent(QWheelEvent *event)
     emit mouseEvent(te_mousemiddleroll, x, y, delta);
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ *
+ * Paints a dot at X, Y
+ */
 void TPictureWindow::paintDot(int x, int y)
 {
     if (pixmap == nullptr)
@@ -197,6 +207,14 @@ void TPictureWindow::paintDot(int x, int y)
     update();
 }
 
+/*!
+ * \param x1 X coordinate at start
+ * \param y1 Y coordinate at start
+ * \param x2 X coordinate at end
+ * \param y2 Y coordnate at end
+ *
+ * Paints a line between X1,Y1 and X2,Y2.
+ */
 void TPictureWindow::paintLine(int x1, int y1, int x2, int y2)
 {
     if (pixmap == nullptr)
@@ -211,6 +229,14 @@ void TPictureWindow::paintLine(int x1, int y1, int x2, int y2)
     update();
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param font Font to use
+ * \param text Text to paint
+ *
+ * Paints a text with specified font at given coordinates.
+ */
 void TPictureWindow::paintText(int x, int y, QFont font, QString text)
 {
     if (pixmap == nullptr)
@@ -226,6 +252,14 @@ void TPictureWindow::paintText(int x, int y, QFont font, QString text)
     update();
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param w Width
+ * \param h Height
+ *
+ * Paints a rectangle
+ */
 void TPictureWindow::paintRect(int x, int y, int w, int h)
 {
     if (pixmap == nullptr)
@@ -241,6 +275,13 @@ void TPictureWindow::paintRect(int x, int y, int w, int h)
     update();
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param r Radius
+ *
+ * Paints a circle
+ */
 void TPictureWindow::paintCircle(int x, int y, int r)
 {
     if (pixmap == nullptr)
@@ -255,6 +296,14 @@ void TPictureWindow::paintCircle(int x, int y, int r)
     update();
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param rx Radius on X coordinate
+ * \param ry Radius on Y coordinate
+ *
+ * Paints an ellipse
+ */
 void TPictureWindow::paintEllipse(int x, int y, int rx, int ry)
 {
     if (pixmap == nullptr)
@@ -269,6 +318,15 @@ void TPictureWindow::paintEllipse(int x, int y, int rx, int ry)
     update();
 }
 
+/*!
+ * \param filename Path to image
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param dontBuffer If true, image wont be buffered.
+ *
+ * Loads an image from disk and paints it.\n
+ * By default, images will be buffered into memory for less disk usage. This can be prevented if dontBuffer is true.
+ */
 void TPictureWindow::paintImage(QString filename, int x, int y, bool dontBuffer)
 {
     if (pixmap == nullptr)
@@ -308,6 +366,14 @@ void TPictureWindow::paintImage(QString filename, int x, int y, bool dontBuffer)
     update();
 }
 
+/*!
+ * \param x X coordinate
+ * \param y Y coordinate
+ * \param w Width
+ * \param h Height
+ *
+ * Paints a filled rectangle.
+ */
 void TPictureWindow::paintFill(int x, int y, int w, int h)
 {
     if (pixmap == nullptr)
@@ -329,6 +395,11 @@ void TPictureWindow::paintFill(int x, int y, int w, int h)
     update();
 }
 
+/*!
+ * \param path List of coordinates to paint within.
+ *
+ * Paints a filled shape defined by the coordinates.\n
+ */
 void TPictureWindow::paintFillPath(QPainterPath path)
 {
     if (pixmap == nullptr)
@@ -342,6 +413,11 @@ void TPictureWindow::paintFillPath(QPainterPath path)
     update();
 }
 
+/*!
+ * \param b Boolean value
+ *
+ * If set to false, painting operations will not be visible until set back to true.
+ */
 void TPictureWindow::setViewBuffer(bool b)
 {
     viewBuffer = b;
@@ -350,6 +426,12 @@ void TPictureWindow::setViewBuffer(bool b)
         update();
 }
 
+/*!
+ * \param name Layer name
+ *
+ * Changes what layer to paint upon.\n
+ * If the layer don't exist, it will be created and set to current layer.
+ */
 void TPictureWindow::setLayer(QString name)
 {
     pixmap = layers.value(name.toUpper(), nullptr);
@@ -362,6 +444,12 @@ void TPictureWindow::setLayer(QString name)
     currentLayer = name.toUpper();
 }
 
+/*!
+ * \param name Layer name
+ *
+ * Deletes specified layer.\n
+ * You are not able to delete the main layer 'MAIN'.
+ */
 void TPictureWindow::delLayer(QString name)
 {
     if (name.toUpper() == "MAIN")
@@ -372,6 +460,13 @@ void TPictureWindow::delLayer(QString name)
     currentLayer = "MAIN";
 }
 
+/*!
+ * \param list List of layer names
+ *
+ * Re-orders the layers in ascending order, specified in the list.\n
+ * You don't need to specify all layers in here.\n
+ * Re-ordered layers will be placed on the bottom of the untouched layers.
+ */
 void TPictureWindow::orderLayers(QStringList list)
 {
     QStringList add;
@@ -385,6 +480,14 @@ void TPictureWindow::orderLayers(QStringList list)
     layerOrder.removeDuplicates();
 }
 
+/*!
+ * \param layer Layer name
+ * \param x X coordinate
+ * \param y Y coordinate
+ *
+ * Finds the color at specified coordinates in specified layer.
+ * \return Color in hex format (#RRGGBB)
+ */
 QString TPictureWindow::colorAt(QString layer, int x, int y)
 {
     if (! layers.contains(layer.toUpper()))

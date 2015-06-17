@@ -18,6 +18,12 @@
  *
  */
 
+/*! \class TPictureWindow
+ *  \brief Scriptable picture windows (drawable ones).
+ *
+ * This widget will be used instead of IIRCView inside IWin.
+ */
+
 #ifndef TPICTUREWINDOW_H
 #define TPICTUREWINDOW_H
 
@@ -75,16 +81,16 @@ protected:
     void wheelEvent(QWheelEvent *event);
   
 private:
-    QPixmap *pixmap; // active layer
-    QHash<QString,QPixmap*> layers;
-    QStringList layerOrder;
-    QHash<QString,QImage*> imgList; // String is file path to image, then image itself.
-    QString currentLayer;
-    QPen pen;
-    QBrush brush;
-    int lw;
-    int lh;
-    bool viewBuffer;
+    QPixmap *pixmap; //!< Pointer to the active layer.
+    QHash<QString,QPixmap*> layers; //!< All layers. Always contains at least one. Main layer name is "MAIN".
+    QStringList layerOrder; //!< The ascending order of all layers to be drawn.
+    QHash<QString,QImage*> imgList; //!< Buffer of all images used on this widget.\n Key: /path/to/image\n Value: The image.
+    QString currentLayer; //!< Name of the active layer.
+    QPen pen; //!< The pen we're painting with.
+    QBrush brush; //!< The brush we're painting with.
+    int lw; //!< Longest width, this'll be the area we paint on.
+    int lh; //!< Longest height, this'll be the area we paint on.
+    bool viewBuffer; //!< If set to false, no painting will be visible until it's set to true.
     bool clearing;
 
 signals:

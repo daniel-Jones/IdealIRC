@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class BanTableModel
+ *  \brief This class is used within IChanConfig for banView, exceptionView and inviteView. Will be renamed to MaskTableModel, as that's more approperiate.
+ */
+
 #ifndef BANTABLEMODEL_H
 #define BANTABLEMODEL_H
 
@@ -26,8 +30,7 @@
 #include <QStringList>
 #include <QHash>
 
-// This class is used within IChanConfig for both banView and exceptionsView.
-
+//
 class BanTableModel : public QStandardItemModel
 {
     Q_OBJECT
@@ -35,14 +38,14 @@ class BanTableModel : public QStandardItemModel
 public:
     explicit BanTableModel(QObject *parent = 0);
     void setBanList(QStringList m, QStringList d, QStringList a);
-    void addBan(QString m, QString d, QString a); // Used to add ban to list if someone sets it while this is open
-    void delBan(QString m); // Used to delete ban to list if someone removes it while this is open
+    void addBan(QString m, QString d, QString a);
+    void delBan(QString m);
 
 private:
-    QStringList mask;
-    QStringList date;
-    QStringList author;
-    QHash<QString,QStandardItem*> maskmap;
+    QStringList mask; //!< List of masks. Index is linked with date and author.
+    QStringList date; //!< Lits of dates. Index is linked with mask and author.
+    QStringList author; //!< List of authors. Index is linked with mask and date.
+    QHash<QString,QStandardItem*> maskmap; //!< Links all hostmasks with their Item in the model.
 };
 
 #endif // BANTABLEMODEL_H

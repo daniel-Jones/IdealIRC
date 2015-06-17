@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class TScriptCommand
+ *  \brief Script command parser.
+ */
+
 #ifndef TSCRIPTCOMMAND_H
 #define TSCRIPTCOMMAND_H
 
@@ -58,12 +62,12 @@ public:
     void sockwrite(QString &data);
 
 private:
-    QHash<int,IConnection*> *conlist;
-    QHash<int,subwindow_t> *winlist;
-    int *activeConn;
-    int *activeWid;
+    QHash<int,IConnection*> *conlist; //!< List of all IRC connections.
+    QHash<int,subwindow_t> *winlist; //!< List of all subwindows. Pointer from IdealIRC class.
+    int *activeConn; //!< Current active connection.
+    int *activeWid; //!< Current active window ID.
     subwindow_t getCustomWindow(QString name);
-    QString tstar;
+    QString tstar; //!< Just a string with three stars. (***)
 
     // Error messages
     QString InvalidParameterCount(QString cmd)

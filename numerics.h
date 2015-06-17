@@ -18,6 +18,10 @@
  *
  */
 
+/*! \file numerics.h
+ *  \brief Contains enumerations of all IRC numerics.
+ */
+
 #ifndef NUMERICS_H
 #define NUMERICS_H
 
@@ -152,9 +156,9 @@ enum command_e {
 
 
 enum reserved_e {
-/** @NOTE From RFC1459: These numerics are not described above since they fall into one of
- **   the following categories: 1. no longer in use   2. reserved for future planned use
- **   3. in current use but are part of a non-generic 'feature' of the current IRC server.
+/* From RFC1459: These numerics are not described above since they fall into one of
+ *  the following categories: 1. no longer in use   2. reserved for future planned use
+ *  3. in current use but are part of a non-generic 'feature' of the current IRC server.
  */
     RPL_WELCOME           = 001,
     RPL_MYINFO            = 004,
@@ -183,8 +187,8 @@ enum reserved_e {
     RPL_WHOISLOGGEDIN     = 330,
     RPL_WHOISHELP         = 310
 
-    /// @note these - or one or more of these numerics, may be removed.
-    ///       some may be added if needed.
+    // these - or one or more of these numerics, may be removed.
+    // some may be added if needed.
 
 }; // reserved_e
 

@@ -18,6 +18,10 @@
  *
  */
 
+/*! \class IScriptEditor
+ *  \brief The script editor dialog.
+ */
+
 #ifndef ISCRIPTEDITOR_H
 #define ISCRIPTEDITOR_H
 
@@ -57,18 +61,18 @@ public:
     ~IScriptEditor();
 
 private:
-    Ui::IScriptEditor *ui;
-    TScript *script;
-    QString scriptFile;
-    QString scriptName;
-    config *conf;
-    QString current;
-    EditorWidget *currentEditor;
-    QItemSelectionModel *selection;
-    QStandardItemModel treeModel;
-    QStandardItem *firstItem;
-    QHash<QString,file_t> files;
-    bool ignoreNextTextChange;
+    Ui::IScriptEditor *ui; //!< Qt Creator generated GUI class.
+    TScript *script; //!< Pointer to the script we're editing. However, we don't edit directly onto this.
+    QString scriptFile; //!< /path/to/script
+    QString scriptName; //!< Name of the script we edit.
+    config *conf; //!< Pointer to config class (iirc.ini)
+    QString current; //!< Current file the editor's on
+    EditorWidget *currentEditor; //!< Current editor widget we're on
+    QItemSelectionModel *selection; //!< Keeps track of the selection in the included files treeview.
+    QStandardItemModel treeModel; //!< Model of included files.
+    QStandardItem *firstItem; //!< Top item, the main script
+    QHash<QString,file_t> files; //!< Files we're editing.\n Key: /path/to/script\n Value: File
+    bool ignoreNextTextChange; //!< Used when loading script to editor, so it doesn't get considered as file change.
     bool ignoreNextRowChange;
     IScriptEditorSettings settings;
     IScriptEditorEE explorer;

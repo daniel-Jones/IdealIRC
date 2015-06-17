@@ -65,6 +65,10 @@ IConfigLogging::~IConfigLogging()
     delete ui;
 }
 
+/*!
+ * Stores all changes to config class.
+ * Does not save to iirc.ini.
+ */
 void IConfigLogging::saveConfig()
 {
     conf->logEnabled = ui->chkEnable->isChecked();
@@ -88,6 +92,11 @@ void IConfigLogging::on_btnBrowse_clicked()
     }
 }
 
+/*!
+ * \param current Index of selected row
+ *
+ * This function runs when a log entry was chosen in the list.
+ */
 void IConfigLogging::currentRowChanged(const QModelIndex &current, const QModelIndex &)
 {
     QString file = current.data().toString();
@@ -109,6 +118,9 @@ void IConfigLogging::currentRowChanged(const QModelIndex &current, const QModelI
     ui->logText->setPlainText(text);
 }
 
+/*!
+ * Loads all logs into the list.
+ */
 void IConfigLogging::loadFiles()
 {
     QString dir = conf->logPath;
