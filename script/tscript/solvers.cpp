@@ -37,20 +37,23 @@ bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<Q
     QString Q2;
     bool onQ2 = false; // Sets to true when we get an operator.
 
+    // Enumerate all operators.
+    // Add numbers every 5 for convinence, faster lookup when debugging.
     enum {
         NOOPERATOR = 0,
-        NOT_EQ = 1,
-        IS_EQ = 2,
-        LESSTHAN = 3,
-        GREATERTHAN = 4,
-        LESSTHANEQUAL = 5,
-        GREATERTHANEQUAL = 6,
-
-        ISON_CHANNEL = 7,
-        ISOPERATOR = 8,
-        ISHALFOP = 9,
-        ISVOICED = 10,
-        ISREGULAR = 11
+        NOT_EQ,
+        TRIP_NOT_EQ,
+        IS_EQ ,
+        TRIP_IS_EQ,
+        LESSTHAN = 5,
+        GREATERTHAN,
+        LESSTHANEQUAL,
+        GREATERTHANEQUAL,
+        ISON_CHANNEL,
+        ISOPERATOR = 10,
+        ISHALFOP,
+        ISVOICED,
+        ISREGULAR
     };
 
     short op = NOOPERATOR;
@@ -58,33 +61,54 @@ bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<Q
     for (int i = 0; i <= data.length()-1; i++) {
         QChar c = data[i];
 
-        if ((c == '=') && (data[i+1] == '=')) {
+        QString s_op = data.mid(i, 3);
+
+        if (s_op == "===") {
+            onQ2 = true;
+            op = TRIP_IS_EQ;
+            i += 3;
+            continue;
+        }
+
+        if (s_op == "!==") {
+            onQ2 = true;
+            op = TRIP_NOT_EQ;
+            i += 3;
+            continue;
+        }
+
+
+        s_op = data.mid(i, 2);
+
+        if (s_op == "==") {
             onQ2 = true;
             op = IS_EQ;
             i += 2;
             continue;
         }
 
-        if ((c == '!') && (data[i+1] == '=')) {
+        if (s_op == "!=") {
             onQ2 = true;
             op = NOT_EQ;
             i += 2;
             continue;
         }
 
-        if ((c == '>') && (data[i+1] == '=')) {
+        if (s_op == ">=") {
             onQ2 = true;
             op = GREATERTHANEQUAL;
             i += 2;
             continue;
         }
 
-        if ((c == '<') && (data[i+1] == '=')) {
+        if (s_op == "<=") {
             onQ2 = true;
             op = LESSTHANEQUAL;
             i += 2;
             continue;
         }
+
+       // pointless for 1-char operator, s_op = data[i];
 
         if (c == '>') {
             onQ2 = true;
@@ -100,35 +124,35 @@ bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<Q
             continue;
         }
 
-        if ((c == '?') && (data[i+1] == '#')) {
+        if (s_op == "?#") {
             onQ2 = true;
             op = ISON_CHANNEL;
             i += 2;
             continue;
         }
 
-        if ((c == '?') && (data[i+1] == '@')) {
+        if (s_op == "?@") {
             onQ2 = true;
             op = ISOPERATOR;
             i += 2;
             continue;
         }
 
-        if ((c == '?') && (data[i+1] == '%')) {
+        if (s_op == "?%") {
             onQ2 = true;
             op = ISHALFOP;
             i += 2;
             continue;
         }
 
-        if ((c == '?') && (data[i+1] == '+')) {
+        if (s_op == "?+") {
             onQ2 = true;
             op = ISVOICED;
             i += 2;
             continue;
         }
 
-        if ((c == '?') && (data[i+1] == '-')) {
+        if (s_op == "?-") {
             onQ2 = true;
             op = ISREGULAR;
             i += 2;
@@ -170,8 +194,14 @@ bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<Q
         case NOT_EQ:
             return (Q1u != Q2u);
 
+        case TRIP_NOT_EQ:
+            return (Q1 != Q2);
+
         case IS_EQ:
             return (Q1u == Q2u);
+
+        case TRIP_IS_EQ:
+            return (Q1 == Q2);
 
         case LESSTHAN:
             return (Q1.toDouble() < Q2.toDouble());
@@ -215,11 +245,21 @@ bool TScript::solveBool(QString &data, QHash<QString,QString> &localVar, QHash<Q
  *
  * \brief This function solves expressions such as: ((test == 1234) && (x < 5))
  *
- * First this function will solve the individual expressions (such as test == 1234) using solveBool() and return 1 or 0.\n
- * Given the above example, this function will then end up with something as such:\n
- * ((1) && (0))\n
- * This is then passed to the exprtk library for solving, and in this case, result will be 0.
- * \return True if expression result is 1, false otherwise.
+ * First this function will solve the individual expressions (such as (test == 1234)) using solveBool() and return 1 or 0.\n
+ * This function produces as such:\n
+ * * 1. parameter enters as such:
+ * data = ((%first == john) && (%last == doe))
+ * 2. Converts every '%var == data' and alike using solveBool(), into:
+ * data => exp = ((1) && (0))\n
+ * This is then passed to the exprtk library for solving, and in this case, result will be 0.\n\n
+ *
+ * A more "complex" example:
+ * data = (((%win == @draw1) || (%win == @draw2)) && (% > 100))
+ * data parses via loop, with output in exp:
+ * exp = (((1) + (0)) * (1))
+ * ORing is same as plus, ANDing is same as multi.
+ * solve string with math library, function results based upon that.
+ * \return False if expression result is 0, true otherwise.
  */
 bool TScript::solveLogic(QString &data, QHash<QString,QString> &localVar, QHash<QString,QByteArray> &localBinVar)
 {

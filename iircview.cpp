@@ -25,6 +25,7 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
     resizingSplitter(false),
     scrollbar(this),
     backgroundImage(nullptr),
+    pBackgroundImage(nullptr),
     mouseDown(false),
     draggingText(false)
 {
@@ -49,8 +50,11 @@ IIRCView::IIRCView(config *cfg, QWidget *parent) :
 
 IIRCView::~IIRCView()
 {
-    delete backgroundImage;
-    delete pBackgroundImage;
+    if (backgroundImage)
+        delete backgroundImage;
+
+    if (pBackgroundImage)
+        delete pBackgroundImage;
 }
 
 void IIRCView::resizeEvent(QResizeEvent *e)
@@ -67,6 +71,13 @@ void IIRCView::resizeBackground(QSize size)
 {
     bgImgPos.setX(0);
     bgImgPos.setY(0);
+
+    // Clean up old version of scaled background
+    if (pBackgroundImage)
+        delete pBackgroundImage;
+
+    // Make room for new copy of background
+    pBackgroundImage = new QImage();
 
     switch (conf->bgImageScale) {
         case Bg_Scale:
@@ -155,7 +166,7 @@ void IIRCView::clear()
  */
 void IIRCView::redraw()
 {
-    if (backgroundImage != nullptr)
+    if (backgroundImage)
         delete backgroundImage; // We have a background image active, delete it...
 
     if (conf->bgImageEnabled)

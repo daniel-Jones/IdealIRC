@@ -203,7 +203,7 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
                                        QHash<QString,QByteArray> &localBinVar, QString &result)
 {
     #ifdef IIRC_DEBUG_SCRIPT
-    qDebug() << "TScript::_runf_private2(" << pos << "," << *parName <<  ", [&result]);";
+    qDebug() << "TScript::_runf_private2(" << pos << "," << localVar.count() <<  ", [&result]);";
     #endif
 
     /* Here we run functions we _know_ exist. Do not run this one directly.
@@ -231,7 +231,7 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
     };
 
     int ex = ex_BraceOpen; // Begin with expecting parameters.
-    int state = ex_Param;
+    int state = st_Param;
 
     int nl = 0; // Nesting level.
     int nl_ignore = 0; // If an IF statement went false, set this to the nesting level we will return executing.
@@ -300,6 +300,7 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
                 ex = ex_Literal;
                 keyword.clear();
             }
+
             continue;
         }
 
@@ -424,11 +425,12 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
                 // This one can do some cleaning up or rewrite... Remember to fix "while" too.
 
                 int pn = 0; // Paranthesis nest
-                bool waitPB = true; // Wait for paranthesis at beginning
-                QString logic = "(";
+                bool waitPB = true; // Wait for Paranthesis at Beginning
+                QString logic = "("; // What's being parsed will always begin with paranthesis.
                 for (; i <= scriptstr.length()-1; i++) {
                     cc = scriptstr[i];
                     if (waitPB) {
+                        // Wait for parser to reach first occurence of a paranthesis.
                         if ((cc == ' ') || (cc == '\t'))
                             continue;
                         else if (cc == '(') {
@@ -440,20 +442,28 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
                             return se_UnexpectedToken;
                     }
 
+                    // Add data to logic for parse
                     logic += cc;
 
+                    // count paranthesis nests
                     if (cc == '(')
                         pn++;
                     if (cc == ')')
                         pn--;
+
+                    // Done adding data to logic.
                     if (pn == 0)
                         break;
 
                 }
 
+                // Finished loop and the paranthesis isn't back to zero,
+                // means we've messed up the parantheesises in script.
+                // This is an un-recoverable error. Parser stops.
                 if (pn != 0)
                     return se_UnexpectedToken;
 
+                // Parse logic, form of (data)
                 bool ok = solveLogic(logic, localVar, localBinVar);
                 lastIFresult = ok;
 
@@ -2004,6 +2014,147 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
                 keyword.clear();
                 continue;
             }
+
+            /*#####################################*
+             *# EXECUTE EXTERNAL SCRIPT FUNCTIONS #*
+             *#####################################*/
+            // Purely for my own enjoyment, might be considered an unsafe way of scripting,
+            // but having fun isn't bad, is it?
+
+            /* Uncomment yourself to use this. Use at own risk. By the way, events existing in these scripts will be useless.
+
+            if (keywup == "EXEC") {
+                // exec scriptfile.iii function %returnvar param1 param2 param3 ...
+                QString file;
+                QString function;
+                QString returnvar;
+                QString param;
+                QStringList parameters;
+
+                enum {
+                    ex_wait = 0,
+                    ex_filename,
+                    ex_function,
+                    ex_returnvar,
+                    ex_params
+                };
+
+                int expect = ex_wait; // wait through the beginning whitespace...
+                for (; i <= scriptstr.length()-1; ++i) {
+                    QChar c = scriptstr[i];
+                    if (expect == ex_wait) {
+                        if (c != ' ') {
+                            expect = ex_filename;
+                            file += c;
+                        }
+                        if (c == '\n')
+                            return se_UnexpectedNewline;
+
+                        continue;
+                    }
+
+                    if (expect == ex_filename) {
+                        if (c == '\n')
+                            return se_UnexpectedNewline;
+
+                        if (c == ' ') {
+                            expect = ex_function;
+                            continue;
+                        }
+
+                        file += c;
+                        continue;
+                    }
+
+                    if (expect == ex_function) {
+                        if (c == '\n')
+                            return se_UnexpectedNewline;
+
+                        if (c == ' ') {
+                            expect = ex_returnvar;
+                            continue;
+                        }
+
+                        function += c;
+                        continue;
+                    }
+
+                    if (expect == ex_returnvar) {
+                        if (c == '\n')
+                            return se_UnexpectedNewline;
+
+                        if (c == ' ') {
+                            if (returnvar[0] != '%')
+                                return se_MissingVariable;
+                            expect = ex_params;
+                            continue;
+                        }
+
+                        returnvar += c;
+                        continue;
+                    }
+
+                    if (expect == ex_params) {
+                        if (c == '\n') {
+                            if (param.isEmpty())
+                                return se_UnexpectedNewline;
+                            else {
+                                extract(param, localVar, localBinVar);
+                                parameters << param;
+                            }
+
+                            break;
+                        }
+
+                        if (c == ' ') {
+                            extract(param, localVar, localBinVar);
+                            parameters << param;
+                            param.clear();
+                            continue;
+                        }
+
+                        param += c;
+                        continue;
+                    }
+
+                }
+
+                extract(file, localVar, localBinVar);
+                extract(function, localVar, localBinVar);
+
+                TScript exec(parent(), scriptParent, dlgParent, file, conList, winList, activeWid, activeConn);
+                exec.loadScript2();
+
+                connect(&exec, SIGNAL(error(QString)),
+                           this, SIGNAL(error(QString)));
+
+                connect(&exec, SIGNAL(warning(QString)),
+                           this,SIGNAL(warning(QString)));
+
+                connect(&exec, SIGNAL(echo(QString)),
+                           this, SIGNAL(echo(QString)));
+
+                connect(&exec, SIGNAL(echo(QString,QString)),
+                           this, SIGNAL(echo(QString,QString)));
+
+                connect(&exec, SIGNAL(execCmdSignal(QString)),
+                           this, SIGNAL(execCmdSignal(QString)));
+
+                QString r;
+                exec.runf(function.toUpper(), parameters, r);
+
+                localVar.insert(returnvar, r);
+
+                disconnect(&exec);
+                exec.deleteLater();
+
+                keyword.clear();
+                continue;
+            }
+
+            * END OF "EXEC"
+            */
+
 
             /*##################################################################################*
              *##################################################################################*

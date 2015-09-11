@@ -22,6 +22,7 @@
 #include "math.h"
 #include "iwin.h"
 #include "iconnection.h"
+#include "tscript.h"
 
 #include <iostream>
 #include <QDateTime>
@@ -30,11 +31,14 @@
 #include <QApplication>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QFile>
+#include <QDir>
+#include <QFileInfoList>
 
 TScriptInternalFunctions::TScriptInternalFunctions(TSockFactory *sf, QHash<QString,int> *functionindex,
                                                    QHash<QString,TCustomScriptDialog*> *dlgs, QHash<int,t_sfile> *fl,
                                                    QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl,
-                                                   int *aWid, int *aConn, QObject *parent) :
+                                                   int *aWid, int *aConn, TScript *scr, QObject *parent) :
     QObject(parent),
     sockfactory(sf),
     fnindex(functionindex),
@@ -44,7 +48,8 @@ TScriptInternalFunctions::TScriptInternalFunctions(TSockFactory *sf, QHash<QStri
     activeWid(aWid),
     activeConn(aConn),
     winList(wl),
-    conList(cl)
+    conList(cl),
+    script(scr)
 {
     st.add_pi();
     ex.register_symbol_table(st);
@@ -213,6 +218,88 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             result = "TXTINPUT";
         else
             result = "UNKNOWN";
+
+        return true;
+    }
+
+    if (fn == "DIR") {
+        // $dir(directory, N, O)
+        //
+        // N index of directory; N=0 counts all items inside the dir and return the result.
+        // N>0 specifies each item inside the dir and returns the item name
+        //
+        // O is options.
+        // 'h' shows hidden files.
+        // 's' lists all items in the dir, separated by 0x01 character.
+        //   The 's' option ignores N, so the convention will be set N=0 when using O=s.
+        // 'e' determines if directory exist or not. returns 1 if true, 0 otherwise.
+        //   The 'e' option ignores N.
+
+        if ((param.count() < 2) || (param.count() > 3))
+            return false;
+
+        QString dir = param[0];
+        QString N = param[1];
+        QString O;
+
+        QDir dobj(dir);
+
+        if (param.count() == 3)
+            O = param[2];
+
+        dobj.setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
+
+        qDebug() << dir << N << O;
+
+        if (O.contains('h')) // Show hidden files
+            dobj.setFilter(QDir::NoDotAndDotDot | QDir::Hidden | QDir::AllEntries);
+
+        if (O.contains('s')) {
+            // List all files to result, separated by :
+            if (! dobj.exists())
+                return false;
+/*
+            QStringList dlist = dobj.entryList(dobj.filter(), QDir::Name | QDir::DirsFirst);
+            qDebug() << "dlist:" << dlist;
+            for (int i = 0; i <= dlist.count()-1; ++i)
+                if (result.isEmpty())
+                    result += dlist[i];
+                else
+                    result += QChar(':') + dlist[i];
+*/
+
+            QFileInfoList files = dobj.entryInfoList(dobj.filter(), QDir::Name | QDir::DirsFirst);
+            qDebug() << "Listing files";
+            foreach (QFileInfo file, files) {
+                QString name = file.fileName();
+                if (file.isDir()) {
+                    if (result.isEmpty())
+                        result += name + "/";
+                    else
+                        result += ":" + name + "/";
+                }
+                else {
+                    if (result.isEmpty())
+                        result += name;
+                    else
+                        result += ":" + name;
+                }
+            }
+
+            return true;
+        }
+
+        if (O.contains('e')) {
+            // Check if specified directory exist.
+            if (dobj.exists())
+                result = "1";
+            else
+                result = "0";
+
+            return true;
+        }
+
+        // Do regular directory listing here
 
         return true;
     }
@@ -625,6 +712,12 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         if (type == "EXEC")
             result = QApplication::applicationDirPath();
 
+        if (type == "SCRIPT") {
+            QString fullfn = script->getPath();
+            QString fn = fullfn.split('/')[fullfn.split('/').count()-1];
+            result = fullfn.mid(0, fullfn.length()-fn.length());
+        }
+
         return true;
     }
 
@@ -635,6 +728,15 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
         int lo = param[0].toInt();
         int hi = param[1].toInt();
         result = rand(lo, hi);
+        return true;
+    }
+
+    if (fn == "READINI") {
+        // $ReadIni(file, section, item)
+        if (param.length() < 3)
+            return false;
+
+        result = IniFile(param[0]).ReadIni(param[1], param[2]);
         return true;
     }
 
@@ -658,6 +760,24 @@ bool TScriptInternalFunctions::runFunction(QString function, QStringList param, 
             v = 0;
 
         result = QString::number(sin(v));
+        return true;
+    }
+
+    if (fn == "FSIZE") {
+        if (param.length() < 1)
+            return false;
+
+        QFile f(param[0]);
+        qint64 size = 0;
+        if (f.open(QIODevice::ReadOnly)) {
+            size = f.size();
+            f.close();
+        }
+        else
+            size = -1;
+
+        result = QString::number(size);
+
         return true;
     }
 

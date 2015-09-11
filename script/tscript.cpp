@@ -46,7 +46,7 @@ TScript::TScript(QObject *parent, TScriptParent *sp, QWidget *dialogParent, QStr
     QObject(parent),
     dlgParent(dialogParent),
     scriptParent(sp),
-    ifn(&sockets, &fnindex, &dialogs, &files, cl, wl, aWid, aConn),
+    ifn(&sockets, &fnindex, &dialogs, &files, cl, wl, aWid, aConn, this),
     filename(fname),
     rootNicklistMenu(NULL),
     rootChannelMenu(NULL),

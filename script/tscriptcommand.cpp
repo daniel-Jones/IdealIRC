@@ -308,6 +308,49 @@ bool TScriptCommand::parse(QString &command)
         return true;
     }
 
+    if (acmd == "SETINI") {
+        // setini file.ini sect item [data]
+
+        if (token.count() < 4) {
+            echo("STATUS", tstar, InvalidParameterCount("SetIni"));
+            return true;
+        }
+
+        QString file = token[1];
+        QString sect = token[2];
+        QString item = token[3];
+        QString data;
+
+        int l = file.length() + sect.length() + item.length() + 10;
+        data = command.mid(l);
+
+        IniFile(file).WriteIni(sect, item, data);
+
+        return true;
+    }
+
+    if (acmd == "UNSETINI") {
+        // setini file.ini sect [item]
+        // don't specify item, and entire section resets.
+
+        if ((token.count() < 3) || (token.count() > 4)) {
+            echo("STATUS", tstar, InvalidParameterCount("UnsetIni"));
+            return true;
+        }
+        QString file = token[1];
+        QString sect = token[2];
+        QString item;
+        if (token.count() == 4)
+            item = token[3];
+
+        if (item.isEmpty())
+            IniFile(file).DelSection(sect);
+        else
+            IniFile(file).DelIni(sect, item);
+
+        return true;
+    }
+
     // Reaching here means we did not find our command. The server should take care of it.
     // Find our current command handler.
     if (*activeConn > -1) {

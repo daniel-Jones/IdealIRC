@@ -32,6 +32,7 @@
 #include <QHash>
 #include "tsockfactory.h"
 #include "tcustomscriptdialog.h"
+#include "inifile.h"
 
 #include "exprtk/exprtk.hpp"
 
@@ -52,7 +53,7 @@ public:
     explicit TScriptInternalFunctions(TSockFactory *sf, QHash<QString,int> *functionIndex,
                                       QHash<QString,TCustomScriptDialog*> *dlgs, QHash<int,t_sfile> *fl,
                                       QHash<int,IConnection*> *cl, QHash<int,subwindow_t> *wl,
-                                      int *aWid, int *aConn, QObject *parent = 0);
+                                      int *aWid, int *aConn, TScript *scr, QObject *parent = 0);
 
     bool runFunction(QString function, QStringList param, QString &result);
     QString calc(QString expr); // This one should go public since it also interprets string literals for calculation.
@@ -74,6 +75,8 @@ private:
     QHash<int,IConnection*> *conList; //!< List of all IRC connections.
     subwindow_t getCustomWindow(QString name);
     subwindow_t getCustomWindow(int wid);
+
+    TScript *script;
 
     int lastbtn; //!< Last button pushed within $MsgBox() function.
 
