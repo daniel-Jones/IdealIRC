@@ -32,10 +32,10 @@ TScriptEditorHighlighter::TScriptEditorHighlighter(QTextDocument *document, conf
 
     metaKeywords << "INCLUDE" << "EVENT" << "COMMAND" << "TIMER" << "STIMER";
 
-    scriptKeywords << "VAR"      << "DEL"   << "INC"    << "DEC" << "DLG"
-                   << "ECHO"     << "CON"   << "WCON"   << "SCON" << "DCON"
-                   << "FREAD"    << "FSEEK" << "FWRITE" << "FCLOSE"  << "SOCK"
-                   << "TOOLBAR" << "LOCAL VAR";
+    scriptKeywords << "VAR"      << "DEL"       << "INC"    << "DEC" << "DLG"
+                   << "ECHO"     << "CON"       << "WCON"   << "SCON" << "DCON"
+                   << "FREAD"    << "FSEEK"     << "FWRITE" << "FCLOSE"  << "SOCK"
+                   << "TOOLBAR"  << "LOCAL VAR" << "EXEC"   << "LOAD";
 
     QWidget w;
 }

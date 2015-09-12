@@ -1118,7 +1118,7 @@ void IdealIRC::rebuildCustomToolbar()
     while (ib.hasNext()) {
         QAction *btn = ib.next();
         disconnect(btn, SIGNAL(triggered())); // Disconnect from signal mapper
-        btn->deleteLater(); // Mark object for deletion
+        delete btn; // Delete button from toolbar (and memory)
     }
     customToolButtons.clear(); // Reset button list
 

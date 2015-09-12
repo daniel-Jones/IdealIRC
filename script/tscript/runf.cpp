@@ -21,6 +21,9 @@
 #include "../tscript.h"
 #include "constants.h"
 
+#include "../tscriptparent.h"
+#include <QMessageBox>
+
 /*!
  * \param function Function name
  * \param param Parameter list
@@ -2155,6 +2158,69 @@ e_scriptresult TScript::_runf_private2(int pos, QHash<QString,QString> &localVar
             * END OF "EXEC"
             */
 
+            if (keywup == "LOAD") {
+                /* Load scripts into script parent, stores it in configuration.
+                    load %E path/to/script.iis
+                    Here, after loading, %E will contain either 1 or 0, where 1 mean loaded OK; stored as local variable.
+                */
+
+                QString codevar; // "load ok" variable
+                QString file; // path to script
+
+                // Expect
+                enum {
+                    ex_Wait = 0,
+                    ex_ECode,
+                    ex_Path
+                };
+                int expect = ex_Wait;
+
+                // Parse the exec parameters
+                for (; i <= scriptstr.length()-1; ++i) {
+                    QChar c = scriptstr[i];
+                    if (expect == ex_Wait) {
+                        if (c != ' ')
+                            expect = ex_ECode;
+                        else
+                            continue;
+                    }
+
+                    if (expect == ex_ECode) {
+                        if (c == ' ') {
+                            expect = ex_Path;
+                            continue;
+                        }
+                        codevar += c;
+                        continue;
+                    }
+
+                    if (expect == ex_Path) {
+                        if (c == '\n')
+                            break;
+                        file += c;
+                    }
+                }
+
+                int btn = QMessageBox::question(dlgParent, tr("Script about to load"),
+                                                           tr("The script '%1' is about to load the following script:\n%2\nAllow loading?")
+                                                             .arg(name)
+                                                             .arg(file)
+                                                );
+
+                if (btn == QMessageBox::No) {
+                    localVar.insert(codevar, "0");
+                    keyword.clear();
+                    continue;
+                }
+
+                bool ok = scriptParent->loadScript(file);
+                if (ok)
+                    scriptParent->saveLoadedScripts();
+                localVar.insert(codevar, QString::number(ok));
+
+                keyword.clear();
+                continue;
+            }
 
             /*##################################################################################*
              *##################################################################################*
