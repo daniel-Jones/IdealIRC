@@ -272,7 +272,10 @@ void IdealIRC::closeEvent(QCloseEvent *e)
     for (int i = 0; i <= cl.count()-1; i++)
         cl[i]->closeConnection(true);
     readyToClose = true;
-    close(); // final close attempt
+    if (! close()) // final close attempt
+        e->ignore();
+    else
+        e->accept();
 }
 
 void IdealIRC::resizeEvent(QResizeEvent *e)

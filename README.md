@@ -1,7 +1,7 @@
 IdealIRC
 ========
 
-Author: Tom-Andre Barstad, 2015
+(c) 2015 Tom-Andre Barstad and Contributors
 
 
 ### Contributors:
@@ -29,6 +29,7 @@ That's about it.
 
 ### HOW TO CONRIBUTE?
 
-For the time being (December 2013) you could send me your .patch file on E-mail, post@tomatix.com and I'll review it.  
-If it's good and I think this is awesome/required/whatever, it's applied and if you wish you could be added as Contributor, just make sure you send me the details you'd like me to add, such as your name/nickname, email (optional).
-
+For the time being (September 2015) you could send me your .patch file on E-mail, post@tomatix.com and I'll review it.
+Stop by irc.3pg.org #Offtopic aswell!
+If it's good and I think this is awesome/required/whatever, it's applied. I don't bite!
+if you wish you could be added as Contributor, just make sure you send me the details you'd like me to add, such as your name/nickname, email (optional).

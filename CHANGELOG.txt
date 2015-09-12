@@ -1,13 +1,46 @@
+0.4.3 - September 12th 2015
+ * Receiving data from an IPv6 member malformed their messages. Fixed.
+ * More options for background-images
+ * Fixed crashing background images
+ * Fixed proper skeleton copying for Linux Stand-alone.
+ * Closing IdealIRC when a connection is active didn't really shut down the program in some cases. Should now be fixed.
+ * Link handling in text-view got some improvements.
+ * Script editor fixes:
+   - Setting font + size wasn't done properly.
+   - Updating the code highlighter wasn't done when colors were customized
+   - Added background color, text color and line-number area color customization
+   - When saving and switching between files, the text-cursor lived its own life
+   - Removed the "Reload Script" from script manager, script reloads when you save instead.
+ * Addition to script editor: "Execution Explorer"
+   This one lets you monitor variable changes, manipulate data, etc in a script.
+ * Channel names now clickable.
+ * Clicking on a nickname inside the "Sender" margin, now brings up the nicklist menu (channels only)
+ * Script additions:
+   - Scripting now have local variables. By default, variables are global unless using "local var" instruction.
+   - Function parameters are set as local variables
+   - New operator === and !== (Is Exactly Equal, Is Not Exactly Equal)
+   - New instructions:
+      SetIni file.ini Section Item Data (Data is optional)
+      UnsetIni file.ini Section Item (Item is optional: Will remove entire section if omitted)
+      Load %E path/to/script.iis - Loads a script. See wiki for details.
+      Toolbar -aidf name args - Add own buttons to the toolbar and Tools menu. See wiki for details.
+   - New functions:
+      $Dir(directory, N, O) : List contents in a directory, updating wiki for details by next release
+      $Script : Returns full path plus script filename
+      $ReadIni(file.ini, section, item) : Read data from ini file
+      $FSize(file) : Returns size of file in bytes
+
+
 0.4.2 - May 13th 2015
-* Fix: Some data received may contain no colons, resulting in no messages displayed in status.
-* Fix: Entering commands from ICommand in custom windows caused crash.
-* Fix: When parting one channel and bringing up a context menu for another channel crashes.
-* Now the custom windows is bound to is the previous active IRC connection (either from channel, status, query,..)
-* English grammar fixes.
-* Added timeout on connection attempt to dead ends.
-* Small cosmetic fixes on the text view
-* New feature: Background image on text view. This will be more configurable.
-* New command: /clear
+ * Fix: Some data received may contain no colons, resulting in no messages displayed in status.
+ * Fix: Entering commands from ICommand in custom windows caused crash.
+ * Fix: When parting one channel and bringing up a context menu for another channel crashes.
+ * Now the custom windows is bound to is the previous active IRC connection (either from channel, status, query,..)
+ * English grammar fixes.
+ * Added timeout on connection attempt to dead ends.
+ * Small cosmetic fixes on the text view
+ * New feature: Background image on text view. This will be more configurable.
+ * New command: /clear
 
 0.4.1 - Jan 4th 2015
  * Escape characters improved in scripting:

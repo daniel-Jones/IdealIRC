@@ -587,7 +587,7 @@ void IIRCView::paintEvent(QPaintEvent *)
                 ++ln;
 
                 // we're now entering an URL.
-                if (urlpos.contains(ic)) {
+                if ((urlpos.contains(ic)) && (! readURL)) {
                     readURL = true;
                     paintLink = true;
                     anchor.P1 = QPoint(X, Y-fm->height()+4);
@@ -708,7 +708,10 @@ void IIRCView::paintEvent(QPaintEvent *)
                 if ((ic == 0) && (!readURL))
                     url.clear();
 
-                if (c == ' ') {
+                if (c != ' ')
+                    url += c;
+
+                if ((c == ' ') || ((! si.hasNext()) && (ic == line.length()-1))) {
                     if (readURL) {
                         // Create url
                         readURL = false;
@@ -723,31 +726,15 @@ void IIRCView::paintEvent(QPaintEvent *)
 
                     url.clear();
                 }
-                if (c != ' ')
-                    url += c;
 
                 if ((ic == line.length()-1) && (readURL)) {
                     // End of line, add anchor coords and expect to begin on next line
                     // with same url...
                     anchor.P2 = QPoint(X+fw, Y);
                     addUrl << anchor;
-
-                    if (! si.hasNext()) {
-                        // this is also last line to send out if this printline.
-                        readURL = false;
-                        paintLink = false;
-
-                        anchor.P2 = QPoint(X+fw, Y);
-
-                        addUrl << anchor;
-                        setAnchorUrl(&addUrl, url);
-                        anchors << addUrl;
-
-                        painter.setPen( getColorFromType(pl.type) );
-                    }
                 }
 
-                if ((ic == 0) && (readURL)) // URL continues... prepare it.
+                else if ((ic == 0) && (readURL)) // URL continues... prepare it.
                     anchor.P1 = QPoint(X, Y-fontSize+3);
 
                 X += fw;

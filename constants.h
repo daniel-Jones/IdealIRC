@@ -46,8 +46,8 @@
 #define CONSTANTS_H
 
 /* Version constants */
-#define VERSION_STRING "0.4.2" //<! Human readable version, the official version.
-#define VERSION_INTEGER 20 //<! Increased by one for each release. Used to check for new versions if enabled.
+#define VERSION_STRING "0.4.3" //<! Human readable version, the official version.
+#define VERSION_INTEGER 21 //<! Increased by one for each release. Used to check for new versions if enabled.
 
 //#define IIRC_DEBUG_SCRIPT 1
 //#define IIRC_DEBUG_TWIN 1
@@ -100,7 +100,11 @@
     #define COMMON_PATH QApplication::applicationDirPath()
   #else
     #define CONF_PATH QString("%1/.idealirc").arg(QStandardPaths::writableLocation(QStandardPaths::HomeLocation))
-    #define COMMON_PATH "/usr/share/idealirc"
+    // Compilations meant to be stored in .deb .rpm or similar, should use the line below
+    //#define COMMON_PATH "/usr/share/idealirc"
+
+    // Pre-compiled "packaged" linux version is as of now, distributed in a tar.gz file to extract wherever the user wants.
+    #define COMMON_PATH QApplication::applicationDirPath()
   #endif
   #define SKEL_PATH QString("%1/skel").arg(COMMON_PATH)
 #endif
