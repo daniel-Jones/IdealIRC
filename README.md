@@ -1,6 +1,9 @@
 IdealIRC
 ========
 
+Fork by Daniel Jones (daniel_j) 
+I wanted to use IdealIRC and make it more ideal to myself.
+
 (c) 2015 Tom-Andre Barstad and Contributors
 
 
