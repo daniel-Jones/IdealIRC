@@ -126,3 +126,4 @@ void IChannelList::on_btnJoin_clicked()
     connection->sockwrite(QString("JOIN %1")
                             .arg(index.data().toString()));
 }
+

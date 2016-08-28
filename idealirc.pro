@@ -172,3 +172,6 @@ OTHER_FILES += \
     LICENSE.txt \
     idealirc.rc \
     README
+
+DISTFILES += \
+    todo.txt

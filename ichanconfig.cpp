@@ -657,6 +657,3 @@ void IChanConfig::on_banEdit_clicked()
 {
     btnEditMask(MT_BAN);
 }
-
-
-

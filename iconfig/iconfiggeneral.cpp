@@ -43,7 +43,6 @@ IConfigGeneral::IConfigGeneral(config *cfg, IConnection *con, QWidget *parent) :
 
     ui->chkCheckVersion->setChecked( conf->checkVersion );
 
-
     /// Load what our current server is (the label).
     QString lbServer = conf->server;
 

@@ -1,0 +1,5 @@
+live preview of config changes (bg image and opacity)
+key presses to change window
+add close buttons for dialogs (tiling wm has no close icon decorations) - DONE
+
+

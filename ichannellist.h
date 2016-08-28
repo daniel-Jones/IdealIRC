@@ -53,6 +53,7 @@ private slots:
     void on_btnDownload_clicked();
     void on_btnJoin_clicked();
 
+
 private:
     Ui::IChannelList *ui; //!< Qt Creator generated GUI class.
     IConnection *connection; //!< The IRC connection this dialog is bound to.
